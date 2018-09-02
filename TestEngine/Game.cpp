@@ -19,10 +19,11 @@ bool Game::OnStop() {
 
 bool Game::OnUpdate() {
 	m_counter++;
-	std::cout << "Loop! " << m_counter << std::endl;
-	if (m_counter < 5) {
+	//std::cout << "Loop! " << m_counter << std::endl;
+	/*if (m_counter < 5) {
 		return true;
 	} else {
 		return false;
-	}
+	}*/
+	return true;
 }

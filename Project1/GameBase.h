@@ -14,6 +14,6 @@ protected:
 	virtual bool OnStart() = 0;
 	virtual bool OnStop() = 0;
 	virtual bool OnUpdate() = 0;
-	Renderer* m_renderer;
-	Window* m_window;
+	Renderer* m_pRenderer;
+	Window* m_pWindow;
 };
