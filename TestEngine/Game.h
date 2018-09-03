@@ -1,5 +1,6 @@
 #pragma once
-#include "GameBase.h"
+#include "Headers\GameBase.h"
+#include "Headers\Triangle.h"
 
 class Game: public GameBase {
 public:
@@ -11,4 +12,5 @@ private:
 	bool OnStop() override;
 	bool OnUpdate() override;
 	int m_counter;
+	Triangle* m_triangle;
 };
