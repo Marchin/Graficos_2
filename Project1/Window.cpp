@@ -47,11 +47,6 @@ void Window::PollEvents() {
 	glfwPollEvents();
 }
 
-void Window::Refresh() {
-	glClearColor(0.0f, 0.0f, 1.f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glfwSwapBuffers((GLFWwindow*)m_pWindow);
-}
 
 void* Window::GetWindow() {
 	return m_pWindow;

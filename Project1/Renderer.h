@@ -7,6 +7,9 @@ public:
 	~Renderer();
 	bool Start();
 	bool Stop();
+	void Clear();
+	void FillColor(float red, float green, float blue);
+	void SwapBuffers(void* pWindow);
 private:
 
 };

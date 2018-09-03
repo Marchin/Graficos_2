@@ -7,7 +7,6 @@ public:
 	bool Stop();
 	bool ShouldClose();
 	void PollEvents();
-	void Refresh();
 	void* GetWindow();
 private:
 	void* m_pWindow;
