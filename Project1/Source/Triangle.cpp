@@ -2,8 +2,8 @@
 #include "../Headers/VertexBufferLayout.h"
 #include <glfw3.h>
 
-Triangle::Triangle(Material material, void* data, unsigned int size) 
-	:m_material(material), m_vb(data, size) {
+Triangle::Triangle(Renderer* pRenderer, Material material, void* data, unsigned int size)
+	:m_material(material), m_vb(data, size), m_pRender(pRenderer) {
 
 	VertexBufferLayout layout;
 	layout.Push<float>(3);
@@ -13,5 +13,5 @@ Triangle::Triangle(Material material, void* data, unsigned int size)
 void Triangle::Draw() {
 	m_material.Bind();
 	m_va.Bind();
-	GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+	m_pRender->DrawTriangles(0, 3);
 }

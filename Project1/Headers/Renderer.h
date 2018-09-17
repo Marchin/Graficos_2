@@ -23,6 +23,7 @@ public:
 	void Clear();
 	void FillColor(float red, float green, float blue);
 	void SwapBuffers(void* pWindow);
+	void DrawTriangles(unsigned int offset, unsigned int count);
 private:
 
 };

@@ -17,7 +17,7 @@ bool Game::OnStart() {
 	Shader program("Resources/Shaders/Shader1/vShader.glsl",
 		"Resources/Shaders/Shader1/fShader.glsl");
 	Material material(program);
-	m_triangle = new Triangle(material, &vertices, sizeof(vertices));
+	m_triangle = new Triangle(m_pRenderer ,material, &vertices, sizeof(vertices));
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
 }

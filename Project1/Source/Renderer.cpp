@@ -30,6 +30,10 @@ void Renderer::SwapBuffers(void* pWindow) {
 	GLCall(glfwSwapBuffers((GLFWwindow*)pWindow));
 }
 
+void Renderer::DrawTriangles(unsigned int offset, unsigned int count) {
+	GLCall(glDrawArrays(GL_TRIANGLES, offset, count));
+}
+
 void GLClearError() {
 	while (glGetError() != GL_NO_ERROR);
 }
