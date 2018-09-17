@@ -12,6 +12,9 @@ Triangle::Triangle(Renderer* pRenderer, Material material, void* data, unsigned 
 
 void Triangle::Draw() {
 	m_material.Bind();
+	m_pRender->ResetModelMatrix();
+	m_pRender->MultiplyModelMatrix(GetModelMatrix());
+	m_material.SetMatrixProperty("model", GetModelMatrix());
 	m_va.Bind();
 	m_pRender->DrawTriangles(0, 3);
 }

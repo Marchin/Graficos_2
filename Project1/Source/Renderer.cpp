@@ -3,6 +3,9 @@
 #include <glfw3.h>
 
 Renderer::Renderer() {
+	m_model = glm::mat4(1.f);
+	m_view= glm::mat4(1.f);
+	m_projection = glm::mat4(1.f);
 }
 
 Renderer::~Renderer() {
@@ -32,6 +35,18 @@ void Renderer::SwapBuffers(void* pWindow) {
 
 void Renderer::DrawTriangles(unsigned int offset, unsigned int count) {
 	GLCall(glDrawArrays(GL_TRIANGLES, offset, count));
+}
+
+void Renderer::ResetModelMatrix() {
+	m_model = glm::mat4(1.f);
+}
+
+void Renderer::MultiplyModelMatrix(glm::mat4 transformation) {
+	m_model *= transformation;
+}
+
+glm::mat4 Renderer::GetModelViewProj() const {
+	return (m_projection * m_view * m_model);
 }
 
 void GLClearError() {
