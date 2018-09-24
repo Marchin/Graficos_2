@@ -1,7 +1,8 @@
 #pragma once
 #include "Export.h"
 #include "Shader.h"
-#include <glm.hpp>
+#include <glm/glm.hpp>
+
 
 class ENGINEDLL_API Material {
 public:

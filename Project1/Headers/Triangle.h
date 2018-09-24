@@ -14,5 +14,5 @@ private:
 	VertexArray m_va;
 	VertexBuffer m_vb;
 	Material m_material;
-	Renderer* m_pRender;
+	Renderer* m_pRenderer;
 };

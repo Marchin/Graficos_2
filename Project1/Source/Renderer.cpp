@@ -1,11 +1,12 @@
 #include "../Headers/Renderer.h"
 #include <iostream>
 #include <glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 Renderer::Renderer() {
 	m_model = glm::mat4(1.f);
-	m_view= glm::mat4(1.f);
-	m_projection = glm::mat4(1.f);
+	m_view= glm::lookAt(glm::vec3(0.f,0.f,0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
+	m_projection = glm::perspective(90.f, 16.f / 9.f, 0.001f, 100.f);
 }
 
 Renderer::~Renderer() {
@@ -43,6 +44,10 @@ void Renderer::ResetModelMatrix() {
 
 void Renderer::MultiplyModelMatrix(glm::mat4 transformation) {
 	m_model *= transformation;
+}
+
+void Renderer::SetModelMatrix(glm::mat4 model) {
+	m_model = model;
 }
 
 glm::mat4 Renderer::GetModelViewProj() const {

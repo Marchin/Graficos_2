@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Export.h"
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #define ASSERT(x) if(!(x)) __debugbreak();
 #define GLCall(x) GLClearError();\
 	x;\
@@ -27,6 +27,7 @@ public:
 	void DrawTriangles(unsigned int offset, unsigned int count);
 	void ResetModelMatrix();
 	void MultiplyModelMatrix(glm::mat4 matrix);
+	void SetModelMatrix(glm::mat4 model);
 	glm::mat4 GetModelViewProj() const;
 private:
 	glm::mat4 m_model;
