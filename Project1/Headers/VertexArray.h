@@ -11,6 +11,7 @@ public:
 	VertexArray();
 	~VertexArray();
 	void AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout);
+	void AddBufferByLocation(const VertexBuffer& vb, const VertexBufferLayout& layout, unsigned int location);
 	void Bind() const;
 	void Unbind() const;
 private:

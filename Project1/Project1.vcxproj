@@ -22,6 +22,7 @@
     <ClCompile Include="Libraries\glad.c" />
     <ClCompile Include="Libraries\stb_image.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\ColorSquare.cpp" />
     <ClCompile Include="Source\ElementBuffer.cpp" />
     <ClCompile Include="Source\Entity.cpp" />
     <ClCompile Include="Source\GameBase.cpp" />
@@ -37,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\ColorSquare.h" />
     <ClInclude Include="Headers\ElementBuffer.h" />
     <ClInclude Include="Headers\Entity.h" />
     <ClInclude Include="Headers\Export.h" />

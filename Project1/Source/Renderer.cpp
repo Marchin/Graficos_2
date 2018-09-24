@@ -35,7 +35,7 @@ void Renderer::SwapBuffers(void* pWindow) {
 }
 
 void Renderer::DrawBuffer(unsigned int offset, unsigned int count) {
-	GLCall(glDrawArrays(GL_TRIANGLES, offset, count));
+	GLCall(glDrawArrays(GL_TRIANGLE_STRIP, offset, count));
 }
 
 void Renderer::DrawElements(unsigned int count) {

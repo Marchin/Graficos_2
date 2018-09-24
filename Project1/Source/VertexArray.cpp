@@ -25,6 +25,17 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	}
 }
 
+void VertexArray::AddBufferByLocation(const VertexBuffer & vb, const VertexBufferLayout & layout, unsigned int location){
+	Bind();
+	vb.Bind();
+	const std::vector<VertexBufferElement>& elements = layout.GetElements();
+	unsigned int offset = 0;
+	const VertexBufferElement& element = elements[location];
+	GLCall(glVertexAttribPointer(location, element.count, element.type, element.normalized,
+		0, (const void*)offset));
+	GLCall(glEnableVertexAttribArray(location));
+}
+
 void VertexArray::Bind() const {
 	GLCall(glBindVertexArray(m_va));
 }

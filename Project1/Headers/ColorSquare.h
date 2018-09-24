@@ -9,7 +9,8 @@ class ENGINEDLL_API ColorSquare : public Entity {
 public:
 	ColorSquare(Renderer* pRenderer, Material material, void* position, void* color);
 	~ColorSquare() {}
-	void SetPoints(void* data);
+	void SetPoints(void* position);
+	void SetColors(void* color);
 	void Draw();
 private:
 	VertexArray m_va;
