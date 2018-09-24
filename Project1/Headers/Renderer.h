@@ -24,7 +24,8 @@ public:
 	void Clear();
 	void FillColor(float red, float green, float blue);
 	void SwapBuffers(void* pWindow);
-	void DrawTriangles(unsigned int offset, unsigned int count);
+	void DrawBuffer(unsigned int offset, unsigned int count);
+	void DrawElements(unsigned int count);
 	void ResetModelMatrix();
 	void MultiplyModelMatrix(glm::mat4 matrix);
 	void SetModelMatrix(glm::mat4 model);

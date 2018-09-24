@@ -5,7 +5,7 @@
 #include "VertexBuffer.h"
 #include "Renderer.h"
 
-class ENGINEDLL_API Triangle : Entity {
+class ENGINEDLL_API Triangle : public Entity {
 public:
 	Triangle(Renderer* pRenderer, Material material, void* data, unsigned int size);
 	~Triangle() {}

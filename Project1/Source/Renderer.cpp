@@ -5,8 +5,8 @@
 
 Renderer::Renderer() {
 	m_model = glm::mat4(1.f);
-	m_view= glm::lookAt(glm::vec3(0.f,0.f,0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f));
-	m_projection = glm::perspective(90.f, 16.f / 9.f, 0.001f, 100.f);
+	m_view= glm::lookAt(glm::vec3(0.f,0.f,3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	m_projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.f, 100.f);
 }
 
 Renderer::~Renderer() {
@@ -34,8 +34,12 @@ void Renderer::SwapBuffers(void* pWindow) {
 	GLCall(glfwSwapBuffers((GLFWwindow*)pWindow));
 }
 
-void Renderer::DrawTriangles(unsigned int offset, unsigned int count) {
+void Renderer::DrawBuffer(unsigned int offset, unsigned int count) {
 	GLCall(glDrawArrays(GL_TRIANGLES, offset, count));
+}
+
+void Renderer::DrawElements(unsigned int count) {
+	GLCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0));
 }
 
 void Renderer::ResetModelMatrix() {

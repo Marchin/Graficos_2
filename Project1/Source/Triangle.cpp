@@ -15,5 +15,5 @@ void Triangle::Draw() {
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
-	m_pRenderer->DrawTriangles(0, 3);
+	m_pRenderer->DrawBuffer(0, 3);
 }

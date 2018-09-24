@@ -35,7 +35,7 @@ void GameBase::Loop() {
 	while (!exit && !m_pWindow->ShouldClose()) {
 		m_pWindow->PollEvents();
 		m_pRenderer->Clear();
-		m_pRenderer->FillColor(1.f, 0.f, 0.f);
+		m_pRenderer->FillColor(0.1f, 0.1f, 0.1f);
 		exit = !OnUpdate();
 		m_pRenderer->SwapBuffers(m_pWindow->GetWindow());
 	}

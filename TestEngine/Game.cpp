@@ -17,7 +17,7 @@ bool Game::OnStart() {
 	Shader program("Resources/Shaders/Shader1/vShader.glsl",
 		"Resources/Shaders/Shader1/fShader.glsl");
 	Material material(program);
-	m_triangle = new Triangle(m_pRenderer ,material, &vertices, sizeof(vertices));
+	m_triangle = new Triangle(m_pRenderer, material, &vertices, sizeof(vertices));
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
 }
@@ -29,6 +29,13 @@ bool Game::OnStop() {
 
 bool Game::OnUpdate() {
 	m_counter++;
+	//m_triangle->Translate(sin(m_counter*0.01f), 1.f, sin(m_counter*0.01f));
+	//m_triangle->Scale(sin(m_counter*0.01f), 1.f, sin(m_counter*0.01f));
+	m_triangle->Scale(3.f, sin(m_counter*0.01f) * 3.f, 1.f);
+	//m_triangle->Translate(-sin(m_counter*0.01f), 0.f, 0.f);
+	m_triangle->RotateX(sin(m_counter*0.01f) * 180.f / 3.1415f);
+	m_triangle->RotateY(sin(m_counter*0.01f) * 180.f / 3.1415f);
+	m_triangle->RotateZ(sin(m_counter*0.01f) * 180.f / 3.1415f);
 	m_triangle->Draw();
 	//std::cout << "Loop! " << m_counter << std::endl;
 	/*if (m_counter < 5) {
