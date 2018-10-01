@@ -5,13 +5,15 @@
 #include "VertexBuffer.h"
 #include "Renderer.h"
 
-class ENGINEDLL_API Triangle : public Shape {
+class ENGINEDLL_API Circle : public Shape {
 public:
-	Triangle(Renderer* pRenderer, Material material, void* data, unsigned int size);
-	~Triangle() {}
+	Circle(Renderer* pRenderer, Material material, unsigned int sidesAmount = 10);
+	~Circle() {}
 	void Draw() override;
 	void SetVertices(void* data) override;
+	void SetSidesAmount(unsigned int amount);
 private:
+	unsigned int m_sides;
 	VertexArray m_va;
 	VertexBuffer m_vb;
 	Material m_material;

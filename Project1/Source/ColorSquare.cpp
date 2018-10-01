@@ -15,7 +15,7 @@ ColorSquare::ColorSquare(Renderer * pRenderer, Material material, void* position
 	m_va.AddBufferByLocation(m_vbColor, layoutColor, 1);
 }
 
-void ColorSquare::SetPoints(void* position) {
+void ColorSquare::SetVertices(void* position) {
 	m_vbPosition.SetData(position, 12 * sizeof(float));
 }
 
@@ -28,5 +28,5 @@ void ColorSquare::Draw(){
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
-	m_pRenderer->DrawBuffer(0, 4);
+	m_pRenderer->DrawBufferStrip(0, 4);
 }

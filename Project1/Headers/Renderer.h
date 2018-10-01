@@ -25,6 +25,8 @@ public:
 	void FillColor(float red, float green, float blue);
 	void SwapBuffers(void* pWindow);
 	void DrawBuffer(unsigned int offset, unsigned int count);
+	void DrawBufferStrip(unsigned int offset, unsigned int count);
+	void DrawBufferFan(unsigned int offset, unsigned int count);
 	void DrawElements(unsigned int count);
 	void ResetModelMatrix();
 	void MultiplyModelMatrix(glm::mat4 matrix);
