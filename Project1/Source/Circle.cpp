@@ -2,8 +2,8 @@
 #include "../Headers/VertexBufferLayout.h"
 #include <glfw3.h>
 
-Circle::Circle(Renderer* pRenderer, Material material, unsigned int sidesAmount)
-	: m_sides(sidesAmount), m_material(material), m_pRenderer(pRenderer) {
+Circle::Circle(Renderer* pRenderer, Material material, unsigned int sidesAmount, float radius)
+	: m_sides(sidesAmount), m_radius(radius), m_material(material), m_pRenderer(pRenderer) {
 
 	//Genero los strides para el VertexArray
 	VertexBufferLayout layout;
@@ -36,17 +36,22 @@ void Circle::SetSidesAmount(unsigned int amount) {
 	data[1] = 0.f;
 	data[2] = 0.f;
 
-	data[3] = 1.f;
+	data[3] = 1.f * m_radius;
 	data[4] = 0.f;
 	data[5] = 0.f;
 
 	for (unsigned i = 0; i < amount; i++) {
 		currAngle += rate;
-		data[6 + (i * 3)] = cos(currAngle);
-		data[7 + (i * 3)] = sin(currAngle);
+		data[6 + (i * 3)] = cos(currAngle) * m_radius;
+		data[7 + (i * 3)] = sin(currAngle) * m_radius;
 		data[8 + (i * 3)] = 0.f;
 	}
 
 	m_vb.SetData(data, sizeof(float) * ((2 + amount) * 3));
 	delete data;
+}
+
+void Circle::SetRadius(float radius) {
+	m_radius = radius;
+	SetSidesAmount(m_sides);
 }

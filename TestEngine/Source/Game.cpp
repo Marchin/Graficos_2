@@ -81,15 +81,12 @@ bool Game::OnUpdate() {
 	m_pColorSquare->SetPosition(2.f, 2.f, 0.f);
 	//m_pColorSquare->Draw();
 
-	if (m_counter % 100 == 0) {
-		if (m_sidesCounter < 20) {
-			m_sidesCounter++;
-		}
-		else {
-			m_sidesCounter--;
-		}
+	if (m_counter % 25 == 0) {
+		m_sidesCounter++;
+		m_sidesCounter %= 15;
 	}
 	m_pCircle->SetSidesAmount(m_sidesCounter);
+	m_pCircle->SetRadius(m_sidesCounter / 10.f);
 	m_pCircle->Draw();
 	return true;
 }
