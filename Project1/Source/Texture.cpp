@@ -2,7 +2,6 @@
 #include "../Headers/stb_image.h"
 #include "../Headers/Renderer.h"
 #include <iostream>
-#define PNG "gnp"
 
 namespace marchinGL {
 	Texture::Texture(unsigned int width, unsigned int height) {
@@ -15,8 +14,8 @@ namespace marchinGL {
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 	}
 
-	Texture::Texture(const char* imgPath, const GLint  TextureWrap_S, const GLint  TextureWrap_T,
-		const GLint  TextureMinFilter, const GLint  TextureMagFilter, const bool flipVertical) {
+	Texture::Texture(const char* imgPath, const bool flipVertical, const GLint  TextureWrap_S, const GLint  TextureWrap_T,
+		const GLint  TextureMinFilter, const GLint  TextureMagFilter) {
 
 		GLCall(glGenTextures(1, &m_texture));
 		GLCall(glBindTexture(GL_TEXTURE_2D, m_texture));
@@ -59,18 +58,4 @@ namespace marchinGL {
 		return m_texture;
 	}
 
-	inline GLenum Texture::AnalizeFormat(const char* imgPath) {
-		char format[8] = { 0 };
-		int j = strlen(imgPath) - 1;
-		int i = 0;
-
-		while (imgPath[j] != '.') {
-			format[i++] = imgPath[j--];
-		}
-		if (!strcmp(format, PNG)) {
-			return GL_RGBA;
-		} else {
-			return GL_RGB;
-		}
-	}
 }

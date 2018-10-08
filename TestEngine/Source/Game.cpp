@@ -26,6 +26,12 @@ bool Game::OnStart() {
 		0.f, 0.f, 1.f,
 		1.f, 1.f, 0.f
 	};
+	float squareUV[] = {
+		0.f, 0.f,
+		0.f, 1.f,
+		1.f, 0.f,
+		1.f, 1.f
+	};
 	Shader sShape("Resources/Shaders/Shader1/vShader.glsl",
 		"Resources/Shaders/Shader1/fShader.glsl");
 	Material materialShape(sShape);
@@ -33,9 +39,18 @@ bool Game::OnStart() {
 	Shader sColorSquare("Resources/Shaders/ColorShader/vColor.glsl",
 		"Resources/Shaders/ColorShader/fColor.glsl");
 	Material materialSquare(sColorSquare);
+
+
+	Shader sSprite("Resources/Shaders/ShaderTexture/vTexture.glsl",
+		"Resources/Shaders/ShaderTexture/fTexture.glsl");
+	Material materialSprite(sSprite);
+
 	m_pTriangle = new Triangle(m_pRenderer, materialShape, &vertices, sizeof(vertices));
 	m_pColorSquare = new ColorSquare(m_pRenderer, materialSquare, &squareVertices, &squareColors);
 	m_pCircle = new Circle(m_pRenderer, materialShape, m_sidesCounter);
+	const char* spritePath = "Resources/awesomeface.png";
+	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);
+
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
 }
@@ -87,6 +102,9 @@ bool Game::OnUpdate() {
 	}
 	m_pCircle->SetSidesAmount(m_sidesCounter);
 	m_pCircle->SetRadius(m_sidesCounter / 10.f);
-	m_pCircle->Draw();
+	//m_pCircle->Draw();
+
+	m_pSprite->Scale(3.f, 3.f, 1.f);
+	m_pSprite->Draw();
 	return true;
 }

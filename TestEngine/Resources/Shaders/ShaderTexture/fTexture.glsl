@@ -5,10 +5,8 @@ in vec2 vTexCoords;
 
 out vec4 fColor;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+uniform sampler2D tex;
 
 void main() {    
-  vec4 waste = texture(texture_specular1, vTexCoords);
-  fColor = texture(texture_diffuse1, vTexCoords);
+  fColor = texture(tex, vTexCoords);
 }

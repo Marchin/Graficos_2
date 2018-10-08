@@ -3,6 +3,7 @@
 #include "Headers\Triangle.h"
 #include "Headers\ColorSquare.h"
 #include "Headers\Circle.h"
+#include "Headers\Sprite.h"
 
 class Game: public GameBase {
 public:
@@ -18,4 +19,5 @@ private:
 	Triangle* m_pTriangle;
 	ColorSquare* m_pColorSquare;
 	Circle* m_pCircle;
+	Sprite* m_pSprite;
 };
