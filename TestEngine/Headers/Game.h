@@ -4,6 +4,7 @@
 #include "Headers\ColorSquare.h"
 #include "Headers\Circle.h"
 #include "Headers\Sprite.h"
+#include "Headers\SpriteSheet.h"
 
 class Game: public GameBase {
 public:
@@ -20,4 +21,5 @@ private:
 	ColorSquare* m_pColorSquare;
 	Circle* m_pCircle;
 	Sprite* m_pSprite;
+	SpriteSheet* m_pSpriteSheet;
 };

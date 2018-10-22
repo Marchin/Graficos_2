@@ -40,7 +40,6 @@ bool Game::OnStart() {
 		"Resources/Shaders/ColorShader/fColor.glsl");
 	Material materialSquare(sColorSquare);
 
-
 	Shader sSprite("Resources/Shaders/ShaderTexture/vTexture.glsl",
 		"Resources/Shaders/ShaderTexture/fTexture.glsl");
 	Material materialSprite(sSprite);
@@ -49,7 +48,10 @@ bool Game::OnStart() {
 	m_pColorSquare = new ColorSquare(m_pRenderer, materialSquare, &squareVertices, &squareColors);
 	m_pCircle = new Circle(m_pRenderer, materialShape, m_sidesCounter);
 	const char* spritePath = "Resources/Small-mario.png";
+	const char* spriteSheetPath = "Resources/spriteSheet2.png";
 	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);
+	m_pSpriteSheet = new SpriteSheet(m_pRenderer, materialSprite, spriteSheetPath, &squareVertices, &squareUV);
+	m_pSpriteSheet->SetFrameSize(64);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
@@ -104,7 +106,10 @@ bool Game::OnUpdate() {
 	m_pCircle->SetRadius(m_sidesCounter / 10.f);
 	//m_pCircle->Draw();
 
-	m_pSprite->Scale(3.f, 3.f, 1.f);
-	m_pSprite->Draw();
+	//m_pSprite->Scale(3.f, 3.f, 1.f);
+	//m_pSprite->Draw();
+
+	m_pSpriteSheet->Scale(3.f, 3.f, 1.f);
+	m_pSpriteSheet->Draw();
 	return true;
 }

@@ -29,6 +29,7 @@
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\Sprite.cpp" />
+    <ClCompile Include="Source\SpriteSheet.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureController.cpp" />
     <ClCompile Include="Source\Triangle.cpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="Headers\Shader.h" />
     <ClInclude Include="Headers\Shape.h" />
     <ClInclude Include="Headers\Sprite.h" />
+    <ClInclude Include="Headers\SpriteSheet.h" />
     <ClInclude Include="Headers\stb_image.h" />
     <ClInclude Include="Headers\Texture.h" />
     <ClInclude Include="Headers\TextureController.h" />
