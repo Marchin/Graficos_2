@@ -13,7 +13,7 @@ public:
 	void SetVertices(void* position) override;
 	void SetUV(void* uvCoords);
 	void Draw() override;
-private:
+protected:
 	VertexArray m_va;
 	VertexBuffer m_vbPosition;
 	VertexBuffer m_vbUV;

@@ -14,8 +14,12 @@ namespace marchinGL {
 		~Texture();
 		void Bind(unsigned int slot) const override;
 		unsigned int GetID() const override;
+		unsigned int GetWidth();
+		unsigned int GetHeight();
 	private:
 		unsigned int m_texture;
+		int m_width;
+		int m_height;
 	};
 }
 #endif //TEXTURE_H

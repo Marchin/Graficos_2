@@ -25,8 +25,8 @@ namespace marchinGL {
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureMagFilter));
 		stbi_set_flip_vertically_on_load(flipVertical);
 
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(imgPath, &width, &height, &nrChannels, 0);
+		int nrChannels;
+		unsigned char* data = stbi_load(imgPath, &m_width, &m_height, &nrChannels, 0);
 		if (data) {
 			GLenum format;
 			if (nrChannels == 1)
@@ -35,7 +35,7 @@ namespace marchinGL {
 				format = GL_RGB;
 			else if (nrChannels == 4)
 				format = GL_RGBA;
-			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height,
+			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height,
 				0, format, GL_UNSIGNED_BYTE, data));
 			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 		} else {
@@ -56,6 +56,14 @@ namespace marchinGL {
 
 	unsigned int Texture::GetID() const {
 		return m_texture;
+	}
+
+	unsigned int Texture::GetWidth() {
+		return m_width;
+	}
+
+	unsigned int Texture::GetHeight() {
+		return m_height;
 	}
 
 }

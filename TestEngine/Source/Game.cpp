@@ -48,7 +48,7 @@ bool Game::OnStart() {
 	m_pTriangle = new Triangle(m_pRenderer, materialShape, &vertices, sizeof(vertices));
 	m_pColorSquare = new ColorSquare(m_pRenderer, materialSquare, &squareVertices, &squareColors);
 	m_pCircle = new Circle(m_pRenderer, materialShape, m_sidesCounter);
-	const char* spritePath = "Resources/awesomeface.png";
+	const char* spritePath = "Resources/Small-mario.png";
 	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);
 
 	std::cout << "Game::OnStart()" << std::endl;
