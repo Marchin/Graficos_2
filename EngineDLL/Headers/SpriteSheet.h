@@ -12,6 +12,7 @@ class ENGINEDLL_API SpriteSheet : public Sprite {
 public:
 	SpriteSheet(Renderer * pRenderer, Material material, const char* texturePath, void * position, void * uv);
 	~SpriteSheet();
+	void SetFrame(unsigned int frame);
 	void SetFrameSize(unsigned int width, unsigned int height = 0);
 	void SetFramesPerRow(unsigned int rows);
 private:

@@ -10,7 +10,7 @@ bool Window::Start(unsigned int width, unsigned int height, const char * pName) 
 	m_height = height;
 	m_pName = pName;
 	if (!glfwInit()) {
-		return -1;
+		return false;
 	}
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -19,12 +19,12 @@ bool Window::Start(unsigned int width, unsigned int height, const char * pName) 
 	if (!m_pWindow) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 	glfwMakeContextCurrent((GLFWwindow*)m_pWindow);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
+		return false;
 	}
 	return true;
 }
@@ -50,7 +50,7 @@ bool Window::ShouldClose() {
 
 void Window::PollEvents() {
 	if (glfwGetKey((GLFWwindow*)m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose((GLFWwindow*)m_pWindow, true);
+		GLCall(glfwSetWindowShouldClose((GLFWwindow*)m_pWindow, true));
 	}
 	GLCall(glfwPollEvents());
 }
