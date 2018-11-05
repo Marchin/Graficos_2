@@ -134,5 +134,8 @@
     <ClInclude Include="Headers\SpriteSheet.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\CollisionManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

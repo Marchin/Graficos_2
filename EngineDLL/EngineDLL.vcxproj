@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Circle.h" />
+    <ClInclude Include="Headers\CollisionManager.h" />
     <ClInclude Include="Headers\ColorSquare.h" />
     <ClInclude Include="Headers\Entity.h" />
     <ClInclude Include="Headers\Export.h" />
