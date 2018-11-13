@@ -2,13 +2,12 @@
 #include "Headers/CollisionManager.h"
 #include "Headers/SpriteSheet.h"
 
-class Character
-{
+class Character : public SpriteSheet{
 public:
-	Character();
+	Character(Renderer* pRenderer);
 	~Character();
 
 private:
-	SpriteSheet* m_spriteSheet;
-	BoxCollider* m_boxCollider;
+	SpriteSheet* m_pSpriteSheet;
+	BoxCollider* m_pBoxCollider;
 };

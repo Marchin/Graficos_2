@@ -1,6 +1,6 @@
 #pragma once
 #include "Export.h"
-#include <glm.hpp>
+#include <glm/glm.hpp>
 class Entity;
 
 struct ENGINEDLL_API BoxCollider {

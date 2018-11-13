@@ -10,6 +10,7 @@ Game::~Game() {
 	delete m_pCircle;
 	delete m_pSprite;
 	delete m_pSpriteSheet;
+	delete m_pCharacter;
 }
 
 bool Game::OnStart() {
@@ -56,6 +57,8 @@ bool Game::OnStart() {
 	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);
 	m_pSpriteSheet = new SpriteSheet(m_pRenderer, materialSprite, spriteSheetPath, &squareVertices, &squareUV);
 	m_pSpriteSheet->SetFrameSize(64);
+	m_pCharacter = new Character(m_pRenderer, &squareVertices);
+	m_pCharacter2 = new Character(m_pRenderer, &squareVertices);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
@@ -67,7 +70,8 @@ bool Game::OnStop() {
 }
 
 bool Game::OnUpdate() {
-	m_counter++;
+
+	/*m_counter++;
 	m_pTriangle->SetPosition(-2.0f, -2.0f, 0.0f);
 	m_pTriangle->Scale(sin(m_counter*0.01f), 1.f, sin(m_counter*0.01f));
 	m_pTriangle->Scale(3.f, sin(m_counter*0.01f) * 3.f, 1.f);
@@ -124,6 +128,6 @@ bool Game::OnUpdate() {
 	}
 
 	m_pSpriteSheet->Scale(3.f, 3.f, 1.f);
-	m_pSpriteSheet->Draw();
+	m_pSpriteSheet->Draw();*/
 	return true;
 }

@@ -1,4 +1,5 @@
 #include "../Headers/GameBase.h"
+#include "../Headers/CollisionManager.h"
 #include <iostream>
 
 GameBase::GameBase() {
@@ -36,6 +37,7 @@ void GameBase::Loop() {
 		m_pWindow->PollEvents();
 		m_pRenderer->Clear();
 		m_pRenderer->FillColor(0.1f, 0.1f, 0.1f);
+		CollisionManager::GetInstance().Update();
 		exit = !OnUpdate();
 		m_pRenderer->SwapBuffers(m_pWindow->GetWindow());
 	}

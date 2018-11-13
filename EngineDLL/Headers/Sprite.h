@@ -8,7 +8,7 @@
 
 class ENGINEDLL_API Sprite : public Shape {
 public:
-	Sprite(Renderer* pRenderer, Material material, const char* texturePath, void* position, void* uv);
+	Sprite(Renderer* pRenderer, Material material, const char* texturePath, void* position = NULL, void* uv = NULL);
 	~Sprite() {}
 	void SetVertices(void* position) override;
 	void SetUV(void* uvCoords);

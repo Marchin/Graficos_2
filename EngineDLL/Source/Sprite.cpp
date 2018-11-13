@@ -13,6 +13,25 @@ Sprite::Sprite(Renderer * pRenderer, Material material, const char* texturePath,
 	m_texture.Bind(0);
 	material.SetIntProperty("tex",0);
 
+	if (position == NULL) {
+		float squareVertices[] = {
+			-0.5f, -0.5f, 0.f,
+			-0.5f,  0.5f, 0.f,
+			0.5f, -0.5f, 0.f,
+			0.5f,  0.5f, 0.f
+		};
+		SetUV(squareVertices);
+	}
+	if (uv == NULL) {
+		float squareUV[] = {
+			0.f, 0.f,
+			0.f, 1.f,
+			1.f, 0.f,
+			1.f, 1.f
+		};
+		SetUV(squareUV);
+	}
+
 	m_va.AddBufferByLocation(m_vbPosition, layoutPosition, 0);
 	m_va.AddBufferByLocation(m_vbUV, layoutUV, 1);
 }

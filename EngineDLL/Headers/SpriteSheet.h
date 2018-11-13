@@ -10,7 +10,7 @@ struct Coords {
 
 class ENGINEDLL_API SpriteSheet : public Sprite {
 public:
-	SpriteSheet(Renderer * pRenderer, Material material, const char* texturePath, void * position, void * uv);
+	SpriteSheet(Renderer * pRenderer, Material material, const char* texturePath, void * position = NULL, void * uv = NULL);
 	~SpriteSheet();
 	void SetFrame(unsigned int frame);
 	void SetFrameSize(unsigned int width, unsigned int height = 0);
