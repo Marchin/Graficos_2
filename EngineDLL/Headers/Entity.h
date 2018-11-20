@@ -7,6 +7,7 @@ class ENGINEDLL_API Entity {
 public:
 	Entity();
 	~Entity() {}
+	void GetPosition(float& x, float& y, float& z);
 	void SetPosition(float x, float y, float z);
 	void Translate(float x, float y, float z);
 	void RotateX(float angle);

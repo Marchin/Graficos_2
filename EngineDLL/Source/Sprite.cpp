@@ -15,12 +15,12 @@ Sprite::Sprite(Renderer * pRenderer, Material material, const char* texturePath,
 
 	if (position == NULL) {
 		float squareVertices[] = {
-			-0.5f, -0.5f, 0.f,
-			-0.5f,  0.5f, 0.f,
-			0.5f, -0.5f, 0.f,
-			0.5f,  0.5f, 0.f
+			-1.f, -1.f, 0.f,
+			-1.f,  1.f, 0.f,
+			1.f, -1.f, 0.f,
+			1.f,  1.f, 0.f
 		};
-		SetUV(squareVertices);
+		SetVertices(squareVertices);
 	}
 	if (uv == NULL) {
 		float squareUV[] = {

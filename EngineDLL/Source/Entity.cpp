@@ -13,6 +13,12 @@ Entity::Entity()
 	UpdateModel();
 }
 
+void Entity::GetPosition(float& x, float& y, float& z) {
+	x = m_position[3].x;
+	y = m_position[3].y;
+	z = m_position[3].z;
+}
+
 void Entity::SetPosition(float x, float y, float z){
 	m_translate = glm::vec3(x, y, z);
 	m_position = glm::translate(glm::mat4(1.0f), m_translate);
