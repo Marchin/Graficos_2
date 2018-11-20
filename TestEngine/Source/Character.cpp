@@ -36,6 +36,10 @@ Character::~Character() {
 void Character::Move(float x, float y, float z) {
 	if (!m_pBoxCollider->isStatic) {
 		m_pSpriteSheet->Translate(x, y, z);
+		m_pSpriteSheet->GetPosition(
+			m_pBoxCollider->position.x,
+			m_pBoxCollider->position.y,
+			m_pBoxCollider->position.z);
 	}
 }
 

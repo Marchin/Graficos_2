@@ -59,9 +59,9 @@ bool Game::OnStart() {
 	m_pSpriteSheet->SetFrameSize(64);
 
 	m_pCharacter = new Character(m_pRenderer);
+	m_pCharacter->Move(5.5f, .0f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
-	m_pCharacter->Move(0.f, 5.f, 0.f);
-	m_pCharacter2->SetStatic(true);
+	//m_pCharacter2->SetStatic(true);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
@@ -135,6 +135,6 @@ bool Game::OnUpdate() {
 	*/
 	m_pCharacter->Draw();
 	m_pCharacter2->Draw();
-	m_pCharacter->Move(0.f, -0.1f, 0.f);
+	m_pCharacter->Move(-0.1f, 0.f, 0.f);
 	return true;
 }
