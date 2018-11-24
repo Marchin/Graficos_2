@@ -25,4 +25,5 @@ private:
 	SpriteSheet* m_pSpriteSheet;
 	Character* m_pCharacter;
 	Character* m_pCharacter2;
+	Character* m_pCharacter3;
 };

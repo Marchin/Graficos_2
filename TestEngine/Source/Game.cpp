@@ -61,6 +61,8 @@ bool Game::OnStart() {
 	m_pCharacter = new Character(m_pRenderer);
 	m_pCharacter->Move(5.5f, .0f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
+	m_pCharacter3 = new Character(m_pRenderer);	
+	delete m_pCharacter3;
 	//m_pCharacter2->SetStatic(true);
 
 	std::cout << "Game::OnStart()" << std::endl;

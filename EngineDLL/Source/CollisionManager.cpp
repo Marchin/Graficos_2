@@ -11,8 +11,15 @@ CollisionManager* CollisionManager::GetInstance() {
 }
 
 void CollisionManager::Update() {
-	for (size_t i = 0; i < m_count - 1; i++){
-		for (size_t j = 1; j < m_count; j++) {
+	unsigned int counter = 0;
+	unsigned int counter2;
+	for (size_t i = 0; counter < m_count - 1; i++){
+		if (!m_colliders[i].isActive) { continue; }
+		counter++;
+		counter2 = counter;
+		for (size_t j = counter2; counter2 < m_count; j++) {
+			if (!m_colliders[j].isActive) { continue; }
+			counter2++;
 			if ((!m_colliders[i].isStatic && !m_colliders[i].isTrigger) ||
 				(!m_colliders[j].isStatic && !m_colliders[j].isTrigger)) {
 
@@ -23,11 +30,20 @@ void CollisionManager::Update() {
 }
 
 BoxCollider* CollisionManager::Register() {
-	return &m_colliders[m_count++];
+	int id;
+	for (id = 0; id < COLLIDERS_AMOUNT; id++) {
+		if (!m_colliders[id].isActive) {
+			m_count++;
+			m_colliders[id].isActive = true;
+			return &m_colliders[id];
+		}
+	}
+	return NULL;
 }
 
-void CollisionManager::Remove(BoxCollider * collider) {
-	//m_colliders.erase(std::find(m_colliders.begin(), m_colliders.end(), *collider));
+void CollisionManager::Remove(BoxCollider* collider) {
+	collider->isActive = false;
+	m_count--;
 }
 
 void CollisionManager::CheckCollision(int index1, int index2){

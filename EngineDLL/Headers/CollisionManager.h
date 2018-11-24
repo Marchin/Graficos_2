@@ -1,7 +1,7 @@
 #pragma once
-#include <array>
 #include "Export.h"
 #include "BoxCollider.h"
+#define COLLIDERS_AMOUNT 64
 
 class ENGINEDLL_API  CollisionManager {
 public:
@@ -13,6 +13,6 @@ public:
 private:
 	CollisionManager();
 	inline void CheckCollision(int index1, int index2);
-	std::array<BoxCollider, 64> m_colliders;
-	unsigned int m_count;
+	BoxCollider m_colliders[COLLIDERS_AMOUNT];
+	uint8_t m_count;
 };

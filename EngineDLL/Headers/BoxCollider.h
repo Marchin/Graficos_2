@@ -7,8 +7,9 @@ struct ENGINEDLL_API BoxCollider {
 	float halfWidth;
 	float halfHeight;
 	unsigned int mass;
-	bool isStatic;
-	bool isTrigger;
+	bool isStatic = false;
+	bool isTrigger = false;
+	bool isActive = false;
 	Entity* pEntity;
 	glm::vec3 position;
 };
