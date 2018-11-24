@@ -1,6 +1,6 @@
 #pragma once
 #include "Headers/CollisionManager.h"
-#include "Headers/SpriteSheet.h"
+#include "Headers/Animation.h"
 
 class Character {
 public:
@@ -9,8 +9,10 @@ public:
 	void Move(float x, float y, float z);
 	void Draw();
 	void SetStatic(bool state);
+	void Update(float deltaTime);
 private:
 	float m_speed;
 	SpriteSheet* m_pSpriteSheet;
 	BoxCollider* m_pBoxCollider;
+	Animation* m_pAnimation;
 };

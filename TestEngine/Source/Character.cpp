@@ -1,6 +1,6 @@
 #include "../Headers/Character.h"
 
-Character::Character(Renderer* pRenderer){
+Character::Character(Renderer* pRenderer) {
 	Shader sSprite("Resources/Shaders/ShaderTexture/vTexture.glsl",
 		"Resources/Shaders/ShaderTexture/fTexture.glsl");
 	Material materialSprite(sSprite);
@@ -18,7 +18,8 @@ Character::Character(Renderer* pRenderer){
 		1.f, 0.f,
 		1.f, 1.f
 	};
-	m_pSpriteSheet = new SpriteSheet(pRenderer, materialSprite, spriteSheetPath,squareVertices, squareUV);
+	unsigned int frames[] = { 0, 2, 5 };
+	m_pSpriteSheet = new SpriteSheet(pRenderer, materialSprite, spriteSheetPath, squareVertices, squareUV);
 	m_pSpriteSheet->SetFrameSize(64);
 	m_pBoxCollider = CollisionManager::GetInstance()->Register();
 	m_pBoxCollider->halfHeight = 0.5f;
@@ -26,10 +27,12 @@ Character::Character(Renderer* pRenderer){
 	m_pBoxCollider->pEntity = m_pSpriteSheet;
 	m_pBoxCollider->isStatic = false;
 	m_pBoxCollider->isTrigger = false;
+	m_pAnimation = new Animation(m_pSpriteSheet, frames, sizeof(frames) / (sizeof(unsigned int)));
 }
 
 Character::~Character() {
 	CollisionManager::GetInstance()->Remove(m_pBoxCollider);
+	delete m_pAnimation;
 	delete m_pSpriteSheet;
 }
 
@@ -53,4 +56,8 @@ void Character::Draw() {
 
 void Character::SetStatic(bool state){
 	m_pBoxCollider->isStatic = true;
+}
+
+void Character::Update(float deltaTime) {
+	m_pAnimation->Update(deltaTime);
 }

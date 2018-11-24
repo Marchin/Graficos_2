@@ -1,8 +1,9 @@
 #include "../Headers/GameBase.h"
 #include "../Headers/CollisionManager.h"
+#include <GLFW/glfw3.h>
 #include <iostream>
 
-GameBase::GameBase() {
+GameBase::GameBase() : lastFrame(0.f), deltaTime(0.f) {
 }
 
 GameBase::~GameBase() {
@@ -34,6 +35,9 @@ bool GameBase::Stop() {
 void GameBase::Loop() {
 	bool exit = false;
 	while (!exit && !m_pWindow->ShouldClose()) {
+		float currentFrame = (float)glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		m_pWindow->PollEvents();
 		m_pRenderer->Clear();
 		m_pRenderer->FillColor(0.1f, 0.1f, 0.1f);

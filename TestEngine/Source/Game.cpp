@@ -61,8 +61,6 @@ bool Game::OnStart() {
 	m_pCharacter = new Character(m_pRenderer);
 	m_pCharacter->Move(5.5f, .0f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
-	m_pCharacter3 = new Character(m_pRenderer);	
-	delete m_pCharacter3;
 	//m_pCharacter2->SetStatic(true);
 
 	std::cout << "Game::OnStart()" << std::endl;
@@ -135,6 +133,7 @@ bool Game::OnUpdate() {
 	m_pSpriteSheet->Scale(3.f, 3.f, 1.f);
 	m_pSpriteSheet->Draw();
 	*/
+	m_pCharacter->Update(deltaTime);
 	m_pCharacter->Draw();
 	m_pCharacter2->Draw();
 	m_pCharacter->Move(-0.1f, 0.f, 0.f);

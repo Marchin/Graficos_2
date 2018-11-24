@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Libraries\glad.c" />
     <ClCompile Include="Libraries\stb_image.cpp" />
+    <ClCompile Include="Source\Animation.cpp" />
     <ClCompile Include="Source\Circle.cpp" />
     <ClCompile Include="Source\CollisionManager.cpp" />
     <ClCompile Include="Source\ColorSquare.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="Source\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Animation.h" />
     <ClInclude Include="Headers\BoxCollider.h" />
     <ClInclude Include="Headers\Circle.h" />
     <ClInclude Include="Headers\CollisionManager.h" />

@@ -14,6 +14,8 @@ protected:
 	virtual bool OnStart() = 0;
 	virtual bool OnStop() = 0;
 	virtual bool OnUpdate() = 0;
+	float deltaTime;
+	float lastFrame;
 	Renderer* m_pRenderer;
 	Window* m_pWindow;
 };
