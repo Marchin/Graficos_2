@@ -62,7 +62,7 @@ bool Game::OnStart() {
 	m_pCharacter->Move(5.5f, .0f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
 	m_pCharacter2->SetMass(5.f);
-	//delete m_pCharacter2;
+	delete m_pCharacter2;
 	//m_pCharacter2->SetStatic(true);
 
 	std::cout << "Game::OnStart()" << std::endl;
@@ -137,7 +137,7 @@ bool Game::OnUpdate() {
 	*/
 	m_pCharacter->Update(deltaTime);
 	m_pCharacter->Draw();
-	m_pCharacter2->Draw();
+	//m_pCharacter2->Draw();
 	m_pCharacter->Move(-0.1f, 0.f, 0.f);
 	return true;
 }

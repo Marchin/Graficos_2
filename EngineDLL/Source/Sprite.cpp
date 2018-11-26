@@ -45,6 +45,7 @@ void Sprite::SetUV(void * uvCoords){
 }
 
 void Sprite::Draw(){
+	m_texture.Bind(0);
 	m_material.Bind();
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
