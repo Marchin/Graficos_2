@@ -1,4 +1,4 @@
-#include "../Headers/CollisionManager.h"
+ #include "../Headers/CollisionManager.h"
 #include "../Headers/Entity.h"
 #include <algorithm>
 
@@ -57,17 +57,18 @@ void CollisionManager::CheckCollision(int index1, int index2){
 
 		float pX = collider1->halfWidth + collider2->halfWidth - glm::abs(deltaX);
 		float pY = collider1->halfHeight + collider2->halfHeight - glm::abs(deltaY);
+		float totalMass = collider1->mass + collider2->mass;
 		if (pX < pY) {
 			if (!collider1->isStatic && !collider1->isTrigger) {
 				collider1->pEntity->Translate(
-					pX * (deltaX > 0.f? 1.f : -1.f),
+					pX * (deltaX > 0.f ? 1.f : -1.f) * (collider2->mass / totalMass),
 					0.f,
 					0.f
 				);
 			}
 			if (!collider2->isStatic && !collider2->isTrigger) {
 				collider2->pEntity->Translate(
-					pX * (deltaX > 0.f ? -1.f : 1.f),
+					pX * (deltaX > 0.f ? -1.f : 1.f) * (collider1->mass / totalMass),
 					0.f,
 					0.f
 				);
@@ -76,14 +77,14 @@ void CollisionManager::CheckCollision(int index1, int index2){
 			if (!collider1->isStatic && !collider1->isTrigger) {
 				collider1->pEntity->Translate(
 					0.f,
-					pY * (deltaY > 0.f ? 1.f : -1.f),
+					pY * (deltaY > 0.f ? 1.f : -1.f) * (collider2->mass / totalMass),
 					0.f
 				);
 			}
 			if (!collider2->isStatic && !collider2->isTrigger) {
 				collider2->pEntity->Translate(
 					0.f,
-					pY * (deltaY > 0.f ? -1.f : 1.f),
+					pY * (deltaY > 0.f ? -1.f : 1.f) * (collider1->mass / totalMass),
 					0.f
 				);
 			}

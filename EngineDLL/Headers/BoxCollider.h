@@ -6,7 +6,7 @@ class Entity;
 struct ENGINEDLL_API BoxCollider {
 	float halfWidth;
 	float halfHeight;
-	unsigned int mass;
+	float mass = 1.f;
 	bool isStatic = false;
 	bool isTrigger = false;
 	bool isActive = false;

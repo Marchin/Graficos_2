@@ -61,3 +61,7 @@ void Character::SetStatic(bool state){
 void Character::Update(float deltaTime) {
 	m_pAnimation->Update(deltaTime);
 }
+
+void Character::SetMass(float mass) {
+	m_pBoxCollider->mass = mass;
+}

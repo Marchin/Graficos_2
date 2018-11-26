@@ -10,6 +10,7 @@ public:
 	void Draw();
 	void SetStatic(bool state);
 	void Update(float deltaTime);
+	void SetMass(float mass);
 private:
 	float m_speed;
 	SpriteSheet* m_pSpriteSheet;
