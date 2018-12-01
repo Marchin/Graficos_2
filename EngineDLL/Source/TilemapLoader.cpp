@@ -39,12 +39,12 @@ TilemapLoader::TilemapLoader(const char* fileDir, const SpriteSheet* tileset) : 
 	file.seekg(0, std::ios::beg);
 	m_ids = new int[m_width * m_height];
 	int id = 0;
+	file.getline(buffer, MAX_WIDTH);
 	while (!file.eof()) {
-		file.getline(buffer, MAX_WIDTH);
 		char* ptr = buffer;
 		iter = 0; //iter = the number of characters from the previous ',' until the next one
 		for (int i = 0; i < m_width;) {
-			if (*(ptr + iter) == ',') {
+			if (*(ptr + iter) == ',' || *(ptr + iter) == '\0') {
 				if (*ptr == '-') { //if the value is negative there is no tile
 					m_ids[id] = -1;
 				} else {
@@ -66,10 +66,12 @@ TilemapLoader::TilemapLoader(const char* fileDir, const SpriteSheet* tileset) : 
 				iter++;
 			}
 		}
+		file.getline(buffer, MAX_WIDTH);
 	}
 }
 
 TilemapLoader::~TilemapLoader() {
+	delete[] m_ids;
 }
 
 bool TilemapLoader::CheckFormat(const char * fileDir) {
