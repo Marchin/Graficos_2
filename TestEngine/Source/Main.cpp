@@ -1,5 +1,4 @@
 #include "../Headers/Game.h"
-#include <iostream>
 
 int main() {
 	GameBase* game = new Game();

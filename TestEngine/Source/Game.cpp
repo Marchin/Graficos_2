@@ -1,4 +1,5 @@
 #include "../Headers/Game.h"
+#include "Headers/TilemapLoader.h"
 #include <iostream>
 
 Game::Game(): m_counter (0), m_sidesCounter(3) {
@@ -64,6 +65,8 @@ bool Game::OnStart() {
 	m_pCharacter2->SetMass(5.f);
 	delete m_pCharacter2;
 	//m_pCharacter2->SetStatic(true);
+
+	TilemapLoader load("Resources/untitled.csv", m_pSpriteSheet);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
