@@ -15,6 +15,7 @@ public:
 	void SetFrame(unsigned int frame);
 	void SetFrameSize(unsigned int width, unsigned int height = 0);
 	void SetFramesPerRow(unsigned int rows);
+	coords GetSpritesUV(int frame);
 private:
 	void SetupUV();
 	unsigned int m_frameWidth;

@@ -9,7 +9,7 @@ class ENGINEDLL_API ColorSquare : public Shape {
 public:
 	ColorSquare(Renderer* pRenderer, Material material, void* position, void* color);
 	~ColorSquare() {}
-	void SetVertices(void* position) override;
+	void SetVertices(void* position);
 	void SetColors(void* color);
 	void Draw() override;
 private:

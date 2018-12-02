@@ -34,6 +34,7 @@
     <ClCompile Include="Source\SpriteSheet.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureController.cpp" />
+    <ClCompile Include="Source\Tilemap.cpp" />
     <ClCompile Include="Source\TilemapLoader.cpp" />
     <ClCompile Include="Source\Triangle.cpp" />
     <ClCompile Include="Source\VertexArray.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="Headers\stb_image.h" />
     <ClInclude Include="Headers\Texture.h" />
     <ClInclude Include="Headers\TextureController.h" />
+    <ClInclude Include="Headers\Tilemap.h" />
     <ClInclude Include="Headers\TilemapLoader.h" />
     <ClInclude Include="Headers\Triangle.h" />
     <ClInclude Include="Headers\VertexArray.h" />

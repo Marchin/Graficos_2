@@ -45,10 +45,14 @@ void Sprite::SetUV(void * uvCoords){
 }
 
 void Sprite::Draw(){
-	m_texture.Bind(0);
 	m_material.Bind();
+	m_texture.Bind(0);
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
 	m_pRenderer->DrawBufferStrip(0, 4);
+}
+
+marchinGL::Texture* Sprite::GetTexture() {
+	return &m_texture;
 }

@@ -10,7 +10,7 @@ public:
 	Circle(Renderer* pRenderer, Material material, unsigned int sidesAmount = 10, float radius = 1);
 	~Circle() {}
 	void Draw() override;
-	void SetVertices(void* data) override;
+	void SetVertices(void* data);
 	void SetSidesAmount(unsigned int amount);
 	void SetRadius(float radius);
 private:

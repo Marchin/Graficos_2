@@ -1,5 +1,4 @@
 #include "../Headers/Game.h"
-#include "Headers/TilemapLoader.h"
 #include <iostream>
 
 Game::Game(): m_counter (0), m_sidesCounter(3) {
@@ -12,6 +11,8 @@ Game::~Game() {
 	delete m_pSprite;
 	delete m_pSpriteSheet;
 	delete m_pCharacter;
+	delete m_pCharacter2;
+	delete m_pTilemap;
 }
 
 bool Game::OnStart() {
@@ -50,23 +51,22 @@ bool Game::OnStart() {
 		"Resources/Shaders/ShaderTexture/fTexture.glsl");
 	Material materialSprite(sSprite);
 
-	m_pTriangle = new Triangle(m_pRenderer, materialShape, &vertices, sizeof(vertices));
+	/*m_pTriangle = new Triangle(m_pRenderer, materialShape, &vertices, sizeof(vertices));
 	m_pColorSquare = new ColorSquare(m_pRenderer, materialSquare, &squareVertices, &squareColors);
 	m_pCircle = new Circle(m_pRenderer, materialShape, m_sidesCounter);
 	const char* spritePath = "Resources/Small-mario.png";
+	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);*/
 	const char* spriteSheetPath = "Resources/spriteSheet2.png";
-	m_pSprite = new Sprite(m_pRenderer, materialSprite, spritePath, &squareVertices, &squareUV);
 	m_pSpriteSheet = new SpriteSheet(m_pRenderer, materialSprite, spriteSheetPath, &squareVertices, &squareUV);
 	m_pSpriteSheet->SetFrameSize(64);
 
-	m_pCharacter = new Character(m_pRenderer);
+	/*m_pCharacter = new Character(m_pRenderer);
 	m_pCharacter->Move(5.5f, .0f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
-	m_pCharacter2->SetMass(5.f);
-	delete m_pCharacter2;
+	m_pCharacter2->SetMass(5.f);*/
 	//m_pCharacter2->SetStatic(true);
 
-	TilemapLoader load("Resources/untitled.csv", m_pSpriteSheet);
+	m_pTilemap = new Tilemap("Resources/untitled.csv", m_pSpriteSheet, m_pRenderer, sSprite);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
@@ -138,9 +138,10 @@ bool Game::OnUpdate() {
 	m_pSpriteSheet->Scale(3.f, 3.f, 1.f);
 	m_pSpriteSheet->Draw();
 	*/
-	m_pCharacter->Update(deltaTime);
-	m_pCharacter->Draw();
+	//m_pCharacter->Update(deltaTime);
+	//m_pCharacter->Draw();
 	//m_pCharacter2->Draw();
-	m_pCharacter->Move(-0.1f, 0.f, 0.f);
+	//m_pCharacter->Move(-0.1f, 0.f, 0.f);
+	m_pTilemap->Draw();
 	return true;
 }

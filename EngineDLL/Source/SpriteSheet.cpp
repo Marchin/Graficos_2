@@ -6,10 +6,10 @@ SpriteSheet::SpriteSheet(Renderer * pRenderer, Material material, const char * t
 
 SpriteSheet::~SpriteSheet() {
 	if (m_pUVCoords != 0) {
-		delete m_pUVCoords;
+		delete[] m_pUVCoords;
 	}
 	if (m_pUVData != 0) {
-		delete m_pUVData;
+		delete[] m_pUVData;
 	}
 }
 
@@ -37,6 +37,10 @@ void SpriteSheet::SetFramesPerRow(unsigned int rows) {
 	m_rows = rows;
 }
 
+coords SpriteSheet::GetSpritesUV(int frame) {
+	return m_pUVCoords[frame];
+}
+
 void SpriteSheet::SetupUV() {
 	if (m_columns == 0) {
 		m_columns = m_texture.GetWidth() / m_frameWidth;
@@ -45,7 +49,7 @@ void SpriteSheet::SetupUV() {
 		m_rows = m_texture.GetHeight() / m_frameHeight;
 	}
 	if (m_pUVCoords != 0) {
-		delete m_pUVCoords;
+		delete[] m_pUVCoords;
 		m_pUVCoords = 0;
 	}
 	m_pUVCoords = new coords[m_columns * m_rows];

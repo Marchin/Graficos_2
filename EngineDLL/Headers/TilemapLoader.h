@@ -1,15 +1,13 @@
 #pragma once
-#include "SpriteSheet.h"
+#include "Export.h"
 
 class ENGINEDLL_API TilemapLoader {
 public:
-	TilemapLoader(const char* fileDir, const SpriteSheet* tileset);
+	TilemapLoader(const char* fileDir, int** matrix, unsigned int* width, unsigned int* height);
 	~TilemapLoader();
 
 private:
 	bool CheckFormat(const char* fileDir);
-	SpriteSheet m_tileset;
 	unsigned int m_width;
 	unsigned int m_height;
-	int* m_ids;
 };

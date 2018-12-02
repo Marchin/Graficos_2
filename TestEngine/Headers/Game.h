@@ -1,10 +1,11 @@
 #pragma once
-#include "Headers\GameBase.h"
-#include "Headers\Triangle.h"
-#include "Headers\ColorSquare.h"
-#include "Headers\Circle.h"
-#include "Headers\Sprite.h"
-#include "Headers\SpriteSheet.h"
+#include "Headers/GameBase.h"
+#include "Headers/Triangle.h"
+#include "Headers/ColorSquare.h"
+#include "Headers/Circle.h"
+#include "Headers/Sprite.h"
+#include "Headers/SpriteSheet.h"
+#include "Headers/Tilemap.h"
 #include "Character.h"
 
 class Game: public GameBase {
@@ -26,4 +27,5 @@ private:
 	Character* m_pCharacter;
 	Character* m_pCharacter2;
 	Character* m_pCharacter3;
+	Tilemap* m_pTilemap;
 };

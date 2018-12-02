@@ -1,12 +1,14 @@
 #version 330 core
 
-in vec3 vNormal;
 in vec2 vTexCoords;
 
 out vec4 fColor;
 
 uniform sampler2D tex;
 
-void main() {    
+void main() {  
+  if (vTexCoords.x < 0.0  || vTexCoords.y < 0.0) {
+    discard;
+  }  
   fColor = texture(tex, vTexCoords);
 }

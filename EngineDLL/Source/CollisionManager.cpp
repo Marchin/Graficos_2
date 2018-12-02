@@ -11,8 +11,11 @@ CollisionManager* CollisionManager::GetInstance() {
 }
 
 void CollisionManager::Update() {
-	unsigned int counter = 0;
-	unsigned int counter2;
+	uint8_t counter = 0;
+	uint8_t counter2;
+	if (m_count < 2) { //if there aren't at least 2 colliders to check
+		return;
+	}
 	for (size_t i = 0; counter < m_count - 1; i++){
 		if (!m_colliders[i].isActive) { continue; }
 		counter++;

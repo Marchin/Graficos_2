@@ -3,7 +3,7 @@
 #include <fstream>
 #define MAX_WIDTH 200
 
-TilemapLoader::TilemapLoader(const char* fileDir, const SpriteSheet* tileset) : m_tileset(*tileset), m_width(0), m_height(0) {
+TilemapLoader::TilemapLoader(const char* fileDir, int** ids, unsigned int* width, unsigned int* height) : m_width(0), m_height(0) {
 	if (!CheckFormat(fileDir)) {
 		printf("Error Loading Tilemap: Invalid format\n");
 		return;
@@ -30,33 +30,33 @@ TilemapLoader::TilemapLoader(const char* fileDir, const SpriteSheet* tileset) : 
 	}
 	file.clear();
 	file.seekg(0, std::ios::beg);
-	file.getline(buffer, MAX_WIDTH);
+	file.getline(buffer, MAX_WIDTH); //read ahead
 	while (!file.eof()) {
 		m_height++;
 		file.getline(buffer, MAX_WIDTH);
 	}
 	file.clear();
 	file.seekg(0, std::ios::beg);
-	m_ids = new int[m_width * m_height];
+	(*ids) = new int[m_width * m_height];
 	int id = 0;
-	file.getline(buffer, MAX_WIDTH);
+	file.getline(buffer, MAX_WIDTH);//read ahead
 	while (!file.eof()) {
 		char* ptr = buffer;
-		iter = 0; //iter = the number of characters from the previous ',' until the next one
+		iter = 0; //iter = the number of characters from the previous ',' until the next one or until '\0'
 		for (int i = 0; i < m_width;) {
 			if (*(ptr + iter) == ',' || *(ptr + iter) == '\0') {
 				if (*ptr == '-') { //if the value is negative there is no tile
-					m_ids[id] = -1;
+					(*ids)[id] = -1;
 				} else {
 					int newID = 0; //accumulator
 					int decimal = 1; //multiplies the value of the character 
 									 //to take into account it's position (1, 10, 100, etc)
 					for (int j = 0; j < iter; j++) {
 						newID += (*(ptr + iter - 1 - j) - '0') * decimal; //read number from right to left
-																		// - '0' to convert it from ASCII to int
+																		// -'0' to convert it from ASCII to int
 						decimal *= 10;
 					}
-					m_ids[id] = newID;
+					(*ids)[id] = newID;
 				}
 				i++;
 				id++;
@@ -68,10 +68,11 @@ TilemapLoader::TilemapLoader(const char* fileDir, const SpriteSheet* tileset) : 
 		}
 		file.getline(buffer, MAX_WIDTH);
 	}
+	*width = m_width;
+	*height = m_height;
 }
 
 TilemapLoader::~TilemapLoader() {
-	delete[] m_ids;
 }
 
 bool TilemapLoader::CheckFormat(const char * fileDir) {

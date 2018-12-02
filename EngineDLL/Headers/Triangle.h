@@ -10,7 +10,7 @@ public:
 	Triangle(Renderer* pRenderer, Material material, void* data, unsigned int size);
 	~Triangle() {}
 	void Draw() override;
-	void SetVertices(void* data) override;
+	void SetVertices(void* data);
 private:
 	VertexArray m_va;
 	VertexBuffer m_vb;
