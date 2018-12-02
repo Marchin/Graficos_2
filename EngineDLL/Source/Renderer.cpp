@@ -3,10 +3,10 @@
 #include <glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-Renderer::Renderer() {
+Renderer::Renderer() : m_halfCamHeight(10.f), m_halfCamWidth(10.f), m_camPosX(0), m_camPosY(0) {
 	m_model = glm::mat4(1.f);
-	m_view= glm::lookAt(glm::vec3(0.f,0.f,3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-	m_projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.f, 100.f);
+	m_view= glm::lookAt(glm::vec3(m_camPosX, m_camPosY,3.f), glm::vec3(m_camPosX, m_camPosY, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	m_projection = glm::ortho(-m_halfCamWidth, m_halfCamWidth, -m_halfCamHeight, m_halfCamHeight, 0.f, 100.f);
 }
 
 Renderer::~Renderer() {
@@ -69,8 +69,23 @@ glm::mat4 Renderer::GetModelViewProj() const {
 	return (m_projection * m_view * m_model);
 }
 
+void Renderer::GetCameraPosition(float* x, float* y) {
+	*x = m_camPosX;
+	*y = m_camPosY;
+}
+
 void Renderer::SetCameraPosition(float x, float y) {
-	m_view= glm::lookAt(glm::vec3(x, y,3.f), glm::vec3(x, y, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	m_camPosX = x;
+	m_camPosY = y;
+	m_view = glm::lookAt(glm::vec3(x, y,3.f), glm::vec3(x, y, 0.f), glm::vec3(0.f, 1.f, 0.f));
+}
+
+float Renderer::GetCameraWidth() {
+	return m_halfCamWidth * 2.f;
+}
+
+float Renderer::GetCameraHeight() {
+	return m_halfCamHeight * 2.f;
 }
 
 void GLClearError() {

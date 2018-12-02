@@ -12,12 +12,19 @@ public:
 private:
 	void CalculateVertexPosition();
 	void CalculateUV();
-	virtual void SetVertices(void* data) {}
+	void CalculateVisibleTiles();
 	SpriteSheet m_spriteSheet;
 	unsigned int m_width;
 	unsigned int m_height;
-	int* m_ids;
+	unsigned int m_visibleWidth;
+	unsigned int m_visibleHeight;
+	float m_tileSize;
+	float m_cacheCamPosX;
+	float m_cacheCamPosY;
+	int* m_pIDs;
+	int* m_pVisibleTiles;
 	float* m_pUVData;
+	float* m_pCoords;
 	Material m_material;
 	Renderer* m_pRenderer;
 	VertexArray m_va;

@@ -5,10 +5,13 @@
 Tilemap::Tilemap(const char* fileDir, SpriteSheet* pSpriteSheet,
 	Renderer* pRenderer, Material material)
 	: m_spriteSheet(*pSpriteSheet), m_pRenderer(pRenderer), m_material(material),
-	m_width(0), m_height(0){
+	m_width(0), m_height(0), m_tileSize(1.f) {
 
-	TilemapLoader loader(fileDir, &m_ids, &m_width, &m_height);
-
+	TilemapLoader loader(fileDir, &m_pIDs, &m_width, &m_height);
+	m_visibleWidth = m_pRenderer->GetCameraWidth() / m_tileSize + 2; //one extra column at each side
+	m_visibleHeight = m_pRenderer->GetCameraHeight() / m_tileSize + 2 ;//one extra row at each side
+	m_pVisibleTiles = new int[m_visibleWidth * 	m_visibleHeight];
+	m_pRenderer->GetCameraPosition(&m_cacheCamPosX, &m_cacheCamPosY);
 
 	//Genero los strides para el VertexArray
 	VertexBufferLayout layoutPosition, layoutUV;
@@ -20,73 +23,90 @@ Tilemap::Tilemap(const char* fileDir, SpriteSheet* pSpriteSheet,
 
 	CalculateVertexPosition();
 	CalculateUV();
+	CalculateVisibleTiles();
 
 	m_va.AddBufferByLocation(m_vbPosition, layoutPosition, 0);
 	m_va.AddBufferByLocation(m_vbUV, layoutUV, 1);
 }
 
 Tilemap::~Tilemap() {
-	if (m_ids != NULL) {
-		delete[] m_ids;
+	if (m_pIDs != NULL) {
+		delete[] m_pIDs;
 	}
 	if (m_pUVData != NULL) {
 		delete[] m_pUVData;
 	}
+	if (m_pVisibleTiles != NULL) {
+		delete[] m_pVisibleTiles;
+	}
+	if (m_pCoords != NULL) {
+		delete[] m_pCoords;
+	}
 }
 
 void Tilemap::Draw() {
+	float camPosX, camPosY;
+	m_pRenderer->GetCameraPosition(&camPosX, &camPosY);
+	if ((glm::abs((m_cacheCamPosX - camPosX)) >= 1.f) ||
+		(glm::abs((m_cacheCamPosY - camPosY) >= 1.f))){
+
+		m_cacheCamPosX = camPosX;
+		m_cacheCamPosY = camPosY;
+		CalculateVisibleTiles();
+	}
 	m_material.Bind();
 	m_spriteSheet.GetTexture()->Bind(0);
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			m_pRenderer->DrawBufferStrip((j + (m_width*i)) * 4, 4);
+	for (int i = 0; i < m_visibleHeight; i++) {
+		for (int j = 0; j < m_visibleWidth; j++) {
+			if (m_pVisibleTiles[(j + (m_visibleWidth*i))] >= 0) {
+				m_pRenderer->DrawBufferStrip(m_pVisibleTiles[(j + (m_visibleWidth*i))] * 4, 4);
+			}
 		}
 	}
 }
 
 void Tilemap::CalculateVertexPosition() {
-	float* coords = new float[m_width * m_height * 4 * 3];
+	m_pCoords = new float[m_width * m_height * 4 * 3];
 	float posX = 0.f;
 	float posY = 0.f;
 	
 	int count = 0;
 	for (int i = 0; i < m_height; i++) {
 		for (int j = 0; j < m_width; j++) {
-			coords[count*4*3] = posX;
-			coords[count*4*3 + 1] = posY - 1.f;
-			coords[count*4*3 + 2] = 0.f;
-			coords[count*4*3 + 3] = posX;
-			coords[count*4*3 + 4] = posY;
-			coords[count*4*3 + 5] = 0.f;
-			coords[count*4*3 + 6] = posX + 1.f;
-			coords[count*4*3 + 7] = posY - 1.f;
-			coords[count*4*3 + 8] = 0.f;
-			coords[count*4*3 + 9] = posX + 1.f;
-			coords[count*4*3 + 10] = posY;
-			coords[count*4*3 + 11] = 0.f;
+			m_pCoords[count*4*3] = posX;
+			m_pCoords[count*4*3 + 1] = posY - m_tileSize;
+			m_pCoords[count*4*3 + 2] = 0.f;
+			m_pCoords[count*4*3 + 3] = posX;
+			m_pCoords[count*4*3 + 4] = posY;
+			m_pCoords[count*4*3 + 5] = 0.f;
+			m_pCoords[count*4*3 + 6] = posX + m_tileSize;
+			m_pCoords[count*4*3 + 7] = posY - m_tileSize;
+			m_pCoords[count*4*3 + 8] = 0.f;
+			m_pCoords[count*4*3 + 9] = posX + m_tileSize;
+			m_pCoords[count*4*3 + 10] = posY;
+			m_pCoords[count*4*3 + 11] = 0.f;
 			count++;
-			posX += 1.f;
+			posX += m_tileSize;
 		}
 		posX = 0.f;
-		posY -= 1.f;
+		posY -= m_tileSize;
 	}
-	m_vbPosition.SetData(coords, sizeof(float) * m_width * m_height * 4 * 3);
-	int a = sizeof(coords);
+	m_vbPosition.SetData(m_pCoords, sizeof(float) * m_width * m_height * 4 * 3);
 }
 
 void Tilemap::CalculateUV() {
 	unsigned int id = 0;
 	m_pUVData = new float[m_width * m_height * 8];
 	for (unsigned int i = 0; i < m_width * m_height; i++) {
-		if (m_ids[i] == -1) {
+		if (m_pIDs[i] == -1) {
 			for (int j = 0; j < 8; j++) {
 				m_pUVData[i * 8 + j] = -1;
 			}
 		} else {
-			coords uvCoords = m_spriteSheet.GetSpritesUV(m_ids[i]);
+			coords uvCoords = m_spriteSheet.GetSpritesUV(m_pIDs[i]);
 			m_pUVData[i * 8] = uvCoords.u0;
 			m_pUVData[i * 8 + 1] = uvCoords.v1;
 			m_pUVData[i * 8 + 2] = uvCoords.u0;
@@ -98,5 +118,20 @@ void Tilemap::CalculateUV() {
 		}
 	}
 	m_vbUV.SetData(m_pUVData, sizeof(float) * m_width * m_height * 8);
-	int a = sizeof(m_pUVData);
+}
+
+void Tilemap::CalculateVisibleTiles() {
+	int count = 0;
+	int tilesUntilCamX = (int)(m_cacheCamPosX - m_pRenderer->GetCameraWidth() * 0.5f / m_tileSize);
+	int tilesUntilCamY = (int)(-(m_cacheCamPosY + m_pRenderer->GetCameraHeight() * 0.5f )/ m_tileSize);
+	for (int i = 0; i < m_visibleHeight; i++) {
+		for (int j = 0; j < m_visibleWidth; j++) {
+			if ((tilesUntilCamX + j < 0) || (tilesUntilCamY + i < 0) ) {
+				m_pVisibleTiles[count] = -1;
+			} else {
+				m_pVisibleTiles[count] = tilesUntilCamX + j + (m_width*(i + tilesUntilCamY));
+			}
+			count++;
+		}
+	}
 }
