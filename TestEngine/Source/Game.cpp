@@ -1,7 +1,7 @@
 #include "../Headers/Game.h"
 #include <iostream>
 
-Game::Game(): m_counter (0), m_sidesCounter(3) {
+Game::Game() : m_counter(0), m_sidesCounter(3), m_camX(0.f), m_camY(0.f) {
 }
 
 Game::~Game() {
@@ -13,6 +13,7 @@ Game::~Game() {
 	delete m_pCharacter;
 	delete m_pCharacter2;
 	delete m_pTilemap;
+	delete m_pTileset;
 }
 
 bool Game::OnStart() {
@@ -61,12 +62,15 @@ bool Game::OnStart() {
 	m_pSpriteSheet->SetFrameSize(64);
 
 	/*m_pCharacter = new Character(m_pRenderer);
-	m_pCharacter->Move(5.5f, .0f, 0.f);
+	m_pCharacter->Move(5.5f, .0f, 0.f);*/
 	m_pCharacter2 = new Character(m_pRenderer);
-	m_pCharacter2->SetMass(5.f);*/
+	m_pCharacter2->SetMass(5.f);
 	//m_pCharacter2->SetStatic(true);
 
-	m_pTilemap = new Tilemap("Resources/untitled.csv", m_pSpriteSheet, m_pRenderer, sSprite);
+	const char* tilesetPath = "Resources/tileset.png";
+	m_pTileset = new SpriteSheet(m_pRenderer, materialSprite, tilesetPath, &squareVertices, &squareUV);
+	m_pTileset->SetFrameSize(32);
+	m_pTilemap = new Tilemap("Resources/tileset.csv", m_pTileset, m_pRenderer, sSprite);
 
 	std::cout << "Game::OnStart()" << std::endl;
 	return true;
@@ -78,8 +82,8 @@ bool Game::OnStop() {
 }
 
 bool Game::OnUpdate() {
-
-	/*m_counter++;
+	m_counter++;
+	/*
 	m_pTriangle->SetPosition(-2.0f, -2.0f, 0.0f);
 	m_pTriangle->Scale(sin(m_counter*0.01f), 1.f, sin(m_counter*0.01f));
 	m_pTriangle->Scale(3.f, sin(m_counter*0.01f) * 3.f, 1.f);
@@ -140,7 +144,18 @@ bool Game::OnUpdate() {
 	*/
 	//m_pCharacter->Update(deltaTime);
 	//m_pCharacter->Draw();
-	//m_pCharacter2->Draw();
+	if (m_camX > 32.f) {
+		m_camX = 0.f;
+		m_camY -= 5.f;
+		if (m_camY < -35.f) {
+			m_camY = 0.f;
+		}
+	} else {
+		m_camX += 0.1f;
+	}
+	m_pRenderer->SetCameraPosition(m_camX, m_camY);
+	m_pCharacter2->Draw();
+	m_pCharacter2->Move(0.f, 0.01f, 0.f);
 	//m_pCharacter->Move(-0.1f, 0.f, 0.f);
 	m_pTilemap->Draw();
 	return true;

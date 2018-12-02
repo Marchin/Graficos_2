@@ -28,6 +28,7 @@ public:
 	void MultiplyModelMatrix(glm::mat4 matrix);
 	void SetModelMatrix(glm::mat4 model);
 	glm::mat4 GetModelViewProj() const;
+	void SetCameraPosition(float x, float y);
 private:
 	glm::mat4 m_model;
 	glm::mat4 m_view;

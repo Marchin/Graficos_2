@@ -19,6 +19,8 @@ private:
 	bool OnUpdate() override;
 	int m_counter;
 	int m_sidesCounter;
+	float m_camX;
+	float m_camY;
 	Triangle* m_pTriangle;
 	ColorSquare* m_pColorSquare;
 	Circle* m_pCircle;
@@ -27,5 +29,6 @@ private:
 	Character* m_pCharacter;
 	Character* m_pCharacter2;
 	Character* m_pCharacter3;
+	SpriteSheet* m_pTileset;
 	Tilemap* m_pTilemap;
 };

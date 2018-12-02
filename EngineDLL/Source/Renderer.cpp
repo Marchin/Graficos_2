@@ -16,6 +16,7 @@ bool Renderer::Start() {
 	std::cout << "Renderer::Start()" << std::endl;
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	//GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	return true;
 }
 
@@ -66,6 +67,10 @@ void Renderer::SetModelMatrix(glm::mat4 model) {
 
 glm::mat4 Renderer::GetModelViewProj() const {
 	return (m_projection * m_view * m_model);
+}
+
+void Renderer::SetCameraPosition(float x, float y) {
+	m_view= glm::lookAt(glm::vec3(x, y,3.f), glm::vec3(x, y, 0.f), glm::vec3(0.f, 1.f, 0.f));
 }
 
 void GLClearError() {

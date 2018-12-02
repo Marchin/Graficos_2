@@ -40,13 +40,17 @@ void Tilemap::Draw() {
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
-	m_pRenderer->DrawBufferStrip(0, m_width * m_height * 4);
+	for (int i = 0; i < m_height; i++) {
+		for (int j = 0; j < m_width; j++) {
+			m_pRenderer->DrawBufferStrip((j + (m_width*i)) * 4, 4);
+		}
+	}
 }
 
 void Tilemap::CalculateVertexPosition() {
 	float* coords = new float[m_width * m_height * 4 * 3];
 	float posX = 0.f;
-	float posY = (float)m_height;
+	float posY = 0.f;
 	
 	int count = 0;
 	for (int i = 0; i < m_height; i++) {
@@ -64,10 +68,10 @@ void Tilemap::CalculateVertexPosition() {
 			coords[count*4*3 + 10] = posY;
 			coords[count*4*3 + 11] = 0.f;
 			count++;
-			posX++;
+			posX += 1.f;
 		}
 		posX = 0.f;
-		posY--;
+		posY -= 1.f;
 	}
 	m_vbPosition.SetData(coords, sizeof(float) * m_width * m_height * 4 * 3);
 	int a = sizeof(coords);
