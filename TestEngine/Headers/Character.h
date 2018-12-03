@@ -11,6 +11,7 @@ public:
 	void SetStatic(bool state);
 	void Update(float deltaTime);
 	void SetMass(float mass);
+	BoxCollider* GetCollider();
 private:
 	float m_speed;
 	SpriteSheet* m_pSpriteSheet;

@@ -1,5 +1,4 @@
 #include "../Headers/Game.h"
-#include <iostream>
 
 Game::Game() : m_counter(0), m_sidesCounter(3), m_camX(0.f), m_camY(0.f) {
 }
@@ -61,27 +60,33 @@ bool Game::OnStart() {
 	m_pSpriteSheet = new SpriteSheet(m_pRenderer, materialSprite, spriteSheetPath, &squareVertices, &squareUV);
 	m_pSpriteSheet->SetFrameSize(64);
 
-	/*m_pCharacter = new Character(m_pRenderer);
-	m_pCharacter->Move(5.5f, .0f, 0.f);*/
+	m_pCharacter = new Character(m_pRenderer);
+	m_pCharacter->Move(20.f, -9.f, 0.f);
 	m_pCharacter2 = new Character(m_pRenderer);
 	m_pCharacter2->SetMass(5.f);
+	m_pCharacter2->Move(9.f, 0.f, 0.f);
 	//m_pCharacter2->SetStatic(true);
 
 	const char* tilesetPath = "Resources/tileset.png";
 	m_pTileset = new SpriteSheet(m_pRenderer, materialSprite, tilesetPath, &squareVertices, &squareUV);
 	m_pTileset->SetFrameSize(32);
 	m_pTilemap = new Tilemap("Resources/tileset.csv", m_pTileset, m_pRenderer, sSprite);
+	int collisionableTiles[] = { 37, 45, 46, 47, 55 };
+	m_pTilemap->SetCollisionableTiles(collisionableTiles, sizeof(collisionableTiles)/sizeof(int));
 
-	std::cout << "Game::OnStart()" << std::endl;
+	m_pTilemap->RegisterColliders(m_pCharacter2->GetCollider());
+	m_pTilemap->RegisterColliders(m_pCharacter->GetCollider());
+
+	printf("Game::OnStart()\n");
 	return true;
 }
 
 bool Game::OnStop() {
-	std::cout << "Game::OnStop()" << std::endl;
+	printf("Game::OnStop()\n");
 	return true;
 }
 
-bool Game::OnUpdate() {
+bool Game::OnUpdate(float deltaTime) {
 	m_counter++;
 	/*
 	m_pTriangle->SetPosition(-2.0f, -2.0f, 0.0f);
@@ -142,8 +147,6 @@ bool Game::OnUpdate() {
 	m_pSpriteSheet->Scale(3.f, 3.f, 1.f);
 	m_pSpriteSheet->Draw();
 	*/
-	//m_pCharacter->Update(deltaTime);
-	//m_pCharacter->Draw();
 	if (m_camX > 32.f) {
 		m_camX = 0.f;
 		m_camY -= 5.f;
@@ -151,12 +154,15 @@ bool Game::OnUpdate() {
 			m_camY = 0.f;
 		}
 	} else {
-		m_camX += 0.1f;
+		m_camX += 2.f  * deltaTime;
 	}
 	m_pRenderer->SetCameraPosition(m_camX, m_camY);
-	m_pCharacter2->Draw();
-	m_pCharacter2->Move(0.f, 0.01f, 0.f);
-	//m_pCharacter->Move(-0.1f, 0.f, 0.f);
 	m_pTilemap->Draw();
+	m_pCharacter->Move(-2.f * deltaTime, 0.f, 0.f);
+	m_pCharacter->Update(deltaTime);
+	m_pCharacter->Draw();
+	m_pCharacter2->Move(0.f, -2.f * deltaTime, 0.f);
+	m_pCharacter2->Draw();
+	m_pTilemap->CheckCollisions();
 	return true;
 }

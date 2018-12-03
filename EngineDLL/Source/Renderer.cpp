@@ -16,6 +16,7 @@ bool Renderer::Start() {
 	std::cout << "Renderer::Start()" << std::endl;
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	//GLCall(glfwSwapInterval(0));
 	//GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 	return true;
 }

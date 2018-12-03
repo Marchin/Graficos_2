@@ -1,7 +1,7 @@
 #include "../Headers/GameBase.h"
 #include "../Headers/CollisionManager.h"
 #include <GLFW/glfw3.h>
-#include <iostream>
+#include <stdio.h>
 
 GameBase::GameBase() : lastFrame(0.f), deltaTime(0.f) {
 }
@@ -10,10 +10,10 @@ GameBase::~GameBase() {
 }
 
 bool GameBase::Start() {
-	std::cout << "GameBase::Start()" << std::endl;
+	printf("GameBase::Start()\n");
 	m_pWindow = new Window;
 	m_pRenderer = new Renderer; 
-	if (!m_pWindow->Start(800, 600, "Hola")) {
+	if (!m_pWindow->Start(800, 600, "Engine")) {
 		return false;
 	} else if (!m_pRenderer->Start()) {
 		return false;
@@ -23,7 +23,7 @@ bool GameBase::Start() {
 }
 
 bool GameBase::Stop() {
-	std::cout << "GameBase::Stop()" << std::endl;
+	printf("GameBase::Stop()\n");
 	OnStop();
 	m_pRenderer->Stop();
 	m_pWindow->Stop();
@@ -37,12 +37,13 @@ void GameBase::Loop() {
 	while (!exit && !m_pWindow->ShouldClose()) {
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
+		//printf("%f\n", 1.f / deltaTime);
 		lastFrame = currentFrame;
 		m_pWindow->PollEvents();
 		m_pRenderer->Clear();
 		m_pRenderer->FillColor(0.1f, 0.1f, 0.1f);
 		CollisionManager::GetInstance()->Update();
-		exit = !OnUpdate();
+		exit = !OnUpdate(deltaTime);
 		m_pRenderer->SwapBuffers(m_pWindow->GetWindow());
 	}
 }

@@ -65,3 +65,7 @@ void Character::Update(float deltaTime) {
 void Character::SetMass(float mass) {
 	m_pBoxCollider->mass = mass;
 }
+
+BoxCollider* Character::GetCollider() {
+	return m_pBoxCollider;
+}

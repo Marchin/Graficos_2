@@ -13,7 +13,7 @@ protected:
 	GameBase();
 	virtual bool OnStart() = 0;
 	virtual bool OnStop() = 0;
-	virtual bool OnUpdate() = 0;
+	virtual bool OnUpdate(float deltaTime) = 0;
 	float deltaTime;
 	float lastFrame;
 	Renderer* m_pRenderer;

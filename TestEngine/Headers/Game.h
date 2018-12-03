@@ -16,7 +16,7 @@ public:
 private:
 	bool OnStart() override;
 	bool OnStop() override;
-	bool OnUpdate() override;
+	bool OnUpdate(float deltaTime) override;
 	int m_counter;
 	int m_sidesCounter;
 	float m_camX;
