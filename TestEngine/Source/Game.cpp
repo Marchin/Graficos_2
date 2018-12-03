@@ -67,6 +67,9 @@ bool Game::OnStart() {
 	m_pCharacter2->Move(9.f, 0.f);
 	//m_pCharacter2->SetStatic(true);
 
+	m_pCharacter3 = new Character(m_pRenderer);
+	m_pCharacter3->Move(0.f, -7.f);
+
 	const char* tilesetPath = "Resources/tileset.png";
 	m_pTileset = new SpriteSheet(m_pRenderer, materialSprite, tilesetPath, &squareVertices, &squareUV);
 	m_pTileset->SetFrameSize(32);
@@ -161,8 +164,12 @@ bool Game::OnUpdate(float deltaTime) {
 	m_pCharacter->Move(-2.f * deltaTime, 0.f);
 	m_pCharacter->Update(deltaTime);
 	m_pCharacter->Draw();
-	m_pCharacter2->Move(0.f, -2.f * deltaTime);
+	m_pCharacter2->Move(0.f, -2.f * deltaTime);;
+	m_pCharacter2->Update(deltaTime);
 	m_pCharacter2->Draw();
+	m_pCharacter3->Move(2.f * deltaTime, 0.f);;
+	m_pCharacter3->Update(deltaTime);
+	m_pCharacter3->Draw();
 	m_pTilemap->CheckCollisions();
 	return true;
 }

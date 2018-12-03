@@ -19,7 +19,7 @@ Tilemap::Tilemap(const char* fileDir, SpriteSheet* pSpriteSheet,
 	layoutUV.Push<float>(2);
 	m_material.Bind();
 	m_spriteSheet.GetTexture()->Bind(0);
-	material.SetIntProperty("tex",0);
+	m_material.SetIntProperty("tex",0);
 
 	CalculateVertexPosition();
 	CalculateUV();
