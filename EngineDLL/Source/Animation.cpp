@@ -8,7 +8,7 @@ Animation::Animation(SpriteSheet* pSpriteSheet, const unsigned int* frames, unsi
 }
 
 Animation::~Animation() {
-	delete m_frames;
+	delete[] m_frames;
 }
 
 void Animation::Update(float deltaTime) {
@@ -23,4 +23,13 @@ void Animation::Update(float deltaTime) {
 
 void Animation::SetFPS(unsigned int fps) {
 	m_interval = 1.f / (float)fps;
+}
+
+void Animation::ChangeAnimation(const unsigned int * frames, unsigned int count) {
+	m_currentFrame = 0.f;
+	m_counter = 0.f;
+	m_count = count;
+	delete[] m_frames;
+	m_frames = new unsigned int[count];
+	memcpy(m_frames, frames, count * sizeof(unsigned int));
 }

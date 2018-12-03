@@ -61,10 +61,10 @@ bool Game::OnStart() {
 	m_pSpriteSheet->SetFrameSize(64);
 
 	m_pCharacter = new Character(m_pRenderer);
-	m_pCharacter->Move(20.f, -9.f, 0.f);
+	m_pCharacter->Move(20.f, -9.f);
 	m_pCharacter2 = new Character(m_pRenderer);
 	m_pCharacter2->SetMass(5.f);
-	m_pCharacter2->Move(9.f, 0.f, 0.f);
+	m_pCharacter2->Move(9.f, 0.f);
 	//m_pCharacter2->SetStatic(true);
 
 	const char* tilesetPath = "Resources/tileset.png";
@@ -158,10 +158,10 @@ bool Game::OnUpdate(float deltaTime) {
 	}
 	m_pRenderer->SetCameraPosition(m_camX, m_camY);
 	m_pTilemap->Draw();
-	m_pCharacter->Move(-2.f * deltaTime, 0.f, 0.f);
+	m_pCharacter->Move(-2.f * deltaTime, 0.f);
 	m_pCharacter->Update(deltaTime);
 	m_pCharacter->Draw();
-	m_pCharacter2->Move(0.f, -2.f * deltaTime, 0.f);
+	m_pCharacter2->Move(0.f, -2.f * deltaTime);
 	m_pCharacter2->Draw();
 	m_pTilemap->CheckCollisions();
 	return true;

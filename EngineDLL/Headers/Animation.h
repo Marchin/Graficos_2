@@ -8,6 +8,7 @@ public:
 	~Animation();
 	void Update(float deltaTime);
 	void SetFPS(unsigned int fps);
+	void ChangeAnimation(const unsigned int* frames, unsigned int count);
 private:
 	SpriteSheet* m_pSpriteSheet;
 	unsigned int* m_frames;

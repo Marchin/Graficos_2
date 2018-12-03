@@ -85,7 +85,6 @@ inline void Tilemap::CheckSideColliding(BoxCollider* collider, float offsetX, fl
 	float tileX, tileY;
 	float deltaX = 0.f;
 	float deltaY = 0.f;
-	bool isOutOfBounds = false;
 	WCoordsToColRow(collider->position.x + offsetX, collider->position.y + offsetY, &col, &row);
 	ColRowToWCoords(col, row, &tileX, &tileY);
 	int tileID = m_pIDs[col + m_width* row];

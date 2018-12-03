@@ -6,7 +6,7 @@ class Character {
 public:
 	Character(Renderer* pRenderer);
 	~Character();
-	void Move(float x, float y, float z);
+	void Move(float x, float y);
 	void Draw();
 	void SetStatic(bool state);
 	void Update(float deltaTime);
