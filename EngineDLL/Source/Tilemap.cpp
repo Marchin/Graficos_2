@@ -62,7 +62,8 @@ void Tilemap::Draw() {
 	for (int i = 0; i < m_visibleHeight; i++) {
 		for (int j = 0; j < m_visibleWidth; j++) {
 			if (m_pVisibleTiles[(j + (m_visibleWidth*i))] >= 0) {
-				m_pRenderer->DrawBufferStrip(m_pVisibleTiles[(j + (m_visibleWidth*i))] * 4, 4);
+				m_pRenderer->DrawBufferStrip(m_pVisibleTiles[(
+					j + (m_visibleWidth*i))] * 4, 4);
 			}
 		}
 	}
@@ -80,12 +81,15 @@ void Tilemap::CheckCollisions() {
 	}
 }
 
-inline void Tilemap::CheckSideColliding(BoxCollider* collider, float offsetX, float offsetY) {
+inline void Tilemap::CheckSideColliding(
+	BoxCollider* collider, float offsetX, float offsetY) {
+
 	int col, row;
 	float tileX, tileY;
 	float deltaX = 0.f;
 	float deltaY = 0.f;
-	WCoordsToColRow(collider->position.x + offsetX, collider->position.y + offsetY, &col, &row);
+	WCoordsToColRow(collider->position.x + offsetX,
+		collider->position.y + offsetY, &col, &row);
 	ColRowToWCoords(col, row, &tileX, &tileY);
 	int tileID = m_pIDs[col + m_width* row];
 	if (col < 0 || row < 0 || col >= m_width || row >= m_height) {
@@ -189,13 +193,16 @@ void Tilemap::CalculateUV() {
 void Tilemap::CalculateVisibleTiles() {
 	int count = 0;
 	int tilesUntilCamX, tilesUntilCamY;
-	WCoordsToColRow(m_cacheCamPosX - m_pRenderer->GetCameraWidth() * 0.5f, m_cacheCamPosY + m_pRenderer->GetCameraHeight() * 0.5f, &tilesUntilCamX, &tilesUntilCamY);
+	WCoordsToColRow(m_cacheCamPosX - m_pRenderer->GetCameraWidth() * 0.5f
+		, m_cacheCamPosY + m_pRenderer->GetCameraHeight() * 0.5f, 
+		&tilesUntilCamX, &tilesUntilCamY);
 	for (int i = 0; i < m_visibleHeight; i++) {
 		for (int j = 0; j < m_visibleWidth; j++) {
 			if ((tilesUntilCamX + j < 0) || (tilesUntilCamY + i < 0) ) {
 				m_pVisibleTiles[count] = -1;
 			} else {
-				m_pVisibleTiles[count] = tilesUntilCamX + j + (m_width*(i + tilesUntilCamY));
+				m_pVisibleTiles[count] = 
+					tilesUntilCamX + j + (m_width*(i + tilesUntilCamY));
 			}
 			count++;
 		}

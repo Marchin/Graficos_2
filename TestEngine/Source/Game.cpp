@@ -77,8 +77,9 @@ bool Game::OnStart() {
 	int collisionableTiles[] = { 37, 45, 46, 47, 55 };
 	m_pTilemap->SetCollisionableTiles(collisionableTiles, sizeof(collisionableTiles)/sizeof(int));
 
-	m_pTilemap->RegisterColliders(m_pCharacter2->GetCollider());
 	m_pTilemap->RegisterColliders(m_pCharacter->GetCollider());
+	m_pTilemap->RegisterColliders(m_pCharacter2->GetCollider());
+	m_pTilemap->RegisterColliders(m_pCharacter3->GetCollider());
 
 	printf("Game::OnStart()\n");
 	return true;
