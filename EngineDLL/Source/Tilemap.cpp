@@ -14,12 +14,16 @@ Tilemap::Tilemap(const char* fileDir, SpriteSheet* pSpriteSheet,
 	m_pRenderer->GetCameraPosition(&m_cacheCamPosX, &m_cacheCamPosY);
 
 	//Genero los strides para el VertexArray
-	VertexBufferLayout layoutPosition, layoutUV;
+	VertexBufferLayout layoutPosition, layoutUV, layoutID;
 	layoutPosition.Push<float>(3);
 	layoutUV.Push<float>(2);
+	layoutID.Push<int>(1);
 	m_material.Bind();
 	m_spriteSheet.GetTexture()->Bind(0);
-	material.SetIntProperty("tex",0);
+	m_material.SetIntProperty("tex", 0);
+	m_material.SetFloatProperty("uTileSize", m_tileSize);
+	m_material.SetIntProperty("uMapWidth", (int)m_width);
+	m_material.SetIntProperty("uVisibleWidth", (int)m_visibleWidth);
 
 	CalculateVertexPosition();
 	CalculateUV();
@@ -27,6 +31,7 @@ Tilemap::Tilemap(const char* fileDir, SpriteSheet* pSpriteSheet,
 
 	m_va.AddBufferByLocation(m_vbPosition, layoutPosition, 0);
 	m_va.AddBufferByLocation(m_vbUV, layoutUV, 1);
+	m_va.SetAttribDivisor(1, 1);
 }
 
 Tilemap::~Tilemap() {
@@ -52,21 +57,108 @@ void Tilemap::Draw() {
 
 		m_cacheCamPosX = camPosX;
 		m_cacheCamPosY = camPosY;
-		CalculateVisibleTiles();
 	}
 	m_material.Bind();
 	m_spriteSheet.GetTexture()->Bind(0);
 	m_pRenderer->SetModelMatrix(GetModelMatrix());
 	m_material.SetMatrixProperty("uModelViewProjection", m_pRenderer->GetModelViewProj());
 	m_va.Bind();
-	for (int i = 0; i < m_visibleHeight; i++) {
+	m_pRenderer->DrawBufferStrip(0, m_visibleHeight * m_visibleWidth);
+	/*for (int i = 0; i < m_visibleHeight; i++) {
 		for (int j = 0; j < m_visibleWidth; j++) {
 			if (m_pVisibleTiles[(j + (m_visibleWidth*i))] >= 0) {
 				m_pRenderer->DrawBufferStrip(m_pVisibleTiles[(j + (m_visibleWidth*i))] * 4, 4);
 			}
 		}
-	}
+	}*/
 }
+
+
+void Tilemap::CalculateVertexPosition() {
+	/*m_pCoords = new float[m_width * m_height * 4 * 3];
+	float posX = 0.f;
+	float posY = 0.f;
+	int count = 0;
+	for (int i = 0; i < m_height; i++) {
+		for (int j = 0; j < m_width; j++) {
+			m_pCoords[count*4*3] = posX;
+			m_pCoords[count*4*3 + 1] = posY - m_tileSize;
+			m_pCoords[count*4*3 + 2] = 0.f;
+			m_pCoords[count*4*3 + 3] = posX;
+			m_pCoords[count*4*3 + 4] = posY;
+			m_pCoords[count*4*3 + 5] = 0.f;
+			m_pCoords[count*4*3 + 6] = posX + m_tileSize;
+			m_pCoords[count*4*3 + 7] = posY - m_tileSize;
+			m_pCoords[count*4*3 + 8] = 0.f;
+			m_pCoords[count*4*3 + 9] = posX + m_tileSize;
+			m_pCoords[count*4*3 + 10] = posY;
+			m_pCoords[count*4*3 + 11] = 0.f;
+			count++;
+			posX += m_tileSize;
+		}
+		posX = 0.f;
+		posY -= m_tileSize;
+	}*/
+	float squareVertices[] = {
+		0.f, 0.f, 0.f,
+		0.f, m_tileSize, 0.f,
+		m_tileSize, 0.f, 0.f,
+		m_tileSize,  m_tileSize, 0.f
+	};
+	m_vbPosition.SetData(squareVertices, sizeof(squareVertices));
+}
+
+void Tilemap::CalculateUV() {
+	unsigned int id = 0;
+	m_pUVData = new float[m_width * m_height * 8];
+	for (unsigned int i = 0; i < m_width * m_height; i++) {
+		if (m_pIDs[i] == -1) {
+			for (int j = 0; j < 8; j++) {
+				m_pUVData[i * 8 + j] = -1;
+			}
+		} else {
+			coords uvCoords = m_spriteSheet.GetSpritesUV(m_pIDs[i]);
+			m_pUVData[i*8] = uvCoords.u0;
+			m_pUVData[i*8 + 1] = uvCoords.v1;
+			m_pUVData[i*8 + 2] = uvCoords.u0;
+			m_pUVData[i*8 + 3] = uvCoords.v0;
+			m_pUVData[i*8 + 4] = uvCoords.u1;
+			m_pUVData[i*8 + 5] = uvCoords.v1;
+			m_pUVData[i*8 + 6] = uvCoords.u1;
+			m_pUVData[i*8 + 7] = uvCoords.v0;
+		}
+	}
+	m_vbUV.SetData(m_pUVData, sizeof(float) * m_width * m_height * 8);
+}
+
+void Tilemap::CalculateVisibleTiles() {
+	int count = 0;
+	int tilesUntilCamX, tilesUntilCamY;
+	WCoordsToColRow(m_cacheCamPosX - m_pRenderer->GetCameraWidth() * 0.5f, m_cacheCamPosY + m_pRenderer->GetCameraHeight() * 0.5f, &tilesUntilCamX, &tilesUntilCamY);
+	m_material.SetIntProperty("uCamX", tilesUntilCamX);
+	m_material.SetIntProperty("uCamY", tilesUntilCamY);
+	/*for (int i = 0; i < m_visibleHeight; i++) {
+		for (int j = 0; j < m_visibleWidth; j++) {
+			if ((tilesUntilCamX + j < 0) || (tilesUntilCamY + i < 0) ) {
+				m_pVisibleTiles[count] = -1;
+			} else {
+				m_pVisibleTiles[count] = tilesUntilCamX + j + (m_width*(i + tilesUntilCamY));
+			}
+			count++;
+		}
+	}*/
+}
+
+void Tilemap::WCoordsToColRow(float wcX, float wcY, int* col, int* row) {
+	*col = (int)((wcX ) / m_tileSize);
+	*row = (int)(-(wcY ) / m_tileSize);
+}
+
+void Tilemap::ColRowToWCoords(int col, int row, float* wcX, float* wcY){
+	*wcX = (float)col*m_tileSize;
+	*wcY = -(float)row*m_tileSize;
+}
+
 
 void Tilemap::CheckCollisions() {
 	for (unsigned int i = 0; i < m_collidersCount;) {
@@ -94,7 +186,6 @@ inline void Tilemap::CheckSideColliding(BoxCollider* collider, float offsetX, fl
 	if ((m_collisionBitmask[tileID/32] >> (tileID % 32)) & 1) {
 		if (offsetX != 0.f) {
 			deltaX = collider->position.x + offsetX - tileX;
-			printf("%d\n", deltaX);
 			if (signbit(deltaX) != signbit(offsetX)) { //tells from where i'm measuring
 				deltaX = 1.f - glm::abs(deltaX);
 			} else {
@@ -135,81 +226,3 @@ bool Tilemap::RegisterColliders(BoxCollider * collider) {
 	}
 	return false;
 }
-
-void Tilemap::CalculateVertexPosition() {
-	m_pCoords = new float[m_width * m_height * 4 * 3];
-	float posX = 0.f;
-	float posY = 0.f;
-	int count = 0;
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			m_pCoords[count*4*3] = posX;
-			m_pCoords[count*4*3 + 1] = posY - m_tileSize;
-			m_pCoords[count*4*3 + 2] = 0.f;
-			m_pCoords[count*4*3 + 3] = posX;
-			m_pCoords[count*4*3 + 4] = posY;
-			m_pCoords[count*4*3 + 5] = 0.f;
-			m_pCoords[count*4*3 + 6] = posX + m_tileSize;
-			m_pCoords[count*4*3 + 7] = posY - m_tileSize;
-			m_pCoords[count*4*3 + 8] = 0.f;
-			m_pCoords[count*4*3 + 9] = posX + m_tileSize;
-			m_pCoords[count*4*3 + 10] = posY;
-			m_pCoords[count*4*3 + 11] = 0.f;
-			count++;
-			posX += m_tileSize;
-		}
-		posX = 0.f;
-		posY -= m_tileSize;
-	}
-	m_vbPosition.SetData(m_pCoords, sizeof(float) * m_width * m_height * 4 * 3);
-}
-
-void Tilemap::CalculateUV() {
-	unsigned int id = 0;
-	m_pUVData = new float[m_width * m_height * 8];
-	for (unsigned int i = 0; i < m_width * m_height; i++) {
-		if (m_pIDs[i] == -1) {
-			for (int j = 0; j < 8; j++) {
-				m_pUVData[i * 8 + j] = -1;
-			}
-		} else {
-			coords uvCoords = m_spriteSheet.GetSpritesUV(m_pIDs[i]);
-			m_pUVData[i*8] = uvCoords.u0;
-			m_pUVData[i*8 + 1] = uvCoords.v1;
-			m_pUVData[i*8 + 2] = uvCoords.u0;
-			m_pUVData[i*8 + 3] = uvCoords.v0;
-			m_pUVData[i*8 + 4] = uvCoords.u1;
-			m_pUVData[i*8 + 5] = uvCoords.v1;
-			m_pUVData[i*8 + 6] = uvCoords.u1;
-			m_pUVData[i*8 + 7] = uvCoords.v0;
-		}
-	}
-	m_vbUV.SetData(m_pUVData, sizeof(float) * m_width * m_height * 8);
-}
-
-void Tilemap::CalculateVisibleTiles() {
-	int count = 0;
-	int tilesUntilCamX, tilesUntilCamY;
-	WCoordsToColRow(m_cacheCamPosX - m_pRenderer->GetCameraWidth() * 0.5f, m_cacheCamPosY + m_pRenderer->GetCameraHeight() * 0.5f, &tilesUntilCamX, &tilesUntilCamY);
-	for (int i = 0; i < m_visibleHeight; i++) {
-		for (int j = 0; j < m_visibleWidth; j++) {
-			if ((tilesUntilCamX + j < 0) || (tilesUntilCamY + i < 0) ) {
-				m_pVisibleTiles[count] = -1;
-			} else {
-				m_pVisibleTiles[count] = tilesUntilCamX + j + (m_width*(i + tilesUntilCamY));
-			}
-			count++;
-		}
-	}
-}
-
-void Tilemap::WCoordsToColRow(float wcX, float wcY, int* col, int* row) {
-	*col = (int)((wcX ) / m_tileSize);
-	*row = (int)(-(wcY ) / m_tileSize);
-}
-
-void Tilemap::ColRowToWCoords(int col, int row, float* wcX, float* wcY){
-	*wcX = (float)col*m_tileSize;
-	*wcY = -(float)row*m_tileSize;
-}
-

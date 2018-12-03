@@ -41,4 +41,5 @@ private:
 	VertexArray m_va;
 	VertexBuffer m_vbPosition;
 	VertexBuffer m_vbUV;
+	VertexBuffer m_vbID;
 };

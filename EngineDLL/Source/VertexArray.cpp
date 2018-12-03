@@ -36,6 +36,10 @@ void VertexArray::AddBufferByLocation(const VertexBuffer & vb, const VertexBuffe
 	GLCall(glEnableVertexAttribArray(location));
 }
 
+void VertexArray::SetAttribDivisor(unsigned int attrib, unsigned int div) {
+	GLCall(glVertexAttribDivisor(attrib, div));
+}
+
 void VertexArray::Bind() const {
 	GLCall(glBindVertexArray(m_va));
 }

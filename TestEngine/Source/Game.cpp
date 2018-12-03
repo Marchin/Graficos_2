@@ -47,8 +47,8 @@ bool Game::OnStart() {
 		"Resources/Shaders/ColorShader/fColor.glsl");
 	Material materialSquare(sColorSquare);
 
-	Shader sSprite("Resources/Shaders/ShaderTexture/vTexture.glsl",
-		"Resources/Shaders/ShaderTexture/fTexture.glsl");
+	Shader sSprite("Resources/Shaders/ShaderTilemap/vTilemap.glsl",
+		"Resources/Shaders/ShaderTilemap/fTilemap.glsl");
 	Material materialSprite(sSprite);
 
 	/*m_pTriangle = new Triangle(m_pRenderer, materialShape, &vertices, sizeof(vertices));
