@@ -94,7 +94,6 @@ inline void Tilemap::CheckSideColliding(BoxCollider* collider, float offsetX, fl
 	if ((m_collisionBitmask[tileID/32] >> (tileID % 32)) & 1) {
 		if (offsetX != 0.f) {
 			deltaX = collider->position.x + offsetX - tileX;
-			printf("%d\n", deltaX);
 			if (signbit(deltaX) != signbit(offsetX)) { //tells from where i'm measuring
 				deltaX = 1.f - glm::abs(deltaX);
 			} else {
