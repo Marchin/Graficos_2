@@ -1,7 +1,7 @@
 @echo off
 SET "LIB="
 
-SET VC_PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\
+SET VC_PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community
 IF NOT DEFINED LIB (IF EXIST "%VC_PATH%" (call "%VC_PATH%\VC\Auxiliary\Build\vcvarsall.bat" x64)) 
 
 SET VC_PATH=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community
@@ -23,5 +23,5 @@ SET VC_PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0
 IF NOT DEFINED LIB (IF EXIST "%VC_PATH%" (call "%VC_PATH%\VC\vcvarsall.bat" x64)) 
 
 pushd ..\test_game\
-D:\4coder\4ed main.cpp
+4ed main.cpp
 popd
