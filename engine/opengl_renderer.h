@@ -24,9 +24,9 @@ struct ElementBuffer {
 };
 
 struct VertexBufferElement {
-	unsigned int type;
-	unsigned int count;
-	unsigned char normalized;
+	u32 type;
+	u32 count;
+    u8 normalized;
 };
 
 struct VertexBufferLayout {
@@ -38,19 +38,27 @@ struct VertexBufferLayout {
 
 struct ENGINE_API Window {
     void* pInstance;
-    int width;
-    int height;
-    const char* pName;
+    i32 width;
+    i32 height;
+    char* pName;
+};
+
+enum Projection {
+    ORTHOGONAL,
+    PERSPECTIVE
 };
 
 struct ENGINE_API Renderer {
 	hmm_mat4 model;
 	hmm_mat4 view;
 	hmm_mat4 projection;
-	float camPosX;
-	float camPosY;
-	float halfCamWidth;
-	float halfCamHeight;
+	f32 camPosX;
+	f32 camPosY;
+	f32 halfCamWidth;
+	f32 halfCamHeight;
+    f32 fov;
+    f32 aspectRatio;
+    Projection projectionType;
 };
 
 ENGINE_API inline f32 getTime();
@@ -100,7 +108,8 @@ ENGINE_API b32 startWindow(Window* pWindow);
 ENGINE_API b32 stopWindow(Window* pWindow);
 ENGINE_API inline b32 windowShouldClose(Window* pWindow);
 ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
-ENGINE_API void setupRenderer(Renderer* pRenderer);
+ENGINE_API void updateProjection(Renderer* pRenderer);
+ENGINE_API void setupRenderer(Renderer* pRenderer, Projection projection = ORTHOGONAL);
 ENGINE_API inline b32 startRenderer();
 ENGINE_API inline b32 stopRenderer();
 ENGINE_API inline void clearRenderer();

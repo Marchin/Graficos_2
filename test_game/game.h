@@ -12,7 +12,7 @@ struct Game {
     SpriteSheet tileset;
     Tilemap tilemap;
     f32 camX, camY;
-    
+    f32 timer;
 };
 
 #endif //GAME_H

@@ -481,9 +481,9 @@ windowShouldClose(Window* pWindow) {
 ENGINE_API inline void 
 pollEventsFromWindow(Window* pWindow) {
 	if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glCall(glfwSetWindowShouldClose((GLFWwindow*)pWindow->pInstance, true));
+        glCall(glfwSetWindowShouldClose((GLFWwindow*)pWindow->pInstance, true));
 	}
-	glCall(glfwPollEvents());
+    glCall(glfwPollEvents());
 }
 
 ////////////////////////////////
@@ -491,20 +491,40 @@ pollEventsFromWindow(Window* pWindow) {
 ////////////////////////////////
 
 ENGINE_API void
-setupRenderer(Renderer* pRenderer)  {
+updateProjection(Renderer* pRenderer) {
+    switch (pRenderer->projectionType) {
+        case ORTHOGONAL: {
+            pRenderer->projection = HMM_Orthographic(-pRenderer->halfCamWidth, 
+                                                     pRenderer->halfCamWidth, 
+                                                     -pRenderer->halfCamHeight, 
+                                                     pRenderer->halfCamHeight, 
+                                                     0.f, 100.f);
+        }break;
+        case PERSPECTIVE: {
+            pRenderer->projection = HMM_Perspective(pRenderer->fov,
+                                                    pRenderer->aspectRatio,
+                                                    0.f, 100.f); 
+        }break;
+        default: {
+            Assert(0);
+        }break;
+    }
+}
+
+ENGINE_API void
+setupRenderer(Renderer* pRenderer, Projection projectionType)  {
     pRenderer->halfCamHeight = 10.f; 
     pRenderer->halfCamWidth = 10.f; 
     pRenderer->camPosX = 0;
     pRenderer->camPosY = 0;
+    pRenderer->fov = 100;
+    pRenderer->aspectRatio = 800/600;
+    pRenderer->projectionType = projectionType;
     pRenderer->model = HMM_Mat4d(1.f);
-    pRenderer->view = HMM_LookAt(HMM_Vec3(pRenderer->camPosX, pRenderer->camPosY,3.f), 
+    pRenderer->view = HMM_LookAt(HMM_Vec3(pRenderer->camPosX, pRenderer->camPosY, 3.f), 
                                  HMM_Vec3(pRenderer->camPosX, pRenderer->camPosY, 0.f), 
                                  HMM_Vec3(0.f, 1.f, 0.f));
-    pRenderer->projection = HMM_Orthographic(-pRenderer->halfCamWidth, 
-                                             pRenderer->halfCamWidth, 
-                                             -pRenderer->halfCamHeight, 
-                                             pRenderer->halfCamHeight, 
-                                             0.f, 100.f);
+    updateProjection(pRenderer);
 }
 
 ENGINE_API inline b32 
@@ -512,7 +532,7 @@ startRenderer() {
     printf("Start()\n");
     glCall(glEnable(GL_BLEND));
     glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    glCall(glfwSwapInterval(0));
+    //glCall(glfwSwapInterval(0));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
     
     return true;

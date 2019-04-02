@@ -88,6 +88,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character1.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character3.pCollider);
+    
+    pGame->timer = {};
 }
 
 internal void
@@ -102,7 +104,17 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //updateAnimation(&pGame->anim, deltaTime);
     //transformRotateY(&pGame->cs.transform, 5.f);
     //transformRotateZ(&pGame->sprite.transform, 5.f);
-    
+    pGame->timer += pTime->deltaTime;
+    if (pGame->timer >= 3.f) {
+        if (pRenderer->projectionType == ORTHOGONAL) {
+            pRenderer->projectionType = PERSPECTIVE;
+        } else {
+            pRenderer->projectionType = ORTHOGONAL;
+        }
+        updateProjection(pRenderer);
+        pRenderer->fov += 10.f;
+        pGame->timer = 0.f;
+    }
     if (pGame->camX > 32.f) {
         pGame->camX = 0.f;
         pGame->camY -= 5.f;
