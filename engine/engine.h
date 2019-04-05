@@ -29,6 +29,7 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 
+#include "camera.h"
 #if OPENGL
 #include "opengl_renderer.h"
 #endif
@@ -42,6 +43,10 @@ struct ENGINE_API Time {
     f32 lastFrame;
 };
 
-ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer);
+global const hmm_vec3 VEC3_X = HMM_Vec3(1.f, 0.f, 0.f);
+global const hmm_vec3 VEC3_Y = HMM_Vec3(0.f, 1.f, 0.f);
+global const hmm_vec3 VEC3_Z = HMM_Vec3(0.f, 0.f, 1.f);
+
+ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);
 ENGINE_API void updateEngine(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
 #endif //ENGINE_H

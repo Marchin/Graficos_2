@@ -196,7 +196,17 @@ extern "C"
         
         struct
         {
+            float x, y;
+        };
+        
+        struct
+        {
             float U, V;
+        };
+        
+        struct
+        {
+            float u, v;
         };
         
         struct
@@ -228,12 +238,22 @@ extern "C"
         
         struct
         {
+            float x, y, z;
+        };
+        
+        struct
+        {
             float U, V, W;
         };
         
         struct
         {
             float R, G, B;
+        };
+        
+        struct
+        {
+            float r, g, b;
         };
         
         struct
@@ -2175,6 +2195,21 @@ HMM_INLINE hmm_bool operator!=(hmm_vec3 Left, hmm_vec3 Right)
 HMM_INLINE hmm_bool operator!=(hmm_vec4 Left, hmm_vec4 Right)
 {
     return !HMM_EqualsVec4(Left, Right);
+}
+
+// NOTE(Marchin): custom
+HMM_INLINE hmm_vec3 &operator%=(hmm_vec3 &Left, float Right)
+{
+    int times = (int)(Left.X / Right);
+    int operand = (times > 0)? -1 : 1;
+    Left.X += Right * operand * times;
+    times = (int)(Left.Y / Right);
+    operand = (times > 0)? -1 : 1;
+    Left.Y += Right * operand * times;
+    times = (int)(Left.Z / Right);
+    operand = (times > 0)? -1 : 1;
+    Left.Z += Right * operand * times;
+    return Left;
 }
 
 #endif /* __cplusplus */

@@ -9,12 +9,12 @@ ENGINE_API void
 checkCollision(CollisionManager* pCM, i32 index1, i32 index2) {
 	BoxCollider* pCollider1 = &pCM->colliders[index1];
 	BoxCollider* pCollider2 = &pCM->colliders[index2];
-	f32 deltaX = pCollider1->pTransform->position.X - pCollider2->pTransform->position.X;
-	f32 deltaY = pCollider1->pTransform->position.Y - pCollider2->pTransform->position.Y;
-    f32 halfWidth1 = pCollider1->halfWidth * pCollider1->pTransform->scale.X;
-    f32 halfHeight1 = pCollider1->halfHeight * pCollider1->pTransform->scale.Y;
-    f32 halfWidth2 = pCollider2->halfWidth * pCollider2->pTransform->scale.X;
-    f32 halfHeight2 = pCollider2->halfHeight * pCollider2->pTransform->scale.Y;
+	f32 deltaX = pCollider1->pTransform->position.x - pCollider2->pTransform->position.x;
+	f32 deltaY = pCollider1->pTransform->position.y - pCollider2->pTransform->position.y;
+    f32 halfWidth1 = pCollider1->halfWidth * pCollider1->pTransform->scale.x;
+    f32 halfHeight1 = pCollider1->halfHeight * pCollider1->pTransform->scale.y;
+    f32 halfWidth2 = pCollider2->halfWidth * pCollider2->pTransform->scale.x;
+    f32 halfHeight2 = pCollider2->halfHeight * pCollider2->pTransform->scale.y;
     
 	if (HMM_ABS(deltaX) < halfWidth1 + halfWidth2 &&
 		HMM_ABS(deltaY) < halfHeight1 + halfHeight2) {

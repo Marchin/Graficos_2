@@ -1,10 +1,11 @@
 version(1);
 
-project_name = "MarmotEngine";
+project_name = "GraphicsEngine";
 
 patterns = {
 	"*.cpp",
 	"*.h",
+	"*.bat",
 };
 
 patterns = {
@@ -13,7 +14,8 @@ patterns = {
 
 load_paths = {
 	{{
-		{".", .relative = true, .recursive = true,}
+		{"..\\test_game\\.", .relative = true, .recursive = true,},
+		{"..\\engine\\.", .relative = true, .recursive = true,}
 	}, .os ="win"},
 };
 
@@ -32,12 +34,12 @@ command_list = {
 	.cursor_at_end = true,
 	.cmd = {{"..\\build\\main", .os = "win"},},
   },
-  { .name = "setup",
+  { .name = "console",
 	.out = "*compilation*",
 	.footer_panel = false,
 	.save_dirty_files = true,
 	.cursor_at_end = false,
-	.cmd = {{"..\\misc\\shell.bat", .os = "win"},},
+	.cmd = {{"cmd", .os = "win"},},
   },
   { .name = "vs",
 	.out = "",
@@ -62,7 +64,7 @@ command_list = {
   },
 };
 
-fkey_command[1] = "setup";
+fkey_command[3] = "console";
 fkey_command[4] = "build";
 fkey_command[5] = "run";
 fkey_command[7] = "remedybg";

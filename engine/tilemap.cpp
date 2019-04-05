@@ -1,5 +1,5 @@
 ENGINE_API inline b32
-checkTilemapFormat(char* pFileDir) {
+checkTilemapFormat(const char* pFileDir) {
     //check if it is .csv
     //get to the end of the direction
     i32 iter = 0;
@@ -21,7 +21,7 @@ checkTilemapFormat(char* pFileDir) {
 }
 
 ENGINE_API b32
-loadTilemap(Tilemap* pTilemap, char* pFileDir) {
+loadTilemap(Tilemap* pTilemap, const char* pFileDir) {
     if (!checkTilemapFormat(pFileDir)) {
         printf("Error Loading Tilemap: Invalid format\n");
         return false;
@@ -126,8 +126,8 @@ tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider,
     f32 deltaX = 0.f;
     f32 deltaY = 0.f;
     tilemapWCoordsToColRow(pTilemap, 
-                           pCollider->pTransform->position.X + offsetX,
-                           pCollider->pTransform->position.Y + offsetY, 
+                           pCollider->pTransform->position.x + offsetX,
+                           pCollider->pTransform->position.y + offsetY, 
                            &col, &row);
     tilemapColRowToWCoords(pTilemap, col, row, &tileX, &tileY);
     i32 tileID = pTilemap->pIDs[col + pTilemap->width* row];
@@ -139,7 +139,7 @@ tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider,
          (tileID%bitmaskSize))&(size_t)1) {
         
         if (offsetX != 0.f) {
-            deltaX = pCollider->pTransform->position.X + offsetX - tileX;
+            deltaX = pCollider->pTransform->position.x + offsetX - tileX;
             if (signbit(deltaX) != signbit(offsetX)) { //tells from where i'm measuring
                 deltaX = 1.f - HMM_ABS(deltaX);
             } else {
@@ -148,7 +148,7 @@ tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider,
             deltaX = (signbit(offsetX) ? deltaX : -deltaX);
         }
         if (offsetY != 0.f) {
-            deltaY = pCollider->pTransform->position.Y + offsetY - tileY;
+            deltaY = pCollider->pTransform->position.y + offsetY - tileY;
             if (signbit(deltaY) != signbit(offsetY)) { 
                 deltaY = 1.f - HMM_ABS(deltaY);
             } else {
@@ -285,7 +285,7 @@ tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer) {
 }
 
 ENGINE_API void
-initTilemap(Tilemap* pTilemap, char* pTilemapDir, SpriteSheet* pTileset, 
+initTilemap(Tilemap* pTilemap, const char* pTilemapDir, SpriteSheet* pTileset, 
             Shader* pMaterial, Renderer* pRenderer) {
     *pTilemap = {};
     pTilemap->tileSize = 1.f;
@@ -305,8 +305,9 @@ initTilemap(Tilemap* pTilemap, char* pTilemapDir, SpriteSheet* pTileset,
     pTilemap->visibleHeight = (i32)(getCameraHeight(pRenderer) / pTilemap->tileSize) + 2; //one extra row at each side
     pTilemap->pVisibleTiles = 
         (i32*)malloc(sizeof(i32)*pTilemap->visibleWidth*pTilemap->visibleHeight);
-    getCameraPosition(pRenderer, &pTilemap->cacheCamPosX, &pTilemap->cacheCamPosY);
-    
+    hmm_vec3 cameraPos = getCameraPosition(pRenderer);
+    pTilemap->cacheCamPosX= cameraPos.x;
+    pTilemap->cacheCamPosY = cameraPos.y;
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
     layout.pElements = 
@@ -351,8 +352,10 @@ freeTilemap(Tilemap* pTilemap) {
 
 ENGINE_API void
 drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
-    f32 camPosX, camPosY;
-    getCameraPosition(pRenderer, &camPosX, &camPosY);
+    hmm_vec3 pos = getCameraPosition(pRenderer);
+    f32 camPosX = pos.x;
+    f32 camPosY = pos.y;
+    
     if ((HMM_ABS((pTilemap->cacheCamPosX - camPosX)) >= 1.f) ||
         (HMM_ABS((pTilemap->cacheCamPosY - camPosY)) >= 1.f)) {
         
@@ -361,8 +364,8 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
         tilemapCalculateVisibleTiles(pTilemap, pRenderer);
     }
     shaderBindID(pTilemap->material.id);
-    textureBindID(pTilemap->tileset.sprite.texture.id, 0);
-    setModelMatrix(pRenderer, pTilemap->transform.model);
+    textureBindID(pTilemap->tileset.spriteRenderer.texture.id, 0);
+    pRenderer->model = pTilemap->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTilemap->material, "uModelViewProjection", &mvp);
     vaBind(pTilemap->va);

@@ -9,7 +9,7 @@ glClearError() {
 }
 
 internal inline bool
-glLogCall(char* pFunction, char* pFile, i32 line) {
+glLogCall(const char* pFunction, const char* pFile, i32 line) {
     while (GLenum error = glGetError()) {
         printf("[OpenGL Error] (%d): %s %s: %d\n", error, pFunction, pFile, line);
         
@@ -20,7 +20,7 @@ glLogCall(char* pFunction, char* pFile, i32 line) {
 }
 
 internal void 
-checkShaderCompileErrors(u32 shader, char* pType) {
+checkShaderCompileErrors(u32 shader, const char* pType) {
 	i32 success;
 	char infoLog[1024];
 	if (strcmp(pType, "PROGRAM") != 0) {
@@ -42,7 +42,7 @@ checkShaderCompileErrors(u32 shader, char* pType) {
 }
 
 internal u32 
-setupShader(char* pShaderPath, u32 type) {
+setupShader(const char* pShaderPath, u32 type) {
 	FILE* pFile = fopen(pShaderPath, "r");
     char* pShaderCode;
 	u32 id;
@@ -82,9 +82,9 @@ setupShader(char* pShaderPath, u32 type) {
 
 ENGINE_API void
 initShader(Shader* pShader,
-           char* pVertexPath, char* pFragmentPath,
-           char* pGeometryPath, 
-           char* pTessControlPath, char* pTessEvaluationPath) {
+           const char* pVertexPath, const char* pFragmentPath,
+           const char* pGeometryPath, 
+           const char* pTessControlPath, const char* pTessEvaluationPath) {
     
 	u32 vertex = 0;
 	u32 fragment = 0;
@@ -136,8 +136,8 @@ shaderBindID(u32 shaderID) {
 }
 
 ENGINE_API i32 
-getUniformLocation(Shader* pShader, char* pName) {
-    meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (void*)pName);
+getUniformLocation(Shader* pShader, const char* pName) {
+    meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
     i32 iHash;
     i32 firstFreeSlotIndex = -1;
@@ -169,27 +169,27 @@ getUniformLocation(Shader* pShader, char* pName) {
 }
 
 ENGINE_API inline void 
-shaderSetBool(Shader* pShader, char* pName, b32 value) {
+shaderSetBool(Shader* pShader, const char* pName, b32 value) {
 	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
 ENGINE_API inline void
-shaderSetInt(Shader* pShader, char* pName, i32 value) {
+shaderSetInt(Shader* pShader, const char* pName, i32 value) {
 	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
 ENGINE_API inline void
-shaderSetFloat(Shader* pShader, char* pName, f32 value) {
+shaderSetFloat(Shader* pShader, const char* pName, f32 value) {
 	glCall(glUniform1f(getUniformLocation(pShader, pName), value));
 }
 
 ENGINE_API inline void
-shaderSetVec3(Shader* pShader, char* pName, hmm_vec3* pVector) {
-	glCall(glUniform3fv(getUniformLocation(pShader, pName), 1, &pVector->X));
+shaderSetVec3(Shader* pShader, const char* pName, hmm_vec3* pVector) {
+	glCall(glUniform3fv(getUniformLocation(pShader, pName), 1, &pVector->x));
 }
 
 ENGINE_API inline void
-shaderSetMat4(Shader* pShader, char* pName, hmm_mat4* pMat4) {
+shaderSetMat4(Shader* pShader, const char* pName, hmm_mat4* pMat4) {
 	glCall(glUniformMatrix4fv(getUniformLocation(pShader, pName), 
                               1, GL_FALSE, (f32*)pMat4));
 }
@@ -209,7 +209,7 @@ initTexture(Texture* pTexture, u32 width, u32 height) {
 
 ENGINE_API void
 initTexture(Texture* pTexture,
-            char* pImgPath, b32 flipVertical, 
+            const char* pImgPath, b32 flipVertical, 
             i32 TextureWrap_S, i32 TextureWrap_T,
             i32 TextureMinFilter, i32 TextureMagFilter) {
     
@@ -345,7 +345,7 @@ initVB(u32* pVB) {
 }
 
 ENGINE_API inline void
-initVB(u32* pVB, void* pData, u32 size) {
+initVB(u32* pVB, const void* pData, u32 size) {
     glCall(glGenBuffers(1, pVB));
     glCall(glBindBuffer(GL_ARRAY_BUFFER, *pVB));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
@@ -367,7 +367,7 @@ vbUnbind() {
 }
 
 ENGINE_API inline void 
-vbSetData(u32 vb, void* pData, u32 size) {
+vbSetData(u32 vb, const void* pData, u32 size) {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
 }
@@ -402,7 +402,7 @@ vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout) {
         VertexBufferElement* pElement = pElements + iElement;
         glCall(glVertexAttribPointer(iElement, 
                                      pElement->count, pElement->type, pElement->normalized,
-                                     pLayout->stride, ( void*)offset));
+                                     pLayout->stride, (void*)offset));
         glCall(glEnableVertexAttribArray(iElement));
         
         offset += pElement->count * vbElementGetSizeOfType(pElement->type);
@@ -490,46 +490,12 @@ pollEventsFromWindow(Window* pWindow) {
 //RENDERER
 ////////////////////////////////
 
-ENGINE_API void
-updateProjection(Renderer* pRenderer) {
-    switch (pRenderer->projectionType) {
-        case ORTHOGONAL: {
-            pRenderer->projection = HMM_Orthographic(-pRenderer->halfCamWidth, 
-                                                     pRenderer->halfCamWidth, 
-                                                     -pRenderer->halfCamHeight, 
-                                                     pRenderer->halfCamHeight, 
-                                                     0.f, 100.f);
-        }break;
-        case PERSPECTIVE: {
-            pRenderer->projection = HMM_Perspective(pRenderer->fov,
-                                                    pRenderer->aspectRatio,
-                                                    0.f, 100.f); 
-        }break;
-        default: {
-            Assert(0);
-        }break;
-    }
-}
-
-ENGINE_API void
-setupRenderer(Renderer* pRenderer, Projection projectionType)  {
-    pRenderer->halfCamHeight = 10.f; 
-    pRenderer->halfCamWidth = 10.f; 
-    pRenderer->camPosX = 0;
-    pRenderer->camPosY = 0;
-    pRenderer->fov = 100;
-    pRenderer->aspectRatio = 800/600;
-    pRenderer->projectionType = projectionType;
-    pRenderer->model = HMM_Mat4d(1.f);
-    pRenderer->view = HMM_LookAt(HMM_Vec3(pRenderer->camPosX, pRenderer->camPosY, 3.f), 
-                                 HMM_Vec3(pRenderer->camPosX, pRenderer->camPosY, 0.f), 
-                                 HMM_Vec3(0.f, 1.f, 0.f));
-    updateProjection(pRenderer);
-}
-
 ENGINE_API inline b32 
-startRenderer() {
+startRenderer(Renderer* pRenderer, Camera* pCamera) {
     printf("Start()\n");
+    Assert(pCamera != 0);
+    initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
+    pRenderer->pCamera = pCamera;
     glCall(glEnable(GL_BLEND));
     glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glfwSwapInterval(0));
@@ -590,37 +556,22 @@ multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation) {
     pRenderer->model = pRenderer->model * *pTransformation;
 }
 
-ENGINE_API inline void 
-setModelMatrix(Renderer* pRenderer, hmm_mat4 model) {
-    pRenderer->model = model;
-}
-
 ENGINE_API inline hmm_mat4 
 getModelViewProj(Renderer* pRenderer) {
     return (pRenderer->projection * pRenderer->view * pRenderer->model);
 }
 
-ENGINE_API inline void 
-getCameraPosition(Renderer* pRenderer, f32* pX, f32* pY) {
-    *pX = pRenderer->camPosX;
-    *pY = pRenderer->camPosY;
-}
-
-ENGINE_API inline void 
-setCameraPosition(Renderer* pRenderer, f32 x, f32 y) {
-    pRenderer->camPosX = x;
-    pRenderer->camPosY = y;
-    pRenderer->view = HMM_LookAt(HMM_Vec3(x, y,3.f), 
-                                 HMM_Vec3(x, y, 0.f), 
-                                 HMM_Vec3(0.f, 1.f, 0.f));
+ENGINE_API inline hmm_vec3
+getCameraPosition(Renderer* pRenderer) {
+    return pRenderer->pCamera->position;
 }
 
 ENGINE_API inline f32 
 getCameraWidth(Renderer* pRenderer) {
-    return pRenderer->halfCamWidth * 2.f;
+    return pRenderer->pCamera->halfCamWidth * 2.f;
 }
 
 ENGINE_API inline f32 
 getCameraHeight(Renderer* pRenderer) {
-    return pRenderer->halfCamHeight * 2.f;
+    return pRenderer->pCamera->halfCamHeight * 2.f;
 }

@@ -5,7 +5,8 @@ struct Character {
 	BoxCollider* pCollider;
     SpriteSheet spriteSheet;
 	Animation animation;
-    float speed;
+    Transform transform;
+    f32 speed;
 };
 
 #endif //GAME_ENTITIES_H

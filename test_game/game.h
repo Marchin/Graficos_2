@@ -5,12 +5,12 @@ struct Game {
     Triangle triangle;
     ColorSquare cs;
     Circle circle;
-    Sprite sprite;
     Animation anim;
     SpriteSheet ss;
     Character character1, character2, character3;
     SpriteSheet tileset;
     Tilemap tilemap;
+    Camera camera;
     f32 camX, camY;
     f32 timer;
 };

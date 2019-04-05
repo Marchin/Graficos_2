@@ -150,7 +150,7 @@ static const unsigned char MeowS3Init[] = MEOW_S3_INIT;
 //
 
 static meow_hash
-MeowHash_Accelerated(meow_u64 Seed, meow_u64 TotalLengthInBytes, void *SourceInit)
+MeowHash_Accelerated(meow_u64 Seed, meow_u64 TotalLengthInBytes, const void *SourceInit)
 {
     //
     // NOTE(casey): Initialize the four AES streams and the mixer

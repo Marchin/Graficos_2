@@ -14,7 +14,7 @@ void main() {
     window.height = 600;
     window.width = 800;
     
-    startEngine(&window, &renderer);
+    startEngine(&window, &renderer, &game.camera);
     initGame(&game, &renderer, &time, &cm);
     while (!windowShouldClose(&window)) {
         updateGame(&game, &renderer, &time, &cm);

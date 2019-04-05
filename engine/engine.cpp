@@ -7,12 +7,12 @@
 #include "entities.cpp"
 #include "physics.cpp"
 #include "tilemap.cpp"
+#include "camera.cpp"
 
 ENGINE_API void
-startEngine(Window* pWindow, Renderer* pRenderer) {
+startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
     startWindow(pWindow);
-    setupRenderer(pRenderer);
-    startRenderer();
+    startRenderer(pRenderer, pCamera);
 }
 
 ENGINE_API void

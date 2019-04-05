@@ -15,8 +15,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initShader(&textureMaterial, "..//resources//shaders//vTexture.glsl", 
                "..//resources//shaders//fTexture.glsl");
     
-    char* pSpritePath = "..//resources//container.jpg";
-    char* pSpriteSheetPath = "..//resources//spriteSheet.png";
+    const char* pSpritePath = "..//resources//container.jpg";
+    const char* pSpriteSheetPath = "..//resources//spriteSheet.png";
     
     float vertices[] = {
 		-0.5f, -0.5f, 0.f,
@@ -89,6 +89,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character3.pCollider);
     
+    
     pGame->timer = {};
 }
 
@@ -103,15 +104,10 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //drawSprite(&pGame->ss.sprite, pRenderer);
     //updateAnimation(&pGame->anim, deltaTime);
     //transformRotateY(&pGame->cs.transform, 5.f);
-    //transformRotateZ(&pGame->sprite.transform, 5.f);
+    //transformRotate(&pGame->sprite.transform, 5.f, );
     pGame->timer += pTime->deltaTime;
+#if 0
     if (pGame->timer >= 3.f) {
-        if (pRenderer->projectionType == ORTHOGONAL) {
-            pRenderer->projectionType = PERSPECTIVE;
-        } else {
-            pRenderer->projectionType = ORTHOGONAL;
-        }
-        updateProjection(pRenderer);
         pRenderer->fov += 10.f;
         pGame->timer = 0.f;
     }
@@ -124,7 +120,12 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     } else {
         pGame->camX += 2.f  * pTime->deltaTime;
     }
-    setCameraPosition(pRenderer, pGame->camX, pGame->camY);
+#endif
+    //pGame->camera.position.x += pTime->deltaTime;
+    //cameraProcessKeyboard(&pGame->camera, VEC3_X, pTime->deltaTime);
+    pRenderer->view = cameraGetViewMatrix(&pGame->camera);
+    transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
+    //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);
     moveCharacter(&pGame->character1, -2.f * pTime->deltaTime, 0.f);
     updateCharacter(&pGame->character1, pTime->deltaTime);

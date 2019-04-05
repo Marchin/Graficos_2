@@ -4,21 +4,13 @@ transformUpdateMC(Transform* pTransform) {
         pTransform->positionMatrix * pTransform->rotationMatrix * pTransform->scaleMatrix;
 }
 
-ENGINE_API inline void 
-transformUpdateRotation(Transform* pTransform) {
-	pTransform->rotationMatrix = 
-        pTransform->rotationX * pTransform->rotationY * pTransform->rotationZ;
-}
-
 ENGINE_API void
 initTransform(Transform* pTransform) {
     pTransform->positionMatrix = HMM_Mat4d(1.f);
     pTransform->rotationMatrix = HMM_Mat4d(1.f);
     pTransform->scaleMatrix = HMM_Mat4d(1.f);
     pTransform->position = HMM_Vec3T(0.f);
-    pTransform->rotationX = HMM_Mat4d(1.f);
-    pTransform->rotationY = HMM_Mat4d(1.f);
-    pTransform->rotationZ = HMM_Mat4d(1.f);
+    pTransform->eulerAngles = HMM_Vec3T(0.f);
     pTransform->scale = HMM_Vec3T(1.f);
     
 	transformUpdateMC(pTransform);
@@ -39,26 +31,10 @@ transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z) {
 }
 
 ENGINE_API inline void 
-transformRotateX(Transform* pTransform, f32 angle) {
-    hmm_vec3 axis = HMM_Vec3(1.f, 0.f, 0.f);
-	pTransform->rotationX = HMM_Rotate(angle, axis) * pTransform->rotationX;
-	transformUpdateRotation(pTransform);
-	transformUpdateMC(pTransform);
-}
-
-ENGINE_API inline void 
-transformRotateY(Transform* pTransform, f32 angle) {
-    hmm_vec3 axis = HMM_Vec3(0.f, 1.f, 0.f);
-	pTransform->rotationY = HMM_Rotate(angle, axis) * pTransform->rotationY;
-	transformUpdateRotation(pTransform);
-	transformUpdateMC(pTransform);
-}
-
-ENGINE_API inline void 
-transformRotateZ(Transform* pTransform, f32 angle) {
-    hmm_vec3 axis = HMM_Vec3(0.f, 0.f, 1.f);
-	pTransform->rotationZ = HMM_Rotate(angle, axis) * pTransform->rotationZ;
-	transformUpdateRotation(pTransform);
+transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis) {
+    pTransform->eulerAngles += angle * axis;
+    pTransform->eulerAngles %= 360.f;
+    pTransform->rotationMatrix = HMM_Rotate(angle, axis) * pTransform->rotationMatrix;
 	transformUpdateMC(pTransform);
 }
 
@@ -77,7 +53,7 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
 ////////////////////////////////
 
 ENGINE_API void
-initTriangle(Triangle* pTriangle, Shader* pMaterial, void* pData, unsigned int size) {
+initTriangle(Triangle* pTriangle, Shader* pMaterial, const void* pData, u32 size) {
     initTransform(&pTriangle->transform);
     initVA(&pTriangle->va);
     vaBind(pTriangle->va);
@@ -114,7 +90,7 @@ drawTriangle(Triangle* pTriangle, Renderer* pRenderer) {
 }
 
 ENGINE_API inline void 
-setTriangleVertices(Triangle* pTriangle, void* pData) {
+setTriangleVertices(Triangle* pTriangle, const void* pData) {
 	vbSetData(pTriangle->vb, pData, 12 * sizeof(f32));
 }
 
@@ -126,7 +102,9 @@ setTriangleVertices(Triangle* pTriangle, void* pData) {
 ////////////////////////////////
 
 ENGINE_API void
-initColorSquare(ColorSquare* pCS, Shader* pMaterial, void* pPosition, void* pColor) {
+initColorSquare(ColorSquare* pCS, Shader* pMaterial, 
+                const void* pPosition, const void* pColor) {
+    
     initTransform(&pCS->transform);
     initVA(&pCS->va);
     vaBind(pCS->va);
@@ -165,7 +143,7 @@ drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
 }
 
 ENGINE_API inline void
-colorSquareSetVertices(ColorSquare* pCS, void* pPosition) {
+colorSquareSetVertices(ColorSquare* pCS, const void* pPosition) {
 	vbSetData(pCS->vbPosition, pPosition, 12 * sizeof(f32));
 }
 
@@ -253,14 +231,14 @@ drawCircle(Circle* pCircle, Renderer* pRenderer) {
 
 ////////////////////////////////
 
-//SPRITE
+//SPRITERENDERER
 
 ////////////////////////////////
 
 ENGINE_API void
-initSprite(Sprite* pSprite, Shader* pMaterial, 
-           char* pTexturePath,
-           void* pPosition, void* pUV) {
+initSpriteRenderer(SpriteRenderer* pSR, Shader* pMaterial, 
+                   const char* pTexturePath,
+                   const void* pPosition, const void* pUV) {
     
     if (pPosition == NULL) {
 		f32 squareVertices[] = {
@@ -279,16 +257,15 @@ initSprite(Sprite* pSprite, Shader* pMaterial,
 		};
 	}
     
-    initTransform(&pSprite->transform);
-    initTexture(&pSprite->texture, pTexturePath, true);
-    initVA(&pSprite->va);
-    vaBind(pSprite->va);
-    initVB(&pSprite->vbPosition, pPosition, 12 * sizeof(f32));
-    initVB(&pSprite->vbUV, pUV, 8 * sizeof(f32));
-    pSprite->material = *pMaterial;
-    shaderBindID(pSprite->material.id);
-    textureBindID(pSprite->texture.id, 0);
-    shaderSetInt(&pSprite->material, "tex", 0);
+    initTexture(&pSR->texture, pTexturePath, true);
+    initVA(&pSR->va);
+    vaBind(pSR->va);
+    initVB(&pSR->vbPosition, pPosition, 12 * sizeof(f32));
+    initVB(&pSR->vbUV, pUV, 8 * sizeof(f32));
+    pSR->material = *pMaterial;
+    shaderBindID(pSR->material.id);
+    textureBindID(pSR->texture.id, 0);
+    shaderSetInt(&pSR->material, "tex", 0);
     
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
@@ -306,30 +283,30 @@ initSprite(Sprite* pSprite, Shader* pMaterial,
     layout2.elementsMaxSize = layoutsAmount;
     vbLayoutPushFloat(&layout2, 2);
     
-    vaAddBufferByLocation(pSprite->va, pSprite->vbPosition, &layout, 0);
-    vaAddBufferByLocation(pSprite->va, pSprite->vbUV, &layout2, 1);
+    vaAddBufferByLocation(pSR->va, pSR->vbPosition, &layout, 0);
+    vaAddBufferByLocation(pSR->va, pSR->vbUV, &layout2, 1);
     free(layout.pElements);
     free(layout2.pElements);
 }
 
 ENGINE_API inline void
-spriteSetVertices(Sprite* pSprite, void* pPosition) {
-    vbSetData(pSprite->vbPosition, pPosition, 12 * sizeof(f32));
+spriteSetVertices(SpriteRenderer* pSR, const void* pPosition) {
+    vbSetData(pSR->vbPosition, pPosition, 12 * sizeof(f32));
 }
 
 ENGINE_API inline void
-spriteSetUV(Sprite* pSprite, void* pUVCoords) {
-    vbSetData(pSprite->vbUV, pUVCoords, 8 * sizeof(f32));
+spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
+    vbSetData(pSR->vbUV, pUVCoords, 8 * sizeof(f32));
 }
 
 ENGINE_API void
-drawSprite(Sprite* pSprite, Renderer* pRenderer) {
-	shaderBindID(pSprite->material.id);
-	textureBindID(pSprite->texture.id, 0);
-	pRenderer->model = pSprite->transform.model;
+drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* pRenderer) {
+	shaderBindID(pSR->material.id);
+	textureBindID(pSR->texture.id, 0);
+	pRenderer->model = pTransform->model;
 	hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pSprite->material, "uModelViewProjection", &mvp);
-	vaBind(pSprite->va);
+    shaderSetMat4(&pSR->material, "uModelViewProjection", &mvp);
+	vaBind(pSR->va);
 	drawBufferStrip(0, 4);
 }
 
@@ -341,11 +318,11 @@ drawSprite(Sprite* pSprite, Renderer* pRenderer) {
 ////////////////////////////////
 
 ENGINE_API void
-initSpriteSheet(SpriteSheet* pSS, Shader* pMaterial, char* pTexturePath, 
-                void* pPosition, void* pUV) { 
+initSpriteSheet(SpriteSheet* pSS, Shader* pMaterial, const char* pTexturePath, 
+                const void* pPosition, const void* pUV) { 
     
     *pSS = {};
-    initSprite(&pSS->sprite, pMaterial, pTexturePath, pPosition, pUV);
+    initSpriteRenderer(&pSS->spriteRenderer, pMaterial, pTexturePath, pPosition, pUV);
 }
 
 ENGINE_API inline void
@@ -362,18 +339,18 @@ spriteSheetSetFrame(SpriteSheet* pSS, u32 frame) {
 		pSS->pUVData[(frame * 8) + 4], pSS->pUVData[(frame * 8) + 5],
 		pSS->pUVData[(frame * 8) + 6], pSS->pUVData[(frame * 8) + 7]
 	};
-	vbSetData(pSS->sprite.vbUV, buff, sizeof(buff));
+	vbSetData(pSS->spriteRenderer.vbUV, buff, sizeof(buff));
 }
 
 ENGINE_API void
 spriteSheetSetupUV(SpriteSheet* pSS) {
 	if (pSS->columns == 0) {
 		Assert(pSS->frameWidth != 0);
-		pSS->columns = pSS->sprite.texture.width / pSS->frameWidth;
+		pSS->columns = pSS->spriteRenderer.texture.width / pSS->frameWidth;
 	}
 	if (pSS->rows == 0) {
 		Assert(pSS->frameHeight != 0);
-        pSS->rows = pSS->sprite.texture.height / pSS->frameHeight;
+        pSS->rows = pSS->spriteRenderer.texture.height / pSS->frameHeight;
 	}
 	if (pSS->pUVCoords != 0) {
         free(pSS->pUVCoords);
@@ -381,8 +358,8 @@ spriteSheetSetupUV(SpriteSheet* pSS) {
 	}
 	pSS->pUVCoords = (Coords*)malloc(sizeof(Coords) *(pSS->columns * pSS->rows));
 	i32 id = 0;
-    i32 ssWidth = pSS->sprite.texture.width;
-    i32 ssHeight = pSS->sprite.texture.height;
+    i32 ssWidth = pSS->spriteRenderer.texture.width;
+    i32 ssHeight = pSS->spriteRenderer.texture.height;
 	for (u32 iRow = 0; iRow < pSS->rows; ++iRow) {
 		for (u32 iColumn = 0; iColumn < pSS->columns; ++iColumn) {
 			f32 x = (f32)(id % pSS->columns) * (f32)pSS->frameWidth;

@@ -1,6 +1,7 @@
 internal void
 initCharacter(Character* pCharacter, CollisionManager* pCM) {
-	Shader materialSprite;
+	initTransform(&pCharacter->transform);
+    Shader materialSprite;
     initShader(&materialSprite, "..//resources//shaders//vTexture.glsl", 
                "..//resources//shaders//fTexture.glsl");
     
@@ -18,7 +19,7 @@ initCharacter(Character* pCharacter, CollisionManager* pCM) {
 	BoxCollider* boxCollider = getNewBoxCollider(pCM);
 	boxCollider->halfHeight = 0.5f;
 	boxCollider->halfWidth = 0.5f;
-	boxCollider->pTransform = &pCharacter->spriteSheet.sprite.transform;
+	boxCollider->pTransform = &pCharacter->transform;
 	boxCollider->isStatic = false;
 	boxCollider->isTrigger = false;
     pCharacter->pCollider = boxCollider;
@@ -29,18 +30,20 @@ initCharacter(Character* pCharacter, CollisionManager* pCM) {
 inline void
 freeCharacter(Character* pCharacter, CollisionManager* pCM) {
 	removeBoxCollider(pCM, pCharacter->pCollider);
+    freeSpriteSheet(&pCharacter->spriteSheet);
 }
 
 inline void
 moveCharacter(Character* pCharacter, f32 x, f32 y) {
 	if (!pCharacter->pCollider->isStatic) {
-		transformTranslate(&pCharacter->spriteSheet.sprite.transform, x, y, 0.f);
+		transformTranslate(&pCharacter->transform, x, y, 0.f);
 	}
 }
 
 internal void
 drawCharacter(Character* pCharacter, Renderer* pRenderer) {
-	drawSprite(&pCharacter->spriteSheet.sprite, pRenderer);
+	drawSpriteRenderer(&pCharacter->spriteSheet.spriteRenderer, 
+                       &pCharacter->transform, pRenderer);
 }
 
 inline void

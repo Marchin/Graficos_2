@@ -27,8 +27,8 @@ struct ENGINE_API Tilemap {
     Transform transform;
 };
 
-ENGINE_API inline b32 checkTilemapFormat(char* pFileDir);
-ENGINE_API b32 loadTilemap(Tilemap* pTilemap, char* pFileDir);
+ENGINE_API inline b32 checkTilemapFormat(const char* pFileDir);
+ENGINE_API b32 loadTilemap(Tilemap* pTilemap, const char* pFileDir);
 ENGINE_API inline void tilemapWCoordsToColRow(Tilemap* pTilemap, 
                                               f32 wcX, f32 wcY, i32* pCol, i32* pRow);
 ENGINE_API inline void tilemapColRowToWCoords(Tilemap* pTilemap, 
@@ -42,7 +42,8 @@ ENGINE_API inline b32 tilemapRegisterColliders(Tilemap* pTilemap, BoxCollider* p
 ENGINE_API void tilemapCalculateVertexPosition(Tilemap* pTilemap);
 ENGINE_API void tilemapCalculateUV(Tilemap* pTilemap);
 ENGINE_API void tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer);
-ENGINE_API void initTilemap(Tilemap* pTilemap, char* pTilemapDir, SpriteSheet* pTileset, 
+ENGINE_API void initTilemap(Tilemap* pTilemap, const char* pTilemapDir, 
+                            SpriteSheet* pTileset, 
                             Shader* pMaterial, Renderer* pRenderer);
 ENGINE_API inline void freeTilemap(Tilemap* pTilemap);
 ENGINE_API void drawTilemap(Tilemap* pTilemap, Renderer* pRenderer);
