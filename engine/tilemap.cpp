@@ -365,7 +365,7 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
     }
     shaderBindID(pTilemap->material.id);
     textureBindID(pTilemap->tileset.spriteRenderer.texture.id, 0);
-    pRenderer->model = pTilemap->transform.model;
+    pRenderer->pCamera->model = pTilemap->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTilemap->material, "uModelViewProjection", &mvp);
     vaBind(pTilemap->va);

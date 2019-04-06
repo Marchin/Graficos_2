@@ -45,10 +45,10 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
+    
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
     transformScale(&pGame->triangle.transform, 9.f, 3.f, 3.f);
-    
     initColorSquare(&pGame->cs, &colorMaterial, & squareVertices, squareColors);
     transformScale(&pGame->cs.transform, 5.f, 5.f, 5.f);
     
@@ -106,9 +106,9 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //transformRotateY(&pGame->cs.transform, 5.f);
     //transformRotate(&pGame->sprite.transform, 5.f, );
     pGame->timer += pTime->deltaTime;
-#if 0
+#if 1
     if (pGame->timer >= 3.f) {
-        pRenderer->fov += 10.f;
+        pRenderer->pCamera->fov += 10.f;
         pGame->timer = 0.f;
     }
     if (pGame->camX > 32.f) {
@@ -121,9 +121,25 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         pGame->camX += 2.f  * pTime->deltaTime;
     }
 #endif
-    //pGame->camera.position.x += pTime->deltaTime;
-    //cameraProcessKeyboard(&pGame->camera, VEC3_X, pTime->deltaTime);
-    pRenderer->view = cameraGetViewMatrix(&pGame->camera);
+    //pRenderer->pCamera->position = HMM_Vec3(pGame->camX, pGame->camY, pRenderer->pCamera->position.z);
+    if (isKeyPressed(pRenderer, KEY_D)) {
+        moveCamera(&pGame->camera, VEC3_X, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_A)) {
+        moveCamera(&pGame->camera, -1.f * VEC3_X, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_W)) {
+        moveCamera(&pGame->camera, -1.f * VEC3_Z, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_S)) {
+        moveCamera(&pGame->camera, VEC3_Z, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_E)) {
+        moveCamera(&pGame->camera, VEC3_Y, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_Q)) {
+        moveCamera(&pGame->camera, -1.f * VEC3_Y, pTime->deltaTime);
+    }
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);

@@ -12,7 +12,7 @@
 ENGINE_API void
 startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
     startWindow(pWindow);
-    startRenderer(pRenderer, pCamera);
+    startRenderer(pRenderer, pWindow, pCamera);
 }
 
 ENGINE_API void

@@ -258,6 +258,11 @@ extern "C"
         
         struct
         {
+            float pitch, yaw, roll;
+        };
+        
+        struct
+        {
             hmm_vec2 XY;
             float Ignored0_;
         };

@@ -44,10 +44,8 @@ struct ENGINE_API Window {
 };
 
 struct ENGINE_API Renderer {
-	hmm_mat4 model;
-	hmm_mat4 view;
-	hmm_mat4 projection;
     Camera* pCamera;
+    Window* pWindow;
 };
 
 ENGINE_API inline f32 getTime();
@@ -98,8 +96,9 @@ ENGINE_API b32 startWindow(Window* pWindow);
 ENGINE_API b32 stopWindow(Window* pWindow);
 ENGINE_API inline b32 windowShouldClose(Window* pWindow);
 ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
+ENGINE_API inline b32 isKeyPressed(Renderer* pRenderer, u32 key);
 ENGINE_API void updateProjection(Camera* pCamera);
-ENGINE_API inline b32 startRenderer(Renderer* pRenderer, Camera* pCamera);
+ENGINE_API inline b32 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera);
 ENGINE_API inline b32 stopRenderer();
 ENGINE_API inline void clearRenderer();
 ENGINE_API inline void fillColor(f32 red, f32 green, f32 blue);

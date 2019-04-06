@@ -19,6 +19,13 @@
 #define CLAMP_TO_EDGE GL_CLAMP_TO_EDGE
 #define REPEAT GL_REPEAT
 #define MIRRORED_REPEAT GL_MIRRORED_REPEAT
+
+#define KEY_W GLFW_KEY_W
+#define KEY_S GLFW_KEY_S
+#define KEY_A GLFW_KEY_A
+#define KEY_D GLFW_KEY_D
+#define KEY_Q GLFW_KEY_Q
+#define KEY_E GLFW_KEY_E
 #endif
 
 #include "base.h"

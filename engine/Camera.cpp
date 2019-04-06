@@ -24,7 +24,8 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     
     pCamera->front = HMM_Vec3(0.0f, 0.0f, -1.0f);
 	pCamera->position = position;
-	pCamera->worldUp = up;
+	pCamera->up = up;
+	pCamera->worldUp = HMM_Vec3(0.f, 1.f, 0.f);
 	pCamera->yaw = yaw;
 	pCamera->pitch = pitch;
     pCamera->movementSpeed = SPEED;
@@ -34,11 +35,8 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->halfCamWidth = 10.f; 
     pCamera->fov = 100;
     pCamera->aspectRatio = 800/600;
-    pCamera->projectionType = ORTHOGRAPHIC;
+    pCamera->projectionType = PERSPECTIVE;
     pCamera->model = HMM_Mat4d(1.f);
-    pCamera->view = HMM_LookAt(HMM_Vec3(0.f, 0.f, 3.f), 
-                               HMM_Vec3(0.f, 0.f, 0.f), 
-                               HMM_Vec3(0.f, 1.f, 0.f));
     updateCameraVectors(pCamera);
     updateProjection(pCamera);
 }
@@ -61,12 +59,12 @@ intiCamera(Camera* pCamera,
 }
 
 ENGINE_API hmm_mat4 
-cameraGetViewMatrix(Camera* pCamera) {
+getViewMatrix(Camera* pCamera) {
     return HMM_LookAt(pCamera->position, pCamera->position + pCamera->front, pCamera->up);
 }
 
 ENGINE_API void 
-cameraProcessKeyboard(Camera* pCamera, hmm_vec3 direction, f32 deltaTime) {
+moveCamera(Camera* pCamera, hmm_vec3 direction, f32 deltaTime) {
     f32 velocity = pCamera->movementSpeed * deltaTime;
     pCamera->position += direction * velocity;
 }

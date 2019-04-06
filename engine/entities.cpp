@@ -80,7 +80,7 @@ freeTriangle(Triangle* pTriangle) {
 ENGINE_API void
 drawTriangle(Triangle* pTriangle, Renderer* pRenderer) {
     shaderBindID(pTriangle->material.id);
-	pRenderer->model = pTriangle->transform.model;
+	pRenderer->pCamera->model = pTriangle->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTriangle->material, 
                   "uModelViewProjection", 
@@ -135,7 +135,7 @@ freeColorSquare(ColorSquare* pCS) {
 ENGINE_API void
 drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
 	shaderBindID(pCS->material.id); 
-	pRenderer->model = pCS->transform.model;
+	pRenderer->pCamera->model = pCS->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
 	shaderSetMat4(&pCS->material, "uModelViewProjection", &mvp);
 	vaBind(pCS->va);
@@ -222,7 +222,7 @@ freeCircle(Circle* pCircle) {
 ENGINE_API void
 drawCircle(Circle* pCircle, Renderer* pRenderer) {
 	shaderBindID(pCircle->material.id);
-	pRenderer->model = pCircle->transform.model;
+	pRenderer->pCamera->model = pCircle->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
 	shaderSetMat4(&pCircle->material, "uModelViewProjection", &mvp);
 	vaBind(pCircle->va);
@@ -303,7 +303,7 @@ ENGINE_API void
 drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* pRenderer) {
 	shaderBindID(pSR->material.id);
 	textureBindID(pSR->texture.id, 0);
-	pRenderer->model = pTransform->model;
+	pRenderer->pCamera->model = pTransform->model;
 	hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pSR->material, "uModelViewProjection", &mvp);
 	vaBind(pSR->va);

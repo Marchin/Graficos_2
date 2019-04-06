@@ -450,6 +450,9 @@ startWindow(Window* pWindow) {
 	glfwMakeContextCurrent((GLFWwindow*)pWindow->pInstance);
     glfwSetFramebufferSizeCallback((GLFWwindow*)pWindow->pInstance, 
                                    framebufferSizeCallback);
+    glfwSetInputMode((GLFWwindow*)pWindow->pInstance, 
+                     GLFW_CURSOR, 
+                     GLFW_CURSOR_DISABLED);  
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		printf("Failed to initialize GLAD\n");
 		return false;
@@ -486,16 +489,25 @@ pollEventsFromWindow(Window* pWindow) {
     glCall(glfwPollEvents());
 }
 
+ENGINE_API inline b32
+isKeyPressed(Renderer* pRenderer, u32 key) {
+    if (glfwGetKey((GLFWwindow*)pRenderer->pWindow->pInstance, key) == GLFW_PRESS) {
+        return true;
+    }
+    return false;
+}
+
 ////////////////////////////////
 //RENDERER
 ////////////////////////////////
 
 ENGINE_API inline b32 
-startRenderer(Renderer* pRenderer, Camera* pCamera) {
+startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     printf("Start()\n");
     Assert(pCamera != 0);
     initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
     pRenderer->pCamera = pCamera;
+    pRenderer->pWindow = pWindow;
     glCall(glEnable(GL_BLEND));
     glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glfwSwapInterval(0));
@@ -548,17 +560,17 @@ drawElements(u32 count) {
 
 ENGINE_API inline void
 resetModelMatrix(Renderer* pRenderer) {
-    pRenderer->model = HMM_Mat4d(1.f);
+    pRenderer->pCamera->model = HMM_Mat4d(1.f);
 }
 
 ENGINE_API inline void
 multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation) {
-    pRenderer->model = pRenderer->model * *pTransformation;
+    pRenderer->pCamera->model = pRenderer->pCamera->model * *pTransformation;
 }
 
 ENGINE_API inline hmm_mat4 
 getModelViewProj(Renderer* pRenderer) {
-    return (pRenderer->projection * pRenderer->view * pRenderer->model);
+    return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
 }
 
 ENGINE_API inline hmm_vec3
