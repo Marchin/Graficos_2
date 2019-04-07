@@ -26,6 +26,8 @@
 #define KEY_D GLFW_KEY_D
 #define KEY_Q GLFW_KEY_Q
 #define KEY_E GLFW_KEY_E
+#define KEY_Z GLFW_KEY_Z
+#define KEY_C GLFW_KEY_C
 #endif
 
 #include "base.h"

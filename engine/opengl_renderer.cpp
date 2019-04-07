@@ -497,6 +497,11 @@ isKeyPressed(Renderer* pRenderer, u32 key) {
     return false;
 }
 
+ENGINE_API inline void
+getMousePos(Window* pWindow, f64* pX, f64* pY) {
+    glfwGetCursorPos((GLFWwindow*)pWindow->pInstance, pX, pY);
+}
+
 ////////////////////////////////
 //RENDERER
 ////////////////////////////////

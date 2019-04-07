@@ -123,22 +123,30 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
 #endif
     //pRenderer->pCamera->position = HMM_Vec3(pGame->camX, pGame->camY, pRenderer->pCamera->position.z);
     if (isKeyPressed(pRenderer, KEY_D)) {
-        moveCamera(&pGame->camera, VEC3_X, pTime->deltaTime);
+        moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_A)) {
-        moveCamera(&pGame->camera, -1.f * VEC3_X, pTime->deltaTime);
+        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->right, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_W)) {
-        moveCamera(&pGame->camera, -1.f * VEC3_Z, pTime->deltaTime);
+        moveCamera(&pGame->camera, pRenderer->pCamera->front, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_S)) {
-        moveCamera(&pGame->camera, VEC3_Z, pTime->deltaTime);
+        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->front, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_E)) {
-        moveCamera(&pGame->camera, VEC3_Y, pTime->deltaTime);
+        moveCamera(&pGame->camera, pRenderer->pCamera->up, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_Q)) {
-        moveCamera(&pGame->camera, -1.f * VEC3_Y, pTime->deltaTime);
+        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->up, pTime->deltaTime);
+    }
+    if (isKeyPressed(pRenderer, KEY_Z)) {
+        pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
+        updateCameraVectors(pRenderer->pCamera);
+    }
+    if (isKeyPressed(pRenderer, KEY_C)) {
+        pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
+        updateCameraVectors(pRenderer->pCamera);
     }
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
@@ -153,4 +161,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     updateCharacter(&pGame->character3, pTime->deltaTime);
     drawCharacter(&pGame->character3, pRenderer);
     tilemapCheckCollisions(&pGame->tilemap);
+    f64 x, y;
+    getMousePos(pRenderer->pWindow, &x, &y);
+    cameraMouseMovement(pRenderer->pCamera, x, y, true);
 }

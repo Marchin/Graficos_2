@@ -37,6 +37,7 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->aspectRatio = 800/600;
     pCamera->projectionType = PERSPECTIVE;
     pCamera->model = HMM_Mat4d(1.f);
+    pCamera->firstMouseMovement = true;
     updateCameraVectors(pCamera);
     updateProjection(pCamera);
 }
@@ -55,6 +56,7 @@ intiCamera(Camera* pCamera,
     pCamera->movementSpeed = SPEED;
     pCamera->mouseSensitivity = SENSITIVITY;
     pCamera->zoom = ZOOM;
+    pCamera->firstMouseMovement = true;
     updateCameraVectors(pCamera);
 }
 
@@ -70,12 +72,23 @@ moveCamera(Camera* pCamera, hmm_vec3 direction, f32 deltaTime) {
 }
 
 ENGINE_API void
-cameraMouseMovement(Camera* pCamera, f32 xoffset, f32 yoffset, b32 constrainPitch) {
-    xoffset *= pCamera->mouseSensitivity;
-    yoffset *= pCamera->mouseSensitivity;
+cameraMouseMovement(Camera* pCamera, f64 xPos, f64 yPos, b32 constrainPitch) {
+    if (pCamera->firstMouseMovement) {
+        pCamera->lastMousePos.x = (f32)xPos;
+        pCamera->lastMousePos.y = (f32)yPos;
+        pCamera->firstMouseMovement = false;
+    }
     
-    pCamera->yaw += xoffset;
-    pCamera->pitch += yoffset;
+    f32 xOffset = (f32)xPos - pCamera->lastMousePos.x;
+    f32 yOffset = pCamera->lastMousePos.y - (f32)yPos; // reversed since y-coordinates go from bottom to top
+    pCamera->lastMousePos.x = (f32)xPos;
+    pCamera->lastMousePos.y = (f32)yPos;
+    
+    xOffset *= pCamera->mouseSensitivity;
+    yOffset *= pCamera->mouseSensitivity;
+    
+    pCamera->yaw += xOffset;
+    pCamera->pitch += yOffset;
     
     // Make sure that when pitch is out of bounds, screen doesn't get flipped
     if (constrainPitch) {
@@ -107,11 +120,17 @@ ENGINE_API void
 updateCameraVectors(Camera* pCamera) {
     // Calculate the new Front vector
     hmm_vec3 front;
-    front.x = (f32)(cos(HMM_ToRadians(pCamera->yaw)) * cos(HMM_ToRadians(pCamera->pitch)));
-    front.y = (f32)(sin(HMM_ToRadians(pCamera->pitch)));
-    front.z = (f32)(sin(HMM_ToRadians(pCamera->yaw)) * cos(HMM_ToRadians(pCamera->pitch)));
+    front.x = cosf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
+    front.y = sinf(HMM_ToRadians((f32)pCamera->pitch));
+    front.z = sinf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
+    
+    hmm_vec3 up;
+    up.x = sinf(HMM_ToRadians((f32)pCamera->roll));
+    up.y = cosf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
+    up.z = sinf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
     pCamera->front = HMM_NormalizeVec3(front);
+    pCamera->up = HMM_NormalizeVec3(up);
     // Also re-calculate the Right and Up vector
-    pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->worldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
+    pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    //pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
 }

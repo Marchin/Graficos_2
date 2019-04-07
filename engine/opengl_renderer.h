@@ -97,6 +97,9 @@ ENGINE_API b32 stopWindow(Window* pWindow);
 ENGINE_API inline b32 windowShouldClose(Window* pWindow);
 ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
 ENGINE_API inline b32 isKeyPressed(Renderer* pRenderer, u32 key);
+ENGINE_API inline void getMousePos(Window* pWindow, f64* pX, f64* pY);
+
+//RENDERER
 ENGINE_API void updateProjection(Camera* pCamera);
 ENGINE_API inline b32 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera);
 ENGINE_API inline b32 stopRenderer();
