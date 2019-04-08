@@ -141,11 +141,13 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->up, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_Z)) {
-        pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
+        pRenderer->pCamera->roll = pTime->deltaTime * -15.f;
         updateCameraVectors(pRenderer->pCamera);
-    }
-    if (isKeyPressed(pRenderer, KEY_C)) {
-        pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
+    } else if (isKeyPressed(pRenderer, KEY_C)) {
+        pRenderer->pCamera->roll = pTime->deltaTime * 15.f;
+        updateCameraVectors(pRenderer->pCamera);
+    } else if (pRenderer->pCamera->roll != 0.f) {
+        pRenderer->pCamera->roll = 0.f;
         updateCameraVectors(pRenderer->pCamera);
     }
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);

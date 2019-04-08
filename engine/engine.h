@@ -30,13 +30,15 @@
 #define KEY_C GLFW_KEY_C
 #endif
 
-#include "base.h"
-
 #if ENGINE_EXPORTS
 #define ENGINE_API __declspec(dllexport)
 #else
 #define ENGINE_API __declspec(dllimport)
 #endif
+
+#include "base.h"
+
+#include "rotor.h"
 
 #include "camera.h"
 #if OPENGL
