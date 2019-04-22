@@ -101,18 +101,19 @@ cameraMouseScroll(Camera* pCamera, f32 yoffset) {
 
 ENGINE_API void
 updateCameraVectors(Camera* pCamera) {
-    pCamera->rotor = rotorFromAngleAndBivec(-pCamera->pitch*PI32/180.f, wedge(pCamera->up, 
+    pCamera->rotor = rotorFromAngleAndBivec(-pCamera->pitch*Ps32/180.f, wedge(pCamera->up, 
                                                                               pCamera->front));
     rotorNormalize(&pCamera->rotor);
-    pCamera->rotor *= rotorFromAngleAndBivec(-pCamera->yaw*PI32/180.f, wedge(pCamera->right, 
+    pCamera->rotor *= rotorFromAngleAndBivec(-pCamera->yaw*Ps32/180.f, wedge(pCamera->right, 
                                                                              pCamera->front));
     rotorNormalize(&pCamera->rotor);
-    pCamera->rotor *= rotorFromAngleAndBivec(-pCamera->roll*PI32/180.f, wedge(pCamera->right, 
+    pCamera->rotor *= rotorFromAngleAndBivec(-pCamera->roll*Ps32/180.f, wedge(pCamera->right, 
                                                                               pCamera->up));
     rotorNormalize(&pCamera->rotor);
     
     pCamera->front = HMM_NormalizeVec3(getRotatedVector(pCamera->front, pCamera->rotor));
     pCamera->up = HMM_NormalizeVec3(getRotatedVector(pCamera->up, pCamera->rotor));
     pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));
+    pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
     //pCamera->right = getRotatedVector(pCamera->right, pCamera->rotor);
 }

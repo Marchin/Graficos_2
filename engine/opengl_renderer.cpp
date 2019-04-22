@@ -9,7 +9,7 @@ glClearError() {
 }
 
 internal inline bool
-glLogCall(const char* pFunction, const char* pFile, i32 line) {
+glLogCall(const char* pFunction, const char* pFile, s32 line) {
     while (GLenum error = glGetError()) {
         printf("[OpenGL Error] (%d): %s %s: %d\n", error, pFunction, pFile, line);
         
@@ -21,7 +21,7 @@ glLogCall(const char* pFunction, const char* pFile, i32 line) {
 
 internal void 
 checkShaderCompileErrors(u32 shader, const char* pType) {
-	i32 success;
+	s32 success;
 	char infoLog[1024];
 	if (strcmp(pType, "PROGRAM") != 0) {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -135,12 +135,12 @@ shaderBindID(u32 shaderID) {
 	glCall(glUseProgram(shaderID));
 }
 
-ENGINE_API i32 
+ENGINE_API s32 
 getUniformLocation(Shader* pShader, const char* pName) {
     meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
-    i32 iHash;
-    i32 firstFreeSlotIndex = -1;
+    s32 iHash;
+    s32 firstFreeSlotIndex = -1;
     for (iHash = 0; iHash < UNIFORMS_MAX; ++iHash) {
         if (MeowHashesAreEqual(pShader->hashLocationCache[iHash], hash)) {
             found = true;
@@ -154,7 +154,7 @@ getUniformLocation(Shader* pShader, const char* pName) {
     if (found) {
         return pShader->uniformLocationCache[iHash];
     } else {
-        glCall(i32 location = glGetUniformLocation(pShader->id, pName));
+        glCall(s32 location = glGetUniformLocation(pShader->id, pName));
 		if (location == -1) {
             printf("Warning: uniform '%s' doesn't exist\n", pName);
         }
@@ -174,7 +174,7 @@ shaderSetBool(Shader* pShader, const char* pName, b32 value) {
 }
 
 ENGINE_API inline void
-shaderSetInt(Shader* pShader, const char* pName, i32 value) {
+shaderSetInt(Shader* pShader, const char* pName, s32 value) {
 	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
@@ -210,8 +210,8 @@ initTexture(Texture* pTexture, u32 width, u32 height) {
 ENGINE_API void
 initTexture(Texture* pTexture,
             const char* pImgPath, b32 flipVertical, 
-            i32 TextureWrap_S, i32 TextureWrap_T,
-            i32 TextureMinFilter, i32 TextureMagFilter) {
+            s32 TextureWrap_S, s32 TextureWrap_T,
+            s32 TextureMinFilter, s32 TextureMagFilter) {
     
     glCall(glGenTextures(1, &pTexture->id));
     glCall(glBindTexture(GL_TEXTURE_2D, pTexture->id));
@@ -221,7 +221,7 @@ initTexture(Texture* pTexture,
     glCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureMagFilter));
     stbi_set_flip_vertically_on_load(flipVertical);
     
-    i32 nrChannels;
+    s32 nrChannels;
     u8* pData = stbi_load(pImgPath, 
                           &pTexture->width, &pTexture->height, 
                           &nrChannels, 0);
@@ -427,7 +427,7 @@ vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location)
 ////////////////////////////////
 
 inline void
-framebufferSizeCallback(GLFWwindow* pWindow, i32 width, i32 height) {
+framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
     glViewport(0, 0, width, height);
 }
 

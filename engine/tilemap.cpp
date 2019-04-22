@@ -2,7 +2,7 @@ ENGINE_API inline b32
 checkTilemapFormat(const char* pFileDir) {
     //check if it is .csv
     //get to the end of the direction
-    i32 iter = 0;
+    s32 iter = 0;
     while (*(pFileDir + iter) != '\0') {
         iter++;
     }
@@ -67,13 +67,13 @@ loadTilemap(Tilemap* pTilemap, const char* pFileDir) {
             }
         }
     }
-    pTilemap->pIDs = (i32*)malloc(pTilemap->width*pTilemap->height*sizeof(i32));
-    i32 id = 0;
+    pTilemap->pIDs = (s32*)malloc(pTilemap->width*pTilemap->height*sizeof(s32));
+    s32 id = 0;
     for (u32 iChar = 0; iChar < fileSize; ++iChar) {
         b32 idFound = false;
         b32 isNegative = false;
-        i32 newID = 0; //accumulator
-        i32 decimal = 1; //multiplies the value of the character 
+        s32 newID = 0; //accumulator
+        s32 decimal = 1; //multiplies the value of the character 
         
         if (*(pTileInfo + iChar) == '-') {
             isNegative = true;
@@ -107,9 +107,9 @@ loadTilemap(Tilemap* pTilemap, const char* pFileDir) {
 }
 
 ENGINE_API inline void
-tilemapWCoordsToColRow(Tilemap* pTilemap, f32 wcX, f32 wcY, i32* pCol, i32* pRow) {
-    *pCol = (i32)((wcX ) / pTilemap->tileSize);
-    *pRow = (i32)(-(wcY ) / pTilemap->tileSize);
+tilemapWCoordsToColRow(Tilemap* pTilemap, f32 wcX, f32 wcY, s32* pCol, s32* pRow) {
+    *pCol = (s32)((wcX ) / pTilemap->tileSize);
+    *pRow = (s32)(-(wcY ) / pTilemap->tileSize);
 }
 
 ENGINE_API inline void
@@ -121,7 +121,7 @@ tilemapColRowToWCoords(Tilemap* pTilemap, u32 col, u32 row, f32* pWCX, f32* pWCY
 ENGINE_API void
 tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider, 
                           f32 offsetX, f32 offsetY) {
-    i32 col, row;
+    s32 col, row;
     f32 tileX, tileY;
     f32 deltaX = 0.f;
     f32 deltaY = 0.f;
@@ -130,7 +130,7 @@ tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider,
                            pCollider->pTransform->position.y + offsetY, 
                            &col, &row);
     tilemapColRowToWCoords(pTilemap, col, row, &tileX, &tileY);
-    i32 tileID = pTilemap->pIDs[col + pTilemap->width* row];
+    s32 tileID = pTilemap->pIDs[col + pTilemap->width* row];
     if (col < 0 || row < 0 || col >= pTilemap->width || row >= pTilemap->height) {
         return;
     }       
@@ -188,7 +188,7 @@ tilemapCheckCollisions(Tilemap* pTilemap) {
 }
 
 ENGINE_API inline void
-tilemapSetCollisionableTiles(Tilemap* pTilemap, i32* pFrames, i32 count) {
+tilemapSetCollisionableTiles(Tilemap* pTilemap, s32* pFrames, s32 count) {
     size_t bitmaskSize = sizeof(size_t);
     for (size_t iFrame = 0; iFrame < count; ++iFrame) {
         size_t frame = *(pFrames + iFrame);
@@ -198,7 +198,7 @@ tilemapSetCollisionableTiles(Tilemap* pTilemap, i32* pFrames, i32 count) {
 
 ENGINE_API inline b32
 tilemapRegisterColliders(Tilemap* pTilemap, BoxCollider* pCollider) {
-    for (i32 i = 0; i < MAX_COLLIDERS; ++i) {
+    for (s32 i = 0; i < MAX_COLLIDERS; ++i) {
         if (pTilemap->colliders[i] == 0) {
             pTilemap->colliders[i] = pCollider;
             ++pTilemap->collidersCount;
@@ -213,9 +213,9 @@ tilemapCalculateVertexPosition(Tilemap* pTilemap) {
     pTilemap->pCoords = (f32*)malloc(sizeof(f32)*pTilemap->width*pTilemap->height * 4 * 3);
     f32 posX = 0.f;
     f32 posY = 0.f;
-    i32 count = 0;
-    for (i32 i = 0; i < pTilemap->height; ++i) {
-        for (i32 j = 0; j < pTilemap->width; ++j) {
+    s32 count = 0;
+    for (s32 i = 0; i < pTilemap->height; ++i) {
+        for (s32 j = 0; j < pTilemap->width; ++j) {
             pTilemap->pCoords[count*4*3] = posX;
             pTilemap->pCoords[count*4*3 + 1] = posY - pTilemap->tileSize;
             pTilemap->pCoords[count*4*3 + 2] = 0.f;
@@ -242,9 +242,9 @@ ENGINE_API void
 tilemapCalculateUV(Tilemap* pTilemap) {
     u32 id = 0;
     pTilemap->pUVData = (f32*)malloc(sizeof(f32) * pTilemap->width * pTilemap->height * 8);
-    for (i32 i = 0; i < pTilemap->width * pTilemap->height; ++i) {
+    for (s32 i = 0; i < pTilemap->width * pTilemap->height; ++i) {
         if (pTilemap->pIDs[i] == -1) {
-            for (i32 j = 0; j < 8; ++j) {
+            for (s32 j = 0; j < 8; ++j) {
                 pTilemap->pUVData[i * 8 + j] = -1;
             }
         } else {
@@ -265,14 +265,14 @@ tilemapCalculateUV(Tilemap* pTilemap) {
 
 ENGINE_API void
 tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer) {
-    i32 count = 0;
-    i32 tilesUntilCamX, tilesUntilCamY;
+    s32 count = 0;
+    s32 tilesUntilCamX, tilesUntilCamY;
     tilemapWCoordsToColRow(pTilemap, 
                            pTilemap->cacheCamPosX - getCameraWidth(pRenderer) * 0.5f, 
                            pTilemap->cacheCamPosY + getCameraHeight(pRenderer) * 0.5f, 
                            &tilesUntilCamX, &tilesUntilCamY);
-    for (i32 i = 0; i < pTilemap->visibleHeight; ++i) {
-        for (i32 j = 0; j < pTilemap->visibleWidth; ++j) {
+    for (s32 i = 0; i < pTilemap->visibleHeight; ++i) {
+        for (s32 j = 0; j < pTilemap->visibleWidth; ++j) {
             if ((tilesUntilCamX + j < 0) || (tilesUntilCamY + i < 0) ) {
                 pTilemap->pVisibleTiles[count] = -1;
             } else {
@@ -301,10 +301,10 @@ initTilemap(Tilemap* pTilemap, const char* pTilemapDir, SpriteSheet* pTileset,
     if (!loadTilemap(pTilemap, pTilemapDir)) {
         Assert(0);
     }
-    pTilemap->visibleWidth = (i32)(getCameraWidth(pRenderer) / pTilemap->tileSize) + 2; //one extra column at each side
-    pTilemap->visibleHeight = (i32)(getCameraHeight(pRenderer) / pTilemap->tileSize) + 2; //one extra row at each side
+    pTilemap->visibleWidth = (s32)(getCameraWidth(pRenderer) / pTilemap->tileSize) + 2; //one extra column at each side
+    pTilemap->visibleHeight = (s32)(getCameraHeight(pRenderer) / pTilemap->tileSize) + 2; //one extra row at each side
     pTilemap->pVisibleTiles = 
-        (i32*)malloc(sizeof(i32)*pTilemap->visibleWidth*pTilemap->visibleHeight);
+        (s32*)malloc(sizeof(s32)*pTilemap->visibleWidth*pTilemap->visibleHeight);
     hmm_vec3 cameraPos = getCameraPosition(pRenderer);
     pTilemap->cacheCamPosX= cameraPos.x;
     pTilemap->cacheCamPosY = cameraPos.y;
@@ -369,8 +369,8 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTilemap->material, "uModelViewProjection", &mvp);
     vaBind(pTilemap->va);
-    for (i32 i = 0; i < pTilemap->visibleHeight; ++i) {
-        for (i32 j = 0; j < pTilemap->visibleWidth; ++j) {
+    for (s32 i = 0; i < pTilemap->visibleHeight; ++i) {
+        for (s32 j = 0; j < pTilemap->visibleWidth; ++j) {
             if (pTilemap->pVisibleTiles[(j + (pTilemap->visibleWidth*i))] >= 0) {
                 drawBufferStrip(
                     pTilemap->pVisibleTiles[(j + (pTilemap->visibleWidth*i))] * 4, 4);

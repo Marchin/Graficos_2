@@ -18,7 +18,7 @@ struct ENGINE_API CollisionManager {
 };
 
 ENGINE_API void initBoxCollider(BoxCollider* pBC);
-ENGINE_API void checkCollision(CollisionManager* pCM, i32 index1, i32 index2);
+ENGINE_API void checkCollision(CollisionManager* pCM, s32 index1, s32 index2);
 ENGINE_API void updateCollision(CollisionManager* pCM);
 ENGINE_API BoxCollider* getNewBoxCollider(CollisionManager* pCM);
 ENGINE_API inline void removeBoxCollider(CollisionManager* pCM, BoxCollider* pCollider);

@@ -8,14 +8,14 @@ Assert(glLogCall(#x, __FILE__, __LINE__));
 
 struct ENGINE_API Shader {
     meow_hash hashLocationCache[UNIFORMS_MAX];
-    i32 uniformLocationCache[UNIFORMS_MAX];
+    s32 uniformLocationCache[UNIFORMS_MAX];
     u32 id;
 };
 
 struct ENGINE_API Texture {
     u32 id;
-    i32 width;
-    i32 height;
+    s32 width;
+    s32 height;
 };
 
 struct ElementBuffer {
@@ -38,8 +38,8 @@ struct VertexBufferLayout {
 
 struct ENGINE_API Window {
     void* pInstance;
-    i32 width;
-    i32 height;
+    s32 width;
+    s32 height;
     const char* pName;
 };
 
@@ -55,9 +55,9 @@ ENGINE_API void initShader(Shader* pShader,
                            const char* pTessControlPath = 0, 
                            const char* pTessEvaluationPath = 0);
 ENGINE_API inline void shaderBindID(u32 shaderID);
-ENGINE_API i32 getUniformLocation(Shader* pShader, const char* pName);
+ENGINE_API s32 getUniformLocation(Shader* pShader, const char* pName);
 ENGINE_API inline void shaderSetBool(Shader* pShader, const char* pName, b32 value);
-ENGINE_API inline void shaderSetInt(Shader* pShader, const char* pName, i32 value);
+ENGINE_API inline void shaderSetInt(Shader* pShader, const char* pName, s32 value);
 ENGINE_API inline void shaderSetFloat(Shader* pShader, const char* pName, f32 value);
 ENGINE_API inline void shaderSetVec3(Shader* pShader, const char* pName, hmm_vec3* pVector);
 ENGINE_API inline void shaderSetMat4(Shader* pShader, const char* pName, hmm_mat4* pMat4);
@@ -65,10 +65,10 @@ ENGINE_API void initTexture(Texture* pTexture, u32 width, u32 height);
 ENGINE_API void initTexture(Texture* pTexture,
                             const char* pImgPath, 
                             b32 flipVertical = false, 
-                            i32 TextureWrap_S = CLAMP_TO_EDGE, 
-                            i32 TextureWrap_T = CLAMP_TO_EDGE,
-                            i32 TextureMinFilter = LINEAR, 
-                            i32 TextureMagFilter = LINEAR);
+                            s32 TextureWrap_S = CLAMP_TO_EDGE, 
+                            s32 TextureWrap_T = CLAMP_TO_EDGE,
+                            s32 TextureMinFilter = LINEAR, 
+                            s32 TextureMagFilter = LINEAR);
 ENGINE_API inline void freeTexture(u32* pTextureID);
 ENGINE_API inline void textureBindID(u32 textureID, u32 slot);
 ENGINE_API inline void initEB(u32* pEBObject,  u32* pData, u32 count);

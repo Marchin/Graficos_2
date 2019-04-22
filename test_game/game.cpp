@@ -80,10 +80,10 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     initTilemap(&pGame->tilemap, "..//resources//tilemap.csv", 
                 &pGame->tileset, &textureMaterial, pRenderer);
-	i32 collisionableTiles[] = { 37, 45, 46, 47, 55 };
+	s32 collisionableTiles[] = { 37, 45, 46, 47, 55 };
 	tilemapSetCollisionableTiles(&pGame->tilemap, 
                                  collisionableTiles, 
-                                 sizeof(collisionableTiles) / sizeof(i32));
+                                 sizeof(collisionableTiles) / sizeof(s32));
     
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character1.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);

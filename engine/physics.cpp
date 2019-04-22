@@ -6,7 +6,7 @@ initBoxCollider(BoxCollider* pBC) {
 }
 
 ENGINE_API void
-checkCollision(CollisionManager* pCM, i32 index1, i32 index2) {
+checkCollision(CollisionManager* pCM, s32 index1, s32 index2) {
 	BoxCollider* pCollider1 = &pCM->colliders[index1];
 	BoxCollider* pCollider2 = &pCM->colliders[index2];
 	f32 deltaX = pCollider1->pTransform->position.x - pCollider2->pTransform->position.x;
@@ -63,11 +63,11 @@ updateCollision(CollisionManager* pCM) {
 	if (pCM->count < 2) { //if there aren't at least 2 colliders to check
 		return;
 	}
-	for (i32 i = 0; counter < pCM->count - 1; ++i) {
+	for (s32 i = 0; counter < pCM->count - 1; ++i) {
 		if (!pCM->colliders[i].isActive) { continue; }
 		++counter;
 		counter2 = counter;
-		for (i32 j = counter2; counter2 < pCM->count; ++j) {
+		for (s32 j = counter2; counter2 < pCM->count; ++j) {
 			if (!pCM->colliders[j].isActive) { continue; }
 			counter2++;
 			if ((!pCM->colliders[i].isStatic && !pCM->colliders[i].isTrigger) ||
