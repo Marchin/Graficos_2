@@ -30,7 +30,7 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
 	pCamera->pitch = pitch;
 	pCamera->roll = pitch;
     pCamera->rotor = rotorFromAngleAndBivec(pitch, BivecYZ);
-    pCamera->rotor *= rotorFromAngleAndBivec(yaw, BivecXZ);
+    pCamera->rotor *= rotorFromAngleAndBivec(yaw, BivecZX);
     pCamera->movementSpeed = SPEED;
     pCamera->mouseSensitivity = SENSITIVITY;
     pCamera->zoom = ZOOM;
