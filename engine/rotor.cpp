@@ -98,3 +98,18 @@ rotorNormalize(Rotor3* pRot) {
 	f32 length = rotorLength(pRot);
 	pRot->a /= length; pRot->yz /= length; pRot->zx /= length; pRot->xy /= length;
 }
+
+ENGINE_API inline hmm_mat4
+getRotorMat4(Rotor3 rot) {
+    hmm_vec3 vecX = getRotatedVector(VEC3_X, rot);
+    hmm_vec3 vecY = getRotatedVector(VEC3_Y, rot);
+    hmm_vec3 vecZ = getRotatedVector(VEC3_Z, rot);
+    
+    hmm_mat4 mat;
+    mat.Rows[0] = { vecX[0], vecX[1], vecX[2], 0.f };
+    mat.Rows[1] = { vecY[0], vecY[1], vecY[2], 0.f };
+    mat.Rows[2] = { vecZ[0], vecZ[1], vecZ[2], 0.f };
+    mat.Rows[3] = { 0.f, 0.f, 0.f, 1.f };
+    
+    return mat;
+}
