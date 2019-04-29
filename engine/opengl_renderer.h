@@ -48,6 +48,30 @@ struct ENGINE_API Renderer {
     Window* pWindow;
 };
 
+struct ENGINE_API Vertex {
+    hmm_vec3 pos;
+    hmm_vec3 normal;
+    hmm_vec2 uv;
+};
+
+struct ENGINE_API ModelTexture {
+    meow_hash typeHash;
+    u32 id;
+};
+
+struct ENGINE_API Mesh {
+    Shader material;
+    Vertex* pVertices;
+    ModelTexture* pTextures;
+    u32* pIndices;
+    u32 verticesCount;
+    u32 texturesCount;
+    u32 indicesCount;
+    u32 va;
+    u32 vb;
+    u32 eb;
+};
+
 ENGINE_API inline f32 getTime();
 ENGINE_API void initShader(Shader* pShader,
                            const char* pVertexPath, const char* pFragmentPath,

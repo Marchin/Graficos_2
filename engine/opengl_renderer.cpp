@@ -592,3 +592,78 @@ ENGINE_API inline f32
 getCameraHeight(Renderer* pRenderer) {
     return pRenderer->pCamera->halfCamHeight * 2.f;
 }
+
+////////////////////////////////
+
+//Models
+
+////////////////////////////////
+
+ENGINE_API void 
+initMesh(Mesh* pMesh) {
+    initVA(&pMesh->va);
+    vaBind(pMesh->va);
+    
+    initVB(&pMesh->vb, pMesh->pVertices, pMesh->verticesCount*sizeof(Vertex));
+    vbBind(pMesh->vb);
+    
+    initEB(&pMesh->eb, pMesh->pIndices, pMesh->indicesCount*sizeof(u32));
+    ebBind(pMesh->eb);
+    
+    
+    VertexBufferLayout layout = {};
+    u32 layoutsAmount = 1;
+    layout.pElements = 
+        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
+    layout.elementsMaxSize = layoutsAmount;
+    vbLayoutPushFloat(&layout, 3);
+    vbLayoutPushFloat(&layout, 3);
+    vbLayoutPushFloat(&layout, 2);
+    
+    vaAddBuffer(pMesh->va, pMesh->vb, &layout);
+    free(layout.pElements);
+    
+    vaUnbind();
+}
+
+ENGINE_API void
+drawMesh(Mesh* pMesh) {
+    u32 diffuseNr = 1;
+    u32 specularNr = 1;
+    u32 texturesSize = pMesh->texturesCount*sizeof(Texture);
+    char* pDiffuse = "texture_diffuse";
+    char* pSpecular = "texture_specular";
+    meow_hash diffuseHash = MeowHash_Accelerated(0, sizeof(pDiffuse), (void*)pDiffuse);
+    meow_hash specularHash = MeowHash_Accelerated(0, sizeof(pSpecular), (void*)pSpecular);
+    char* pTypes[] = { pDiffuse, pSpecular }; 
+    
+    char* pName = (char*)malloc(sizeof(char) * 512);
+    for (u32 i = 0; i < texturesSize; i++) {
+        glCall(glActiveTexture(GL_TEXTURE0 + i));
+        i32 number = 0;
+        i32 typeIndex = 0;
+        meow_hash type = pMesh->pTextures[i].typeHash;
+        
+        if (MeowHashesAreEqual(type, diffuseHash)) {
+            number = diffuseNr++;
+            typeIndex = 0;
+        } else if (MeowHashesAreEqual(type, specularHash)) {
+            number = specularNr++;
+            typeIndex = 1;
+        }
+        
+        strcpy(pName, pTypes[typeIndex]);
+        i32 iEndOfString = sizeof(pTypes[typeIndex])/sizeof(char); 
+        // NOTE(Marchin): I assume no model will have more that 128 textures
+        pName[iEndOfString++] = (char)number;
+        pName[iEndOfString++] = '\0';
+        shaderBindID(pMesh->material.id);
+        shaderSetInt(&pMesh->material, pName, i);
+        glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pTextures[i].id));
+    }
+    vaBind(pMesh->va);
+    drawElements(pMesh->indicesCount*(sizeof(u32)));
+    vaUnbind();
+    glCall(glActiveTexture(GL_TEXTURE0));
+}
