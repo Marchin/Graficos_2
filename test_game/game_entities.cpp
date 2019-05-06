@@ -24,7 +24,7 @@ initCharacter(Character* pCharacter, CollisionManager* pCM) {
 	boxCollider->isTrigger = false;
     pCharacter->pCollider = boxCollider;
     initAnimation(&pCharacter->animation, &pCharacter->spriteSheet, 
-                  frames, ArrayCount(frames));
+                  frames, arrayCount(frames));
 }
 
 inline void

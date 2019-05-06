@@ -14,7 +14,7 @@ updateProjection(Camera* pCamera) {
                                                   0.f, 100.f); 
         }break;
         default: {
-            Assert(0);
+            assert(0);
         }break;
     }
 }

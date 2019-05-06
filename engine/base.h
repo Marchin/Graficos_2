@@ -9,12 +9,12 @@ typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef int8_t   i8;
-typedef int16_t  i16;
-typedef int32_t  i32;
-typedef int64_t  i64;
-typedef i8       b8;
-typedef i32      b32;
+typedef int8_t   s8;
+typedef int16_t  s16;
+typedef int32_t  s32;
+typedef int64_t  s64;
+typedef s8       b8;
+typedef s32      b32;
 typedef float    f32;
 typedef double   f64;
 typedef size_t memory_index;
@@ -24,17 +24,20 @@ typedef size_t memory_index;
 // NOTE(Marchin): if expression is false, write into 0 (invalid memory) for a
 //plaftorm independent break
 #if SLOW
-#define Assert(expression) if(!(expression)) {__debugbreak();} 
+#ifdef assert
+#undef assert
+#endif
+#define assert(expression) if(!(expression)) {__debugbreak();} 
 #else
-#define Assert(expression) 
+#define assert(expression) 
 #endif
 
-#define INVALID_CODE_PATH Assert(!"INVALID_CODE_PATH");
+#define INVALID_CODE_PATH assert(!"INVALID_CODE_PATH");
 
-#define Kilobytes(value) ((value)*1024LL)
-#define Megabytes(value) (Kilobytes(value)*1024LL)
-#define Gigabytes(value) (Megabytes(value)*1024LL)
-#define Terabytes(value) (Gigabytes(value)*1024LL)
-#define ArrayCount(array) (sizeof(array)/sizeof((array)[0]))
+#define kilobytes(value) ((value)*1024LL)
+#define megabytes(value) (Kilobytes(value)*1024LL)
+#define gigabytes(value) (Megabytes(value)*1024LL)
+#define terabytes(value) (Gigabytes(value)*1024LL)
+#define arrayCount(array) (sizeof(array)/sizeof((array)[0]))
 
 #endif //BASE_H

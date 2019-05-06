@@ -2,6 +2,10 @@
 #define ENGINE_H
 #define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "meow_intrinsics.h"
 #include "meow_hash.h"
 
@@ -30,13 +34,14 @@
 #define KEY_C GLFW_KEY_C
 #endif
 
-#include "base.h"
-
 #if ENGINE_EXPORTS
 #define ENGINE_API __declspec(dllexport)
 #else
 #define ENGINE_API __declspec(dllimport)
 #endif
+
+#include "base.h"
+#include "utils.h"
 
 #include "camera.h"
 #if OPENGL

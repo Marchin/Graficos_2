@@ -345,11 +345,11 @@ spriteSheetSetFrame(SpriteSheet* pSS, u32 frame) {
 ENGINE_API void
 spriteSheetSetupUV(SpriteSheet* pSS) {
 	if (pSS->columns == 0) {
-		Assert(pSS->frameWidth != 0);
+		assert(pSS->frameWidth != 0);
 		pSS->columns = pSS->spriteRenderer.texture.width / pSS->frameWidth;
 	}
 	if (pSS->rows == 0) {
-		Assert(pSS->frameHeight != 0);
+		assert(pSS->frameHeight != 0);
         pSS->rows = pSS->spriteRenderer.texture.height / pSS->frameHeight;
 	}
 	if (pSS->pUVCoords != 0) {
@@ -357,9 +357,9 @@ spriteSheetSetupUV(SpriteSheet* pSS) {
 		pSS->pUVCoords = 0;
 	}
 	pSS->pUVCoords = (Coords*)malloc(sizeof(Coords) *(pSS->columns * pSS->rows));
-	i32 id = 0;
-    i32 ssWidth = pSS->spriteRenderer.texture.width;
-    i32 ssHeight = pSS->spriteRenderer.texture.height;
+	s32 id = 0;
+    s32 ssWidth = pSS->spriteRenderer.texture.width;
+    s32 ssHeight = pSS->spriteRenderer.texture.height;
 	for (u32 iRow = 0; iRow < pSS->rows; ++iRow) {
 		for (u32 iColumn = 0; iColumn < pSS->columns; ++iColumn) {
 			f32 x = (f32)(id % pSS->columns) * (f32)pSS->frameWidth;
@@ -379,7 +379,7 @@ spriteSheetSetupUV(SpriteSheet* pSS) {
 		pSS->pUVData = 0;
 	}
 	pSS->pUVData = (f32*)malloc(sizeof(f32) * id * 8);
-	for (i32 i = 0; i < id; ++i) {
+	for (s32 i = 0; i < id; ++i) {
 		pSS->pUVData[i * 8] = pSS->pUVCoords[i].u0;
 		pSS->pUVData[i * 8 + 1] = pSS->pUVCoords[i].v1;
 		pSS->pUVData[i * 8 + 2] = pSS->pUVCoords[i].u0;

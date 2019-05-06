@@ -5,16 +5,16 @@
 #define MAX_COLLIDERS 512
 
 struct ENGINE_API Tilemap {
-	i32 width;
-	i32 height;
-	i32 visibleWidth;
-	i32 visibleHeight;
+	s32 width;
+	s32 height;
+	s32 visibleWidth;
+	s32 visibleHeight;
 	u32 collidersCount;
 	f32 tileSize;
 	f32 cacheCamPosX;
 	f32 cacheCamPosY;
-	i32* pIDs;
-	i32* pVisibleTiles;
+	s32* pIDs;
+	s32* pVisibleTiles;
 	f32* pUVData;
 	f32* pCoords;
     u32 va;
@@ -30,14 +30,14 @@ struct ENGINE_API Tilemap {
 ENGINE_API inline b32 checkTilemapFormat(const char* pFileDir);
 ENGINE_API b32 loadTilemap(Tilemap* pTilemap, const char* pFileDir);
 ENGINE_API inline void tilemapWCoordsToColRow(Tilemap* pTilemap, 
-                                              f32 wcX, f32 wcY, i32* pCol, i32* pRow);
+                                              f32 wcX, f32 wcY, s32* pCol, s32* pRow);
 ENGINE_API inline void tilemapColRowToWCoords(Tilemap* pTilemap, 
                                               u32 col, u32 row, f32* pWCX, f32* pWCY);
 ENGINE_API void tilemapCheckSideColliding(Tilemap* pTilemap, BoxCollider* pCollider, 
                                           f32 offsetX, f32 offsetY);
 ENGINE_API void tilemapCheckCollisions(Tilemap* pTilemap);
 ENGINE_API inline void tilemapSetCollisionableTiles(Tilemap* pTilemap, 
-                                                    i32* pFrames, i32 count);
+                                                    s32* pFrames, s32 count);
 ENGINE_API inline b32 tilemapRegisterColliders(Tilemap* pTilemap, BoxCollider* pCollider);
 ENGINE_API void tilemapCalculateVertexPosition(Tilemap* pTilemap);
 ENGINE_API void tilemapCalculateUV(Tilemap* pTilemap);

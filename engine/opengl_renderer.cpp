@@ -9,7 +9,7 @@ glClearError() {
 }
 
 internal inline bool
-glLogCall(const char* pFunction, const char* pFile, i32 line) {
+glLogCall(const char* pFunction, const char* pFile, s32 line) {
     while (GLenum error = glGetError()) {
         printf("[OpenGL Error] (%d): %s %s: %d\n", error, pFunction, pFile, line);
         
@@ -21,7 +21,7 @@ glLogCall(const char* pFunction, const char* pFile, i32 line) {
 
 internal void 
 checkShaderCompileErrors(u32 shader, const char* pType) {
-	i32 success;
+	s32 success;
 	char infoLog[1024];
 	if (strcmp(pType, "PROGRAM") != 0) {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -135,12 +135,12 @@ shaderBindID(u32 shaderID) {
 	glCall(glUseProgram(shaderID));
 }
 
-ENGINE_API i32 
+ENGINE_API s32 
 getUniformLocation(Shader* pShader, const char* pName) {
     meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
-    i32 iHash;
-    i32 firstFreeSlotIndex = -1;
+    s32 iHash;
+    s32 firstFreeSlotIndex = -1;
     for (iHash = 0; iHash < UNIFORMS_MAX; ++iHash) {
         if (MeowHashesAreEqual(pShader->hashLocationCache[iHash], hash)) {
             found = true;
@@ -154,7 +154,7 @@ getUniformLocation(Shader* pShader, const char* pName) {
     if (found) {
         return pShader->uniformLocationCache[iHash];
     } else {
-        glCall(i32 location = glGetUniformLocation(pShader->id, pName));
+        glCall(s32 location = glGetUniformLocation(pShader->id, pName));
 		if (location == -1) {
             printf("Warning: uniform '%s' doesn't exist\n", pName);
         }
@@ -174,7 +174,7 @@ shaderSetBool(Shader* pShader, const char* pName, b32 value) {
 }
 
 ENGINE_API inline void
-shaderSetInt(Shader* pShader, const char* pName, i32 value) {
+shaderSetInt(Shader* pShader, const char* pName, s32 value) {
 	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
@@ -210,8 +210,8 @@ initTexture(Texture* pTexture, u32 width, u32 height) {
 ENGINE_API void
 initTexture(Texture* pTexture,
             const char* pImgPath, b32 flipVertical, 
-            i32 TextureWrap_S, i32 TextureWrap_T,
-            i32 TextureMinFilter, i32 TextureMagFilter) {
+            s32 TextureWrap_S, s32 TextureWrap_T,
+            s32 TextureMinFilter, s32 TextureMagFilter) {
     
     glCall(glGenTextures(1, &pTexture->id));
     glCall(glBindTexture(GL_TEXTURE_2D, pTexture->id));
@@ -221,7 +221,7 @@ initTexture(Texture* pTexture,
     glCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureMagFilter));
     stbi_set_flip_vertically_on_load(flipVertical);
     
-    i32 nrChannels;
+    s32 nrChannels;
     u8* pData = stbi_load(pImgPath, 
                           &pTexture->width, &pTexture->height, 
                           &nrChannels, 0);
@@ -297,7 +297,7 @@ vbElementGetSizeOfType(u32 type) {
             return 1;
         } break;
         default: {
-            Assert(false);
+            assert(false);
         }
     }
     return 0;
@@ -427,7 +427,7 @@ vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location)
 ////////////////////////////////
 
 inline void
-framebufferSizeCallback(GLFWwindow* pWindow, i32 width, i32 height) {
+framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
     glViewport(0, 0, width, height);
 }
 
@@ -509,7 +509,7 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 ENGINE_API inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     printf("Start()\n");
-    Assert(pCamera != 0);
+    assert(pCamera != 0);
     initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
@@ -612,7 +612,7 @@ initMesh(Mesh* pMesh) {
     
     
     VertexBufferLayout layout = {};
-    u32 layoutsAmount = 1;
+    u32 layoutsAmount = 3;
     layout.pElements = 
         (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
@@ -631,19 +631,22 @@ ENGINE_API void
 drawMesh(Mesh* pMesh) {
     u32 diffuseNr = 1;
     u32 specularNr = 1;
+    u32 normalNr = 1;
+    u32 reflectionNr = 1;
     u32 texturesSize = pMesh->texturesCount*sizeof(Texture);
-    char* pDiffuse = "texture_diffuse";
-    char* pSpecular = "texture_specular";
-    meow_hash diffuseHash = MeowHash_Accelerated(0, sizeof(pDiffuse), (void*)pDiffuse);
-    meow_hash specularHash = MeowHash_Accelerated(0, sizeof(pSpecular), (void*)pSpecular);
-    char* pTypes[] = { pDiffuse, pSpecular }; 
+    meow_hash diffuseHash = MeowHash_Accelerated(0, sizeof(gpDiffuse), (void*)gpDiffuse);
+    meow_hash specularHash = MeowHash_Accelerated(0, sizeof(gpSpecular), (void*)gpSpecular);
+    meow_hash normalHash = MeowHash_Accelerated(0, sizeof(gpNormal),(void*)gpNormal);
+    meow_hash reflectionHash = 
+        MeowHash_Accelerated(0, sizeof(gpReflection),(void*)gpReflection);
+    const char* pTypes[] = { gpDiffuse, gpSpecular, gpNormal, gpReflection }; 
     
     char* pName = (char*)malloc(sizeof(char) * 512);
-    for (u32 i = 0; i < texturesSize; i++) {
+    for (u32 i = 0; i < texturesSize; ++i) {
         glCall(glActiveTexture(GL_TEXTURE0 + i));
-        i32 number = 0;
-        i32 typeIndex = 0;
-        meow_hash type = pMesh->pTextures[i].typeHash;
+        s32 number = 0;
+        s32 typeIndex = 0;
+        meow_hash type = pMesh->pModelTextures[i].typeHash;
         
         if (MeowHashesAreEqual(type, diffuseHash)) {
             number = diffuseNr++;
@@ -651,19 +654,281 @@ drawMesh(Mesh* pMesh) {
         } else if (MeowHashesAreEqual(type, specularHash)) {
             number = specularNr++;
             typeIndex = 1;
+        } else if (MeowHashesAreEqual(type, normalHash)) {
+            number = normalNr++;
+            typeIndex = 2;
+        } else if (MeowHashesAreEqual(type, reflectionHash)) {
+            number = reflectionNr++;
+            typeIndex = 3;
         }
         
         strcpy(pName, pTypes[typeIndex]);
-        i32 iEndOfString = sizeof(pTypes[typeIndex])/sizeof(char); 
+        s32 iEndOfString = sizeof(pTypes[typeIndex])/sizeof(char); 
         // NOTE(Marchin): I assume no model will have more that 128 textures
+        assert(number < 128);
         pName[iEndOfString++] = (char)number;
         pName[iEndOfString++] = '\0';
-        shaderBindID(pMesh->material.id);
-        shaderSetInt(&pMesh->material, pName, i);
-        glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pTextures[i].id));
+        shaderBindID(pMesh->pMaterial->id);
+        shaderSetInt(pMesh->pMaterial, pName, i);
+        glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i].id));
     }
     vaBind(pMesh->va);
     drawElements(pMesh->indicesCount*(sizeof(u32)));
     vaUnbind();
     glCall(glActiveTexture(GL_TEXTURE0));
+}
+
+ENGINE_API void
+drawModel(Model* pModel) {
+    Mesh* pMeshes = pModel->pMeshes;
+    u32 meshesCount = pModel->meshesCount;
+    for (u32 i = 0; i < meshesCount; ++i) {
+        drawMesh(&pMeshes[i]);
+    }
+}
+
+ENGINE_API u32 
+textureFromFile(const char* pTextureName, const char* pModelPath) {
+    size_t textureNameCount = strlen(pTextureName);
+    size_t modelPathCount = strlen(pModelPath);
+    char* pTexturePath = (char*)malloc(textureNameCount + modelPathCount + 1);
+    memcpy(pTexturePath, pModelPath, modelPathCount);
+    memcpy(&pTexturePath[modelPathCount], pTextureName, textureNameCount);
+    pTexturePath[textureNameCount + modelPathCount] = '\0';
+    Texture* pTexture = (Texture*)malloc(sizeof(Texture*));
+    initTexture(pTexture, pTexturePath, true);
+    
+    glCall(glBindTexture(GL_TEXTURE_2D, pTexture->id));
+    
+    return pTexture->id;
+}
+
+ENGINE_API ModelTexture*
+loadMaterialsTextures(Model* pModel, aiMaterial* pMaterial, 
+                      aiTextureType type, const char* pTypeName) {
+    u32 texturesCount = pMaterial->GetTextureCount(type);
+    u32 modelTexturesCount = pModel->texturesCount;
+    //ModelTexture* pTextures = (ModelTexture*)malloc(texturesCount*sizeof(ModelTexture));
+    //u32 textureIndex = 0;
+    
+    for (u32 i = 0; i < texturesCount; ++i) {
+        b32 skip = false;
+        aiString str;
+        pMaterial->GetTexture(type, i, &str);
+        for (u32 j = 0; j < modelTexturesCount; ++j) {
+            ModelTexture* pModelTexture = &pModel->pLoadedTextures[j];
+            if (strcmp(pModelTexture->pPath, str.C_Str()) == 0) {
+                //pTextures[textureIndex++] = *pModelTexture;
+                pModel->pLoadedTextures[pModel->texturesCount++] = pModelTexture;
+                skip = true;
+                break;
+            }
+        }
+        if (!skip) {
+            ModelTexture modelTexture = {};
+            modelTexture.id = textureFromFile(str.C_Str(), pModel->pPath);
+            modelTexture.typeHash = 
+                MeowHash_Accelerated(0, sizeof(pTypeName), (void*)pTypeName);
+            const char* pPath = str.C_Str();
+            modelTexture.pPath = (char*)malloc(sizeof(pPath));
+            strcpy(modelTexture.pPath, pPath);
+            //pTextures[textureIndex++] = modelTexture;
+            pModel->pLoadedTextures[pModel->texturesCount++] = modelTexture;
+        }
+    }
+    return pTextures;
+}
+
+ENGINE_API Vertex 
+setupModelVertex(aiMesh* mesh, u32 i) {
+    Vertex vertex;
+    hmm_vec3 vector;
+    
+    vector.x = mesh->mVertices[i].x;
+    vector.y = mesh->mVertices[i].y;
+    vector.z = mesh->mVertices[i].z;
+    vertex.pos = vector;
+    
+    vector.x = mesh->mNormals[i].x;
+    vector.y = mesh->mNormals[i].y;
+    vector.z = mesh->mNormals[i].z;
+    vertex.normal = vector;
+    
+    if (mesh->mTextureCoords[0]) {
+        hmm_vec2 vec;
+        vec.x = mesh->mTextureCoords[0][i].x;
+        vec.y = mesh->mTextureCoords[0][i].y;
+        vertex.uv = vec;
+    } else {
+        vertex.uv = hmm_vec2{0.0f, 0.0f};
+    }
+    return vertex;
+}
+
+ENGINE_API Mesh
+processMesh(Model* pModel, aiMesh* pAiMesh, 
+            const aiScene* pScene) {
+    u32 verticesCount = pAiMesh->mNumVertices;
+    u32 facesCount = pAiMesh->mNumFaces;
+    u32 indicesCount = 0;
+    Vertex* pVertices = (Vertex*)malloc(verticesCount*sizeof(Vertex));
+    ModelTexture* pLoadedTextures = pModel->pLoadedTextures;
+    
+    u32 materialIndex = pAiMesh->mMaterialIndex;
+    aiMaterial* pMaterial = pScene->mMaterials[materialIndex];
+    
+    //pLoadedTextures = (ModelTexture*)malloc(maxTexturesCount*sizeof(ModelTexture));
+    
+    for (u32 i = 0; i < verticesCount; ++i) {
+        pVertices[i] = setupModelVertex(pAiMesh, i);
+    }
+    for (u32 i = 0; i < facesCount; ++i) {
+        indicesCount += pAiMesh->mFaces[i].mNumIndices;
+    }
+    u32* pIndices = (u32*)malloc(indicesCount*(sizeof(u32)));
+    u32 iIndex = 0;
+    for (u32 i = 0; i < facesCount; ++i) {
+        aiFace face = pAiMesh->mFaces[i];
+        u32 faceIndicesCount = face.mNumIndices;
+        memcpy(&pIndices[iIndex], face.mIndices, faceIndicesCount*sizeof(u32));
+        iIndex += faceIndicesCount;
+    }
+    u32 texturesCounts[4] = {};
+    u32 totalTextures = 0;
+    if (materialIndex >= 0) {
+        u32 previousTexturesCount = pModel->texturesCount;
+        ModelTexture* pDiffuseMaps = 
+            loadMaterialsTextures(pModel, pMaterial, aiTextureType_DIFFUSE, 
+                                  gpDiffuse);
+        texturesCounts[0] = pModel->texturesCount - previousTexturesCount;
+        previousTexturesCount = pModel->texturesCount;
+        //totalTextures += texturesCounter;
+        
+        ModelTexture* pSpecularMaps = 
+            loadMaterialsTextures(pModel, pMaterial, aiTextureType_SPECULAR, 
+                                  gpSpecular);
+        texturesCounts[1] = pModel->texturesCount - previousTexturesCount;
+        previousTexturesCount = pModel->texturesCount;
+        
+        ModelTexture* pNormalMaps = 
+            loadMaterialsTextures(pModel, pMaterial, aiTextureType_NORMALS, 
+                                  gpNormal);
+        texturesCounts[2] = pModel->texturesCount - previousTexturesCount;
+        previousTexturesCount = pModel->texturesCount;
+        
+        ModelTexture* pReflectionMaps = 
+            loadMaterialsTextures(pModel, pMaterial, aiTextureType_AMBIENT, 
+                                  gpReflection);
+        texturesCounts[3] = pModel->texturesCount - previousTexturesCount;
+        previousTexturesCount = pModel->texturesCount;
+        
+        //sum textureCount
+        u32 textureIndex = previousTexturesCount - texturesCounts[3] - texturesCounts[2] -
+            texturesCounts[1] - texturesCounts[0];
+        u32 modelTextureSize = sizeof(ModelTexture);
+        
+        memcpy(&pLoadedTextures[textureIndex], pDiffuseMaps, 
+               texturesCounts[0]*modelTextureSize);
+        textureIndex += texturesCounts[0];
+        
+        memcpy(&pLoadedTextures[textureIndex], pSpecularMaps, 
+               texturesCounts[1]*modelTextureSize);
+        textureIndex += texturesCounts[1];
+        
+        memcpy(&pLoadedTextures[textureIndex], pNormalMaps,
+               texturesCounts[2]*modelTextureSize);
+        textureIndex += texturesCounts[2];
+        
+        memcpy(&pLoadedTextures[textureIndex], pDiffuseMaps, 
+               texturesCounts[3]*modelTextureSize);
+    }
+    
+    Mesh mesh = {};
+    mesh.pVertices = pVertices;
+    //mesh.pModelTextures = pMTCompressed;
+    mesh.pIndices = pIndices;
+    mesh.verticesCount = verticesCount;
+    mesh.texturesCount = totalTextures;
+    mesh.indicesCount = indicesCount;
+    initMesh(&mesh);
+    return (mesh);
+}
+
+internal u32
+countMaterialTextures(aiMaterial* pMaterial) {
+    u32 texturesCount = 0;
+    texturesCount += pMaterial->GetTextureCount(aiTextureType_DIFFUSE);
+    texturesCount += pMaterial->GetTextureCount(aiTextureType_SPECULAR);
+    texturesCount += pMaterial->GetTextureCount(aiTextureType_NORMALS);
+    texturesCount += pMaterial->GetTextureCount(aiTextureType_AMBIENT);
+    return texturesCount;
+}
+
+internal void
+processNode(Model* pModel, aiNode* pNode, const aiScene* pScene) {
+    u32 meshesCount = pNode->mNumMeshes;
+    for (u32 i = 0; i < meshesCount; ++i) {
+        aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
+        pModel->pMeshes[i] = processMesh(pModel, pMesh, pScene);
+    }
+    u32 nodeChildCount = pNode->mNumChildren;
+    for (u32 i = 0; i < nodeChildCount; ++i) {
+        processNode(pModel, pNode->mChildren[i], pScene);
+    }
+}
+
+internal void
+countNodeMeshes(Model* pModel, aiNode* pNode, const aiScene* pScene) {
+    u32 meshesCount = pNode->mNumMeshes;
+    pModel->meshesCount += meshesCount;
+    for (u32 i = 0; i < meshesCount; ++i) {
+        aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[i]];
+        pModel->texturesCount += 
+            countMaterialTextures(pScene->mMaterials[pMesh->mMaterialIndex]);
+    }
+    u32 nodeChildCount = pNode->mNumChildren;
+    for (u32 i = 0; i < nodeChildCount; ++i) {
+        countNodeMeshes(pModel, pNode->mChildren[i], pScene);
+    }
+    //pModel->pMeshes = (Mesh*)malloc(meshesCount*sizeof(Mesh));
+    //pModel->pLoadedTextures = (ModelTexture*)malloc(texturesCount*sizeof(ModelTexture*));
+}
+
+ENGINE_API void 
+loadModel(Model* pModel, const char* pPath) {
+    Assimp::Importer importer;
+    const aiScene* pScene = 
+        importer.ReadFile(pPath, aiProcess_Triangulate | aiProcess_FlipUVs);
+    
+    if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode) {
+        printf(importer.GetErrorString());
+    }
+    
+    size_t index;
+    char* pDirectory;
+    size_t newSize;
+    if (findCharacter(pPath, '/', LAST, &index)) {
+        newSize = sizeof(char)*(index + 1);
+        pDirectory = (char*)malloc(newSize);
+    } else {
+        newSize = sizeof(pPath);
+        pDirectory = (char*)malloc(newSize);
+    }
+    memcpy(pDirectory, pPath, newSize);
+    pDirectory[newSize] = '\0';
+    pModel->pPath = pDirectory;
+    pModel->meshesCount = 0;
+    pModel->texturesCount = 0;
+    
+    countNodeMeshes(pModel, pScene->mRootNode, pScene);
+    pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));
+    pModel->pLoadedTextures = 
+        (ModelTexture*)malloc(pModel->texturesCount*sizeof(ModelTexture*));
+    processNode(pModel, pScene->mRootNode, pScene);
+    
+    u32 meshesCount = pModel->meshesCount;
+    Shader* pMaterial = &pModel->material;
+    for (u32 i = 0; i < meshesCount; ++i) {
+        pModel->pMeshes[i].pMaterial = pMaterial;
+    }
 }

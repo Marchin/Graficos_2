@@ -11,6 +11,7 @@ struct Game {
     SpriteSheet tileset;
     Tilemap tilemap;
     Camera camera;
+    Model model;
     f32 camX, camY;
     f32 timer;
 };
