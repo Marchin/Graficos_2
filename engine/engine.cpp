@@ -11,6 +11,10 @@
 
 ENGINE_API void
 startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
+    gpMeshComponentsPool = (MeshComponentsPool*)malloc(sizeof(MeshComponentsPool));
+    assert(gpMeshComponentsPool);
+    memset(gpMeshComponentsPool, 0, sizeof(MeshComponentsPool));
+    
     startWindow(pWindow);
     startRenderer(pRenderer, pWindow, pCamera);
 }

@@ -6,6 +6,11 @@ x;\
 assert(glLogCall(#x, __FILE__, __LINE__));
 #define UNIFORMS_MAX 32
 
+global const char* gpDiffuse = "texture_diffuse";
+global const char* gpSpecular = "texture_specular";
+global const char* gpNormal = "texture_normal";
+global const char* gpReflection = "texture_reflection";
+
 struct ENGINE_API Shader {
     meow_hash hashLocationCache[UNIFORMS_MAX];
     s32 uniformLocationCache[UNIFORMS_MAX];
@@ -56,19 +61,28 @@ struct ENGINE_API Vertex {
 
 struct ENGINE_API ModelTexture {
     meow_hash typeHash;
-    char* pPath;
+    char pPath[MAX_PATH_SIZE];
     u32 id;
 };
 
-global const char* gpDiffuse = "texture_diffuse";
-global const char* gpSpecular = "texture_specular";
-global const char* gpNormal = "texture_normal";
-global const char* gpReflection = "texture_reflection";
+global const u32 MAX_VERTICES = megabytes(128)/sizeof(Vertex);
+global const u32 MAX_TEXTURES_POINTERS = kilobytes(512)/sizeof(ModelTexture);
+global const u32 MAX_INDICES = kilobytes(512)/sizeof(u32);
+
+struct MeshComponentsPool {
+    Vertex vertices[MAX_VERTICES];
+    ModelTexture* pTextures[MAX_TEXTURES_POINTERS];
+    u32 indices[MAX_INDICES];
+    
+    size_t verticesOffset;
+    size_t texturesOffet;
+    size_t indicesOffset;
+};
 
 struct ENGINE_API Mesh {
     Shader* pMaterial;
     Vertex* pVertices;
-    ModelTexture* pModelTextures;
+    ModelTexture** pModelTextures;
     u32* pIndices;
     u32 verticesCount;
     u32 texturesCount;
@@ -82,7 +96,7 @@ struct ENGINE_API Model {
     Shader material;
     Mesh* pMeshes;
     ModelTexture* pLoadedTextures;
-    char* pPath;
+    char pPath[MAX_PATH_SIZE];
     u32 meshesCount;
     u32 texturesCount;
 };
@@ -131,10 +145,10 @@ ENGINE_API inline void vaUnbind();
 ENGINE_API void vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout);
 ENGINE_API void vaAddBufferByLocation(u32 va, u32 vb, 
                                       VertexBufferLayout* pLayout, u32 location);
-ENGINE_API b32 startWindow(Window* pWindow);
+//ENGINE_API b32 startWindow(Window* pWindow);
 ENGINE_API b32 stopWindow(Window* pWindow);
 ENGINE_API inline b32 windowShouldClose(Window* pWindow);
-ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
+//ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
 ENGINE_API inline b32 isKeyPressed(Renderer* pRenderer, u32 key);
 ENGINE_API inline void getMousePos(Window* pWindow, f64* pX, f64* pY);
 
@@ -142,9 +156,9 @@ ENGINE_API inline void getMousePos(Window* pWindow, f64* pX, f64* pY);
 ENGINE_API void updateProjection(Camera* pCamera);
 ENGINE_API inline b32 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera);
 ENGINE_API inline b32 stopRenderer();
-ENGINE_API inline void clearRenderer();
-ENGINE_API inline void fillColor(f32 red, f32 green, f32 blue);
-ENGINE_API inline void swapBuffers(Window* pWindow);
+//ENGINE_API inline void clearRenderer();
+//ENGINE_API inline void fillColor(f32 red, f32 green, f32 blue);
+//ENGINE_API inline void swapBuffers(Window* pWindow);
 ENGINE_API inline void drawBuffer(u32 offset, u32 count);
 ENGINE_API inline void drawBufferStrip(u32 offset, u32 count);
 ENGINE_API inline void drawBufferFan(u32 offset, u32 count);
@@ -165,6 +179,6 @@ ENGINE_API ModelTexture* loadMaterialsTextures(Model* pModel, aiMaterial* pMater
                                                aiTextureType type, const char* pTypeName);
 ENGINE_API Vertex setupModelVertex(aiMesh* mesh, u32 i);
 ENGINE_API Mesh processMesh(Model* pModel, aiMesh* pAiMesh, const aiScene* pScene);
-//ENGINE_API void processNode(Model* pModel, aiNode * node, const aiScene * scene);
+ENGINE_API void processNode(Model* pModel, aiNode * node, const aiScene * scene);
 ENGINE_API void loadModel(Model* pModel, const char* pPath);
 #endif //ENGINE_RENDER_H

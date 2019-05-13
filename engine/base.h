@@ -19,7 +19,7 @@ typedef float    f32;
 typedef double   f64;
 typedef size_t memory_index;
 
-#define PI32 3.14159265359f
+global const f32 PI32 = 3.14159265359f;
 
 // NOTE(Marchin): if expression is false, write into 0 (invalid memory) for a
 //plaftorm independent break
@@ -27,7 +27,7 @@ typedef size_t memory_index;
 #ifdef assert
 #undef assert
 #endif
-#define assert(expression) if(!(expression)) {__debugbreak();} 
+#define assert(expression) if(!(expression)) { *(int*)0 = 0; } 
 #else
 #define assert(expression) 
 #endif
@@ -35,9 +35,30 @@ typedef size_t memory_index;
 #define INVALID_CODE_PATH assert(!"INVALID_CODE_PATH");
 
 #define kilobytes(value) ((value)*1024LL)
-#define megabytes(value) (Kilobytes(value)*1024LL)
-#define gigabytes(value) (Megabytes(value)*1024LL)
-#define terabytes(value) (Gigabytes(value)*1024LL)
+#define megabytes(value) (kilobytes(value)*1024LL)
+#define gigabytes(value) (megabytes(value)*1024LL)
+#define terabytes(value) (gigabytes(value)*1024LL)
 #define arrayCount(array) (sizeof(array)/sizeof((array)[0]))
+
+
+//Stack Memory
+
+internal void*
+pushToStack(void* pBuffer, size_t* pOffset, size_t bufferSize, 
+            size_t sizeOfType, size_t amountToReserve) {
+    
+    u8* pEndOfStack = (u8*)pBuffer + (*pOffset)*sizeOfType;
+    void* pReserved = 0;
+    
+    if (pEndOfStack + amountToReserve*sizeOfType < (u8*)pBuffer + bufferSize*sizeOfType) {
+        pReserved = pEndOfStack;
+        *pOffset += amountToReserve*sizeOfType;
+    } else {
+        assert(false);
+    }
+    
+    return pReserved;
+}
+
 
 #endif //BASE_H

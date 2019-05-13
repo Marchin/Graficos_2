@@ -15,6 +15,8 @@
 #define HANDMADE_MATH_IMPLEMENTATION
 #include "handmade_math.h"
 
+#define MAX_PATH_SIZE 260
+
 #if OPENGL
 #include "glad.c"
 #include <glfw3.h>
@@ -60,6 +62,8 @@ struct ENGINE_API Time {
 global const hmm_vec3 VEC3_X = HMM_Vec3(1.f, 0.f, 0.f);
 global const hmm_vec3 VEC3_Y = HMM_Vec3(0.f, 1.f, 0.f);
 global const hmm_vec3 VEC3_Z = HMM_Vec3(0.f, 0.f, 1.f);
+
+global MeshComponentsPool* gpMeshComponentsPool;
 
 ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);
 ENGINE_API void updateEngine(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
