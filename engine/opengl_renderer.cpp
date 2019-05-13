@@ -514,6 +514,7 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
     glCall(glEnable(GL_BLEND));
+    //glCall(glEnable(GL_DEPTH_TEST));
     glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glfwSwapInterval(0));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
@@ -530,7 +531,7 @@ stopRenderer() {
 
 ENGINE_API inline void 
 clearRenderer() {
-    glCall(glClear(GL_COLOR_BUFFER_BIT));
+    glCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 ENGINE_API inline void
@@ -601,13 +602,15 @@ getCameraHeight(Renderer* pRenderer) {
 
 ENGINE_API void 
 initMesh(Mesh* pMesh) {
+    initTransform(pMesh->transform);
+    
     initVA(&pMesh->va);
     vaBind(pMesh->va);
     
     initVB(&pMesh->vb, pMesh->pVertices, pMesh->verticesCount*sizeof(Vertex));
     vbBind(pMesh->vb);
     
-    initEB(&pMesh->eb, pMesh->pIndices, pMesh->indicesCount*sizeof(u32));
+    initEB(&pMesh->eb, pMesh->pIndices, pMesh->indicesCount);
     ebBind(pMesh->eb);
     
     
@@ -673,7 +676,7 @@ drawMesh(Mesh* pMesh) {
         glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i]->id));
     }
     vaBind(pMesh->va);
-    drawElements(pMesh->indicesCount*(sizeof(u32)));
+    drawElements(pMesh->indicesCount);
     vaUnbind();
     glCall(glActiveTexture(GL_TEXTURE0));
 }

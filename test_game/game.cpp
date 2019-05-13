@@ -46,7 +46,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     };
     
     pGame->model.material = textureMaterial;
-    loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj");
+    //loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj");
+    loadModel(&pGame->model, "../resources/cube.obj");
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
@@ -144,25 +145,28 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     }
     if (isKeyPressed(pRenderer, KEY_Z)) {
         pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
+        pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
     if (isKeyPressed(pRenderer, KEY_C)) {
         pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
+#if 0
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);
     moveCharacter(&pGame->character1, -2.f * pTime->deltaTime, 0.f);
     updateCharacter(&pGame->character1, pTime->deltaTime);
-    drawCharacter(&pGame->character1, pRenderer);
+    //drawCharacter(&pGame->character1, pRenderer);
     moveCharacter(&pGame->character2, 0.f, -2.f * pTime->deltaTime);
     updateCharacter(&pGame->character2, pTime->deltaTime);
-    drawCharacter(&pGame->character2, pRenderer);
+    //drawCharacter(&pGame->character2, pRenderer);
     moveCharacter(&pGame->character3, 2.f * pTime->deltaTime, 0.f);
     updateCharacter(&pGame->character3, pTime->deltaTime);
-    drawCharacter(&pGame->character3, pRenderer);
+    //drawCharacter(&pGame->character3, pRenderer);
     tilemapCheckCollisions(&pGame->tilemap);
+#endif
     drawModel(&pGame->model);
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);

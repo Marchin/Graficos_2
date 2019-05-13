@@ -22,4 +22,4 @@ IF NOT DEFINED LIB (IF EXIST "%VC_PATH%" (call "%VC_PATH%\VC\vcvarsall.bat" x64)
 SET VC_PATH=C:\Program Files (x86)\Microsoft Visual Studio 14.0
 IF NOT DEFINED LIB (IF EXIST "%VC_PATH%" (call "%VC_PATH%\VC\vcvarsall.bat" x64)) 
 
-4ed
+..\..\4coder\4ed.exe

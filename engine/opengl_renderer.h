@@ -79,7 +79,9 @@ struct MeshComponentsPool {
     size_t indicesOffset;
 };
 
+struct Transform;
 struct ENGINE_API Mesh {
+    Transform transform;
     Shader* pMaterial;
     Vertex* pVertices;
     ModelTexture** pModelTextures;
