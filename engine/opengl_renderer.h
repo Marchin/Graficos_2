@@ -14,6 +14,7 @@ global const char* gpReflection = "texture_reflection";
 struct ENGINE_API Shader {
     meow_hash hashLocationCache[UNIFORMS_MAX];
     s32 uniformLocationCache[UNIFORMS_MAX];
+    char name[64];
     u32 id;
 };
 
@@ -53,58 +54,8 @@ struct ENGINE_API Renderer {
     Window* pWindow;
 };
 
-struct ENGINE_API Vertex {
-    hmm_vec3 pos;
-    hmm_vec3 normal;
-    hmm_vec2 uv;
-};
-
-struct ENGINE_API ModelTexture {
-    meow_hash typeHash;
-    char pPath[MAX_PATH_SIZE];
-    u32 id;
-};
-
-global const u32 MAX_VERTICES = megabytes(128)/sizeof(Vertex);
-global const u32 MAX_TEXTURES_POINTERS = kilobytes(512)/sizeof(ModelTexture);
-global const u32 MAX_INDICES = kilobytes(512)/sizeof(u32);
-
-struct MeshComponentsPool {
-    Vertex vertices[MAX_VERTICES];
-    ModelTexture* pTextures[MAX_TEXTURES_POINTERS];
-    u32 indices[MAX_INDICES];
-    
-    size_t verticesOffset;
-    size_t texturesOffet;
-    size_t indicesOffset;
-};
-
-struct Transform;
-struct ENGINE_API Mesh {
-    Transform transform;
-    Shader* pMaterial;
-    Vertex* pVertices;
-    ModelTexture** pModelTextures;
-    u32* pIndices;
-    u32 verticesCount;
-    u32 texturesCount;
-    u32 indicesCount;
-    u32 va;
-    u32 vb;
-    u32 eb;
-};
-
-struct ENGINE_API Model {
-    Shader material;
-    Mesh* pMeshes;
-    ModelTexture* pLoadedTextures;
-    char pPath[MAX_PATH_SIZE];
-    u32 meshesCount;
-    u32 texturesCount;
-};
-
 ENGINE_API inline f32 getTime();
-ENGINE_API void initShader(Shader* pShader,
+ENGINE_API void initShader(Shader* pShader, const char* pName,
                            const char* pVertexPath, const char* pFragmentPath,
                            const char* pGeometryPath = 0, 
                            const char* pTessControlPath = 0, 
@@ -171,16 +122,4 @@ ENGINE_API inline hmm_mat4 getModelViewProj(Renderer* pRenderer);
 ENGINE_API inline hmm_vec3 getCameraPosition(Renderer* pRenderer);
 ENGINE_API inline f32 getCameraWidth(Renderer* pRenderer);
 ENGINE_API inline f32 getCameraHeight(Renderer* pRenderer);
-
-//MODEL
-ENGINE_API void initMesh(Mesh* pMesh);
-ENGINE_API void drawMesh(Mesh* pMesh);
-ENGINE_API void drawModel(Model* pModel);
-ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
-ENGINE_API ModelTexture* loadMaterialsTextures(Model* pModel, aiMaterial* pMaterial, 
-                                               aiTextureType type, const char* pTypeName);
-ENGINE_API Vertex setupModelVertex(aiMesh* mesh, u32 i);
-ENGINE_API Mesh processMesh(Model* pModel, aiMesh* pAiMesh, const aiScene* pScene);
-ENGINE_API void processNode(Model* pModel, aiNode * node, const aiScene * scene);
-ENGINE_API void loadModel(Model* pModel, const char* pPath);
 #endif //ENGINE_RENDER_H

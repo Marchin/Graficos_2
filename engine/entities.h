@@ -71,6 +71,55 @@ struct ENGINE_API Animation {
 	f32 counter;
 };
 
+struct ENGINE_API Vertex {
+    hmm_vec3 pos;
+    hmm_vec3 normal;
+    hmm_vec2 uv;
+};
+
+struct ENGINE_API ModelTexture {
+    meow_hash typeHash;
+    char pPath[MAX_PATH_SIZE];
+    u32 id;
+};
+
+global const u32 MAX_VERTICES = megabytes(128)/sizeof(Vertex);
+global const u32 MAX_TEXTURES_POINTERS = kilobytes(512)/sizeof(ModelTexture);
+global const u32 MAX_INDICES = kilobytes(512)/sizeof(u32);
+
+struct MeshComponentsPool {
+    Vertex vertices[MAX_VERTICES];
+    ModelTexture* pTextures[MAX_TEXTURES_POINTERS];
+    u32 indices[MAX_INDICES];
+    
+    size_t verticesOffset;
+    size_t texturesOffet;
+    size_t indicesOffset;
+};
+
+struct ENGINE_API Mesh {
+    Shader* pMaterial;
+    Vertex* pVertices;
+    ModelTexture** pModelTextures;
+    u32* pIndices;
+    u32 verticesCount;
+    u32 texturesCount;
+    u32 indicesCount;
+    u32 va;
+    u32 vb;
+    u32 eb;
+};
+
+struct ENGINE_API Model {
+    Transform transform;
+    Shader material;
+    Mesh* pMeshes;
+    ModelTexture* pLoadedTextures;
+    char pPath[MAX_PATH_SIZE];
+    u32 meshesCount;
+    u32 texturesCount;
+};
+
 ENGINE_API inline void transformUpdateMC(Transform* pTransform);
 ENGINE_API void initTransform(Transform* pTransform);
 ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z);
@@ -113,4 +162,16 @@ ENGINE_API inline void freeAnimation(Animation* pAnimation);
 ENGINE_API void updateAnimation(Animation* pAnimation, f32 deltaTime);
 ENGINE_API inline void setAnimationFPS(Animation* pAnimation, u32 fps);
 ENGINE_API void changeAnimation(Animation* pAnimation, u32* pFrames, u32 count);
+
+//MODEL
+ENGINE_API void initMesh(Mesh* pMesh);
+ENGINE_API void drawMesh(Mesh* pMesh);
+ENGINE_API void drawModel(Model* pModel, Renderer* pRenderer);
+ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
+ENGINE_API ModelTexture* loadMaterialsTextures(Model* pModel, aiMaterial* pMaterial, 
+                                               aiTextureType type, const char* pTypeName);
+ENGINE_API Vertex setupModelVertex(aiMesh* mesh, u32 i);
+ENGINE_API Mesh processMesh(Model* pModel, aiMesh* pAiMesh, const aiScene* pScene);
+ENGINE_API void processNode(Model* pModel, aiNode * node, const aiScene * scene);
+ENGINE_API void loadModel(Model* pModel, const char* pPath, const Shader* pMaterial);
 #endif //ENTITIES_H

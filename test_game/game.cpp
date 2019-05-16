@@ -4,16 +4,20 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     pGame->camY = {};
     
     Shader basicMaterial;
-    initShader(&basicMaterial, "..//resources//shaders//vShader.glsl", 
+    initShader(&basicMaterial, "Shader" ,"..//resources//shaders//vShader.glsl", 
                "..//resources//shaders//fShader.glsl");
     
     Shader colorMaterial;
-    initShader(&colorMaterial, "..//resources//shaders//vColor.glsl", 
+    initShader(&colorMaterial, "Color", "..//resources//shaders//vColor.glsl", 
                "..//resources//shaders//fColor.glsl");
     
     Shader textureMaterial;
-    initShader(&textureMaterial, "..//resources//shaders//vTexture.glsl", 
+    initShader(&textureMaterial, "Texture", "..//resources//shaders//vTexture.glsl", 
                "..//resources//shaders//fTexture.glsl");
+    
+    Shader modelMaterial;
+    initShader(&modelMaterial, "Model", "..//resources//shaders//vModel.glsl", 
+               "..//resources//shaders//fModel.glsl");
     
     const char* pSpritePath = "..//resources//container.jpg";
     const char* pSpriteSheetPath = "..//resources//spriteSheet.png";
@@ -45,9 +49,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
-    pGame->model.material = textureMaterial;
     //loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj");
-    loadModel(&pGame->model, "../resources/cube.obj");
+    loadModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
@@ -65,6 +68,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initAnimation(&pGame->anim, &ss, frames, ArrayCount(frames));
 #endif
     
+#if 0    
     initSpriteSheet(&pGame->ss, &textureMaterial, pSpriteSheetPath, 
                     squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->ss, 64);
@@ -83,7 +87,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     initTilemap(&pGame->tilemap, "..//resources//tilemap.csv", 
                 &pGame->tileset, &textureMaterial, pRenderer);
-	s32 collisionableTiles[] = { 37, 45, 46, 47, 55 };
+    s32 collisionableTiles[] = { 37, 45, 46, 47, 55 };
 	tilemapSetCollisionableTiles(&pGame->tilemap, 
                                  collisionableTiles, 
                                  sizeof(collisionableTiles) / sizeof(s32));
@@ -91,7 +95,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character1.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);
 	tilemapRegisterColliders(&pGame->tilemap, pGame->character3.pCollider);
-    
+#endif
     
     pGame->timer = {};
 }
@@ -167,7 +171,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //drawCharacter(&pGame->character3, pRenderer);
     tilemapCheckCollisions(&pGame->tilemap);
 #endif
-    drawModel(&pGame->model);
+    drawModel(&pGame->model, pRenderer);
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);

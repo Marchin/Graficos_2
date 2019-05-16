@@ -2,7 +2,7 @@ internal void
 initCharacter(Character* pCharacter, CollisionManager* pCM) {
 	initTransform(&pCharacter->transform);
     Shader materialSprite;
-    initShader(&materialSprite, "..//resources//shaders//vTexture.glsl", 
+    initShader(&materialSprite, "Texture", "..//resources//shaders//vTexture.glsl", 
                "..//resources//shaders//fTexture.glsl");
     
     char* pSSPath = "..//resources//spriteSheet.png";
