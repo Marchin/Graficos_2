@@ -11,7 +11,7 @@ updateProjection(Camera* pCamera) {
         case PERSPECTIVE: {
             pCamera->projection = HMM_Perspective(pCamera->fov,
                                                   pCamera->aspectRatio,
-                                                  0.f, 100.f); 
+                                                  0.1f, 100.f); 
         }break;
         default: {
             assert(0);
@@ -33,7 +33,7 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->zoom = ZOOM;
     pCamera->halfCamHeight = 10.f; 
     pCamera->halfCamWidth = 10.f; 
-    pCamera->fov = 80;
+    pCamera->fov = 45;
     pCamera->aspectRatio = 800/600;
     pCamera->projectionType = PERSPECTIVE;
     pCamera->model = HMM_Mat4d(1.f);
@@ -132,5 +132,5 @@ updateCameraVectors(Camera* pCamera) {
     pCamera->up = HMM_NormalizeVec3(up);
     // Also re-calculate the Right and Up vector
     pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    //pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
+    pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
 }

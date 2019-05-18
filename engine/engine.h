@@ -66,5 +66,7 @@ global const hmm_vec3 VEC3_Z = HMM_Vec3(0.f, 0.f, 1.f);
 global MeshComponentsPool* gpMeshComponentsPool;
 
 ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);
-ENGINE_API void updateEngine(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
+ENGINE_API void enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
+ENGINE_API void enginePostUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
+
 #endif //ENGINE_H

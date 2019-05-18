@@ -435,7 +435,6 @@ framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
 
 ENGINE_API b32 
 startWindow(Window* pWindow) {
-    printf("Window::Start()\n");
 	if (!glfwInit()) {
 		return false;
 	}
@@ -464,7 +463,6 @@ startWindow(Window* pWindow) {
 
 ENGINE_API b32  
 stopWindow(Window* pWindow) {
-    printf("Window::Stop()\n");
 	if (pWindow->pInstance != 0) {
 		glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
 	}
@@ -512,13 +510,14 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 
 ENGINE_API inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
-    printf("Start()\n");
     assert(pCamera != 0);
     initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
     //glCall(glEnable(GL_BLEND));
     glCall(glEnable(GL_DEPTH_TEST));
+    //glCullFace(GL_BACK);
+    //glDepthFunc(GL_EQUAL);
     //glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
     
@@ -527,22 +526,20 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
 
 ENGINE_API inline b32 
 stopRenderer() {
-    printf("Stop()\n");
-    
     return true;
 }
 
-ENGINE_API inline void 
+inline void 
 clearRenderer() {
     glCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-ENGINE_API inline void
+inline void
 fillColor(f32 red, f32 green, f32 blue) {
     glCall(glClearColor(red, green, blue, 1.f));
 }
 
-ENGINE_API inline void
+inline void
 swapBuffers(Window* pWindow) {
     glCall(glfwSwapBuffers((GLFWwindow*)pWindow->pInstance));
 }

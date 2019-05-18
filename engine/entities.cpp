@@ -567,8 +567,6 @@ textureFromFile(const char* pTextureName, const char* pModelPath) {
     strcat(pTexturePath, pTextureName);
     initTexture(&texture, pTexturePath, true);
     
-    //glCall(glBindTexture(GL_TEXTURE_2D, texture.id));
-    
     return texture.id;
 }
 
@@ -785,7 +783,6 @@ loadModel(Model* pModel, const char* pPath, const Shader* pMaterial) {
     }
     memcpy(pModel->pPath, pPath, size);
     pModel->pPath[size] = '\0';
-    // TODO(Marchin): LOAD TEXTURES IN OTHER FUNCTION, ITS FROM MODEL, THE COPY INDICES TO MESH
     pModel->meshesCount = pScene->mNumMeshes;
     pModel->texturesCount = pScene->mNumTextures;
     pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));

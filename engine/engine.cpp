@@ -20,14 +20,20 @@ startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
 }
 
 ENGINE_API void
-updateEngine(Window* pWindow, Time* pTime, CollisionManager* pCM) {
-    swapBuffers(pWindow);
-    pollEventsFromWindow(pWindow);
-    fillColor(0.1f, 0.1f, 0.1f);
+enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM) {
+    //swapBuffers(pWindow);
+    //pollEventsFromWindow(pWindow);
+    fillColor(.2f, .2f, .2f);
     clearRenderer();
     f32 currentFrame = getTime();
     pTime->deltaTime = currentFrame - pTime->lastFrame;
     pTime->lastFrame = currentFrame;
+}
+
+ENGINE_API void
+enginePostUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM) {
+    swapBuffers(pWindow);
+    pollEventsFromWindow(pWindow);
     if (pCM) {
         updateCollision(pCM);
     }

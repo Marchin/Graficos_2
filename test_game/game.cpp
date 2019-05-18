@@ -49,8 +49,9 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
-    //loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj", &modelMaterial);
-    loadModel(&pGame->model, "../resources/bath.obj", &modelMaterial);
+    loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj", &modelMaterial);
+    //loadModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
+    //loadModel(&pGame->model, "../resources/bath.obj", &modelMaterial);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
@@ -127,6 +128,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     } else {
         pGame->camX += 2.f  * pTime->deltaTime;
     }
+    
 #endif
     //pRenderer->pCamera->position = HMM_Vec3(pGame->camX, pGame->camY, pRenderer->pCamera->position.z);
     if (isKeyPressed(pRenderer, KEY_D)) {
@@ -162,13 +164,13 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     drawTilemap(&pGame->tilemap, pRenderer);
     moveCharacter(&pGame->character1, -2.f * pTime->deltaTime, 0.f);
     updateCharacter(&pGame->character1, pTime->deltaTime);
-    //drawCharacter(&pGame->character1, pRenderer);
+    drawCharacter(&pGame->character1, pRenderer);
     moveCharacter(&pGame->character2, 0.f, -2.f * pTime->deltaTime);
     updateCharacter(&pGame->character2, pTime->deltaTime);
-    //drawCharacter(&pGame->character2, pRenderer);
+    drawCharacter(&pGame->character2, pRenderer);
     moveCharacter(&pGame->character3, 2.f * pTime->deltaTime, 0.f);
     updateCharacter(&pGame->character3, pTime->deltaTime);
-    //drawCharacter(&pGame->character3, pRenderer);
+    drawCharacter(&pGame->character3, pRenderer);
     tilemapCheckCollisions(&pGame->tilemap);
 #endif
     drawModel(&pGame->model, pRenderer);

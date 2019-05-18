@@ -8,7 +8,8 @@ uniform sampler2D texture_diffuse1;
 
 void main() {  
     if (vTexCoords.x < 0.0f  || vTexCoords.y < 0.0f) {
-        discard;
+        //discard;
+        fColor = vec4(.5f, .5f, .5f, .5f);
     }  
     fColor = texture(texture_diffuse1, vTexCoords);
 }

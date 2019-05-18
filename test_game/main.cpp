@@ -16,8 +16,9 @@ void main() {
     startEngine(&window, &renderer, &game.camera);
     initGame(&game, &renderer, &time, &cm);
     while (!windowShouldClose(&window)) {
+        enginePreUpdate(&window, &time, &cm);
         updateGame(&game, &renderer, &time, &cm);
-        updateEngine(&window, &time, &cm);
+        enginePostUpdate(&window, &time, &cm);
     }
     stopRenderer();
     stopWindow(&window);
