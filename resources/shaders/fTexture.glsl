@@ -10,5 +10,6 @@ void main() {
     if (vTexCoords.x < 0.0f  || vTexCoords.y < 0.0f) {
         discard;
     }  
-    fColor = vec4(0.5f, 0.5f, 0.5f, 0.5f);
+   
+    fColor = texture(tex, vTexCoords);
 }

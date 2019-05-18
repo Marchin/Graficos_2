@@ -52,12 +52,33 @@ pushToStack(void* pBuffer, size_t* pOffset, size_t bufferSize,
     
     if (pEndOfStack + amountToReserve*sizeOfType < (u8*)pBuffer + bufferSize*sizeOfType) {
         pReserved = pEndOfStack;
-        *pOffset += amountToReserve*sizeOfType;
+        *pOffset += amountToReserve;
     } else {
         assert(false);
     }
     
     return pReserved;
+}
+
+
+internal void
+shrinkStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize, 
+                 size_t sizeOfType, void* pElement, size_t oldSize, size_t newSize) {
+    
+    u8* pBottom = (u8*)pBuffer;
+    
+    if (newSize >= oldSize) {
+        return;
+    }
+    
+    if (pBottom + ((*pOffset) * newSize)*sizeOfType < pBottom + bufferSize*sizeOfType) {
+        u8* pFrom = (u8*)pElement + oldSize*sizeOfType;
+        u8* pTo = (u8*)pElement + newSize*sizeOfType;
+        size_t chunkSize = *pOffset*sizeOfType - (pFrom - pBottom);
+        memmove(pTo, pFrom, chunkSize);
+    } else {
+        assert(false);
+    }
 }
 
 

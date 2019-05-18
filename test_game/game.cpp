@@ -49,8 +49,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
-    //loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj");
-    loadModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
+    //loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj", &modelMaterial);
+    loadModel(&pGame->model, "../resources/bath.obj", &modelMaterial);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
@@ -68,7 +68,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initAnimation(&pGame->anim, &ss, frames, ArrayCount(frames));
 #endif
     
-#if 0    
+#if 1    
     initSpriteSheet(&pGame->ss, &textureMaterial, pSpriteSheetPath, 
                     squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->ss, 64);
@@ -156,7 +156,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
-#if 0
+#if 1
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);

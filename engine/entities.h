@@ -73,7 +73,6 @@ struct ENGINE_API Animation {
 
 struct ENGINE_API Vertex {
     hmm_vec3 pos;
-    hmm_vec3 normal;
     hmm_vec2 uv;
 };
 
@@ -85,7 +84,7 @@ struct ENGINE_API ModelTexture {
 
 global const u32 MAX_VERTICES = megabytes(128)/sizeof(Vertex);
 global const u32 MAX_TEXTURES_POINTERS = kilobytes(512)/sizeof(ModelTexture);
-global const u32 MAX_INDICES = kilobytes(512)/sizeof(u32);
+global const u32 MAX_INDICES = megabytes(32)/sizeof(u32);
 
 struct MeshComponentsPool {
     Vertex vertices[MAX_VERTICES];

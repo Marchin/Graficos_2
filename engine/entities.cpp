@@ -459,6 +459,13 @@ changeAnimation(Animation* pAnimation, u32* pFrames, u32 count) {
 
 ////////////////////////////////
 
+inline b32
+operator==(Vertex vA, Vertex vB) {
+    b32 result = ((vA.pos == vB.pos) && (vA.uv == vB.uv));
+    
+    return result;
+}
+
 ENGINE_API void 
 initMesh(Mesh* pMesh) {
     initVA(&pMesh->va);
@@ -472,13 +479,13 @@ initMesh(Mesh* pMesh) {
     
     
     VertexBufferLayout layout = {};
-    u32 layoutsAmount = 3;
+    u32 layoutsAmount = 2;
     layout.pElements = 
         (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout.elementsMaxSize = layoutsAmount;
     vbLayoutPushFloat(&layout, 3);
-    vbLayoutPushFloat(&layout, 3);
+    //vbLayoutPushFloat(&layout, 3);
     vbLayoutPushFloat(&layout, 2);
     
     vaAddBuffer(pMesh->va, pMesh->vb, &layout);
@@ -493,7 +500,7 @@ drawMesh(Mesh* pMesh) {
     u32 specularNr = 1;
     u32 normalNr = 1;
     u32 reflectionNr = 1;
-    u32 texturesSize = pMesh->texturesCount*sizeof(Texture);
+    u32 texturesSize = pMesh->texturesCount;
     meow_hash diffuseHash = MeowHash_Accelerated(0, sizeof(gpDiffuse), (void*)gpDiffuse);
     meow_hash specularHash = MeowHash_Accelerated(0, sizeof(gpSpecular), (void*)gpSpecular);
     meow_hash normalHash = MeowHash_Accelerated(0, sizeof(gpNormal),(void*)gpNormal);
@@ -501,7 +508,7 @@ drawMesh(Mesh* pMesh) {
         MeowHash_Accelerated(0, sizeof(gpReflection),(void*)gpReflection);
     const char* pTypes[] = { gpDiffuse, gpSpecular, gpNormal, gpReflection }; 
     
-    char* pName = (char*)malloc(sizeof(char) * 512);
+    char pName[512];
     for (u32 i = 0; i < texturesSize; ++i) {
         glCall(glActiveTexture(GL_TEXTURE0 + i));
         s32 number = 0;
@@ -511,7 +518,7 @@ drawMesh(Mesh* pMesh) {
         if (MeowHashesAreEqual(type, diffuseHash)) {
             number = diffuseNr++;
             typeIndex = 0;
-        } else if (MeowHashesAreEqual(type, specularHash)) {
+        }/* else if (MeowHashesAreEqual(type, specularHash)) {
             number = specularNr++;
             typeIndex = 1;
         } else if (MeowHashesAreEqual(type, normalHash)) {
@@ -520,15 +527,15 @@ drawMesh(Mesh* pMesh) {
         } else if (MeowHashesAreEqual(type, reflectionHash)) {
             number = reflectionNr++;
             typeIndex = 3;
-        }
+        }*/
         
         strcpy(pName, pTypes[typeIndex]);
-        s32 iEndOfString = sizeof(pTypes[typeIndex])/sizeof(char); 
+        size_t iEndOfString = strlen(pTypes[typeIndex]) - 1;
         // NOTE(Marchin): I assume no model will have more that 128 textures
         assert(number < 128);
         pName[iEndOfString++] = (char)number;
         pName[iEndOfString++] = '\0';
-        shaderBindID(pMesh->pMaterial->id);
+        //shaderBindID(pMesh->pMaterial->id);
         shaderSetInt(pMesh->pMaterial, pName, i);
         glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i]->id));
     }
@@ -554,18 +561,15 @@ drawModel(Model* pModel, Renderer* pRenderer) {
 
 ENGINE_API u32 
 textureFromFile(const char* pTextureName, const char* pModelPath) {
-    size_t textureNameCount = strlen(pTextureName);
-    size_t modelPathCount = strlen(pModelPath);
-    char* pTexturePath = (char*)malloc(textureNameCount + modelPathCount + 1);
-    memcpy(pTexturePath, pModelPath, modelPathCount);
-    memcpy(&pTexturePath[modelPathCount], pTextureName, textureNameCount);
-    pTexturePath[textureNameCount + modelPathCount] = '\0';
-    Texture* pTexture = (Texture*)malloc(sizeof(Texture*));
-    initTexture(pTexture, pTexturePath, true);
+    Texture texture;
+    char pTexturePath[MAX_PATH_SIZE];
+    strcpy(pTexturePath, pModelPath);
+    strcat(pTexturePath, pTextureName);
+    initTexture(&texture, pTexturePath, true);
     
-    glCall(glBindTexture(GL_TEXTURE_2D, pTexture->id));
+    //glCall(glBindTexture(GL_TEXTURE_2D, texture.id));
     
-    return pTexture->id;
+    return texture.id;
 }
 
 internal void
@@ -587,47 +591,62 @@ loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial,
                 
                 *(pMesh->pModelTextures + pMesh->texturesCount + texturesCount - i - 1) = 
                     &pModel->pLoadedTextures[j];
+                pMesh->texturesCount++;
                 break;
             }
         }
         
         if (!skip) {
-            ModelTexture modelTexture = {};
-            modelTexture.id = textureFromFile(str.C_Str(), pModel->pPath);
-            modelTexture.typeHash = 
+            ModelTexture* pModelTexture = &pModel->pLoadedTextures[pModel->texturesCount];
+            pModelTexture->id = textureFromFile(str.C_Str(), pModel->pPath);
+            pModelTexture->typeHash = 
                 MeowHash_Accelerated(0, sizeof(pTypeName), (void*)pTypeName);
-            strcpy(modelTexture.pPath, str.C_Str());
-            pModel->pLoadedTextures[pModel->texturesCount] = modelTexture;
+            strcpy(pModelTexture->pPath, str.C_Str());
             *(pMesh->pModelTextures + pMesh->texturesCount + texturesCount - i - 1) = 
                 &pModel->pLoadedTextures[pModel->texturesCount++];
+            pMesh->texturesCount++;
         }
     }
 }
 
 ENGINE_API void 
-setupModelVertex(aiMesh* pAiMesh, Vertex* pVertex) {
-    hmm_vec3 vector;
+setupModelVertex(aiMesh* pAiMesh, Mesh* pMesh) {
+    Vertex vertex;
+    Vertex* pVertices = pMesh->pVertices;
     u32 verticesCount = pAiMesh->mNumVertices;
     
     for (u32 iVertex = 0; iVertex < verticesCount; ++iVertex) {
-        vector.x = pAiMesh->mVertices[iVertex].x;
-        vector.y = pAiMesh->mVertices[iVertex].y;
-        vector.z = pAiMesh->mVertices[iVertex].z;
-        pVertex[iVertex].pos = vector;
-        
-        vector.x = pAiMesh->mNormals[iVertex].x;
-        vector.y = pAiMesh->mNormals[iVertex].y;
-        vector.z = pAiMesh->mNormals[iVertex].z;
-        pVertex[iVertex].normal = vector;
+        vertex.pos.x = pAiMesh->mVertices[iVertex].x;
+        vertex.pos.y = pAiMesh->mVertices[iVertex].y;
+        vertex.pos.z = pAiMesh->mVertices[iVertex].z;
         
         if (pAiMesh->mTextureCoords[0]) {
-            hmm_vec2 vec;
-            vec.x = pAiMesh->mTextureCoords[0][iVertex].x;
-            vec.y = pAiMesh->mTextureCoords[0][iVertex].y;
-            pVertex[iVertex].uv = vec;
+            vertex.uv.x = pAiMesh->mTextureCoords[0][iVertex].x;
+            vertex.uv.y = pAiMesh->mTextureCoords[0][iVertex].y;
+            pVertices[iVertex].uv = vertex.uv;
         } else {
-            pVertex[iVertex].uv = hmm_vec2{0.0f, 0.0f};
+            vertex.uv = hmm_vec2{0.0f, 0.0f};
         }
+        
+        pVertices[iVertex] = vertex;
+#if 0
+        b32 isNew = true;
+        u32 uniqueVerticesCount = pMesh->verticesCount;
+        u32* pIndices = pMesh->pIndices;
+        for (u32 iUniqueVertex = 0; iUniqueVertex < uniqueVerticesCount; ++iUniqueVertex) {
+            
+            if (pVertices[iUniqueVertex] == vertex) {
+                isNew = false;
+                pIndices[pMesh->indicesCount++] = iUniqueVertex;
+                // TODO(Marchin): add indices
+                break;
+            }
+        }
+        if (isNew) {
+            pIndices[pMesh->indicesCount++] = uniqueVerticesCount; 
+            pVertices[pMesh->verticesCount++] = vertex;
+        }
+#endif
     }
 }
 
@@ -641,23 +660,37 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         u32 facesCount = pAiMesh->mNumFaces;
         u32 indicesCount = 0;
         
+        *pMesh = {};
+        
         pMesh->pVertices = (Vertex*)pushToStack(gpMeshComponentsPool->vertices, 
                                                 &gpMeshComponentsPool->verticesOffset, 
                                                 MAX_VERTICES, 
                                                 sizeof(Vertex), 
                                                 verticesCount);
-        setupModelVertex(pAiMesh, pMesh->pVertices);
-        pMesh->verticesCount = verticesCount;
         
         for (u32 i = 0; i < facesCount; ++i) {
             indicesCount += pAiMesh->mFaces[i].mNumIndices;
         }
-        
         pMesh->pIndices = (u32*)pushToStack(gpMeshComponentsPool->indices, 
                                             &gpMeshComponentsPool->indicesOffset, 
                                             MAX_INDICES, 
                                             sizeof(u32), 
                                             indicesCount);
+        
+        setupModelVertex(pAiMesh, pMesh);
+        
+        pMesh->verticesCount = verticesCount;
+#if 0        
+        shrinkStackBlock(gpMeshComponentsPool->indices, 
+                         &gpMeshComponentsPool->indicesOffset, 
+                         MAX_INDICES, 
+                         sizeof(u32),
+                         pMesh->pIndices,
+                         indicesCount,
+                         pMesh->indicesCount);
+#endif
+        
+#if 1        
         u32 iIndex = 0;
         for (u32 i = 0; i < facesCount; ++i) {
             aiFace face = pAiMesh->mFaces[i];
@@ -667,56 +700,52 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         }
         
         pMesh->indicesCount = indicesCount;
+#endif
         
         u32 materialIndex = pAiMesh->mMaterialIndex;
         aiMaterial* pMaterial = pScene->mMaterials[materialIndex];
         
         u32 texturesCount = 0;
         pMesh->texturesCount = 0;
-        ModelTexture*** pMeshTextures = &pMesh->pModelTextures;
+        //ModelTexture*** pMeshTextures = &pMesh->pModelTextures;
         if (materialIndex >= 0) {
             texturesCount = pMaterial->GetTextureCount(aiTextureType_DIFFUSE);
-            *pMeshTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures,
-                                                         &gpMeshComponentsPool->texturesOffet, 
-                                                         MAX_TEXTURES_POINTERS, 
-                                                         sizeof(ModelTexture*), 
-                                                         texturesCount);
+            pMesh->pModelTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures,
+                                                                &gpMeshComponentsPool->texturesOffet, 
+                                                                MAX_TEXTURES_POINTERS, 
+                                                                sizeof(ModelTexture*), 
+                                                                texturesCount);
             loadMaterialsTextures(pModel, pMesh, pMaterial, 
                                   aiTextureType_DIFFUSE, gpDiffuse);
-            pMesh->texturesCount += texturesCount;
             
-            pMeshTextures += texturesCount;
+#if 0            
             texturesCount = pMaterial->GetTextureCount(aiTextureType_SPECULAR);
-            *pMeshTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures, 
-                                                         &gpMeshComponentsPool->texturesOffet, 
-                                                         MAX_TEXTURES_POINTERS, 
-                                                         sizeof(ModelTexture*), 
-                                                         texturesCount);
+            pushToStack(gpMeshComponentsPool->pTextures, 
+                        &gpMeshComponentsPool->texturesOffet, 
+                        MAX_TEXTURES_POINTERS, 
+                        sizeof(ModelTexture*), 
+                        texturesCount);
             loadMaterialsTextures(pModel, pMesh, pMaterial,
                                   aiTextureType_SPECULAR, gpSpecular);
-            pMesh->texturesCount += texturesCount;
             
-            pMeshTextures += texturesCount;
             texturesCount = pMaterial->GetTextureCount(aiTextureType_NORMALS);
-            *pMeshTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures, 
-                                                         &gpMeshComponentsPool->texturesOffet, 
-                                                         MAX_TEXTURES_POINTERS, 
-                                                         sizeof(ModelTexture*), 
-                                                         texturesCount);
+            pushToStack(gpMeshComponentsPool->pTextures, 
+                        &gpMeshComponentsPool->texturesOffet, 
+                        MAX_TEXTURES_POINTERS, 
+                        sizeof(ModelTexture*), 
+                        texturesCount);
             loadMaterialsTextures(pModel, pMesh, pMaterial,
                                   aiTextureType_NORMALS, gpNormal);
-            pMesh->texturesCount += texturesCount;
             
-            pMeshTextures += texturesCount;
             texturesCount = pMaterial->GetTextureCount(aiTextureType_AMBIENT);
-            *pMeshTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures, 
-                                                         &gpMeshComponentsPool->texturesOffet, 
-                                                         MAX_TEXTURES_POINTERS, 
-                                                         sizeof(ModelTexture*), 
-                                                         texturesCount);
+            (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures, 
+                                        &gpMeshComponentsPool->texturesOffet, 
+                                        MAX_TEXTURES_POINTERS, 
+                                        sizeof(ModelTexture*), 
+                                        texturesCount);
             loadMaterialsTextures(pModel, pMesh, pMaterial,
                                   aiTextureType_AMBIENT, gpReflection);
-            pMesh->texturesCount += texturesCount;
+#endif
         }
         
         pMesh->pMaterial = &pModel->material;
