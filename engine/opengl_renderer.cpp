@@ -517,10 +517,9 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
-    glCall(glEnable(GL_BLEND));
-    //glCall(glEnable(GL_DEPTH_TEST));
-    glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    //glCall(glfwSwapInterval(0));
+    //glCall(glEnable(GL_BLEND));
+    glCall(glEnable(GL_DEPTH_TEST));
+    //glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
     
     return true;

@@ -33,7 +33,7 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->zoom = ZOOM;
     pCamera->halfCamHeight = 10.f; 
     pCamera->halfCamWidth = 10.f; 
-    pCamera->fov = 100;
+    pCamera->fov = 80;
     pCamera->aspectRatio = 800/600;
     pCamera->projectionType = PERSPECTIVE;
     pCamera->model = HMM_Mat4d(1.f);

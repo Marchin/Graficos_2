@@ -530,11 +530,11 @@ drawMesh(Mesh* pMesh) {
         }*/
         
         strcpy(pName, pTypes[typeIndex]);
-        size_t iEndOfString = strlen(pTypes[typeIndex]) - 1;
-        // NOTE(Marchin): I assume no model will have more that 128 textures
-        assert(number < 128);
-        pName[iEndOfString++] = (char)number;
-        pName[iEndOfString++] = '\0';
+        size_t iEndOfString = strlen(pTypes[typeIndex]);
+        // NOTE(Marchin): I assume no model will have more that 99 textures of one kind
+        char pNumber[2];
+        _itoa(number, pNumber, 10);
+        strcat(pName, pNumber);
         //shaderBindID(pMesh->pMaterial->id);
         shaderSetInt(pMesh->pMaterial, pName, i);
         glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i]->id));
@@ -790,7 +790,7 @@ loadModel(Model* pModel, const char* pPath, const Shader* pMaterial) {
     pModel->texturesCount = pScene->mNumTextures;
     pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));
     pModel->pLoadedTextures = 
-        (ModelTexture*)malloc(pModel->texturesCount*sizeof(ModelTexture));
+        (ModelTexture*)malloc(12*sizeof(ModelTexture));
     pModel->material = *pMaterial;
     //processNode(pModel, pScene->mRootNode, pScene);
     

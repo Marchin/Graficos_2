@@ -68,7 +68,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initAnimation(&pGame->anim, &ss, frames, ArrayCount(frames));
 #endif
     
-#if 1    
+#if 0    
     initSpriteSheet(&pGame->ss, &textureMaterial, pSpriteSheetPath, 
                     squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->ss, 64);
@@ -156,7 +156,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
-#if 1
+#if 0
     transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);
