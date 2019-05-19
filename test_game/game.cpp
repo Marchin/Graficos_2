@@ -50,8 +50,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     };
     
     loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj", &modelMaterial);
-    //loadModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
-    //loadModel(&pGame->model, "../resources/bath.obj", &modelMaterial);
+    //loadModel(&pGame->model2, "../resources/cube.obj", &modelMaterial);
+    loadModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
@@ -174,6 +174,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     tilemapCheckCollisions(&pGame->tilemap);
 #endif
     drawModel(&pGame->model, pRenderer);
+    drawModel(&pGame->model2, pRenderer);
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);

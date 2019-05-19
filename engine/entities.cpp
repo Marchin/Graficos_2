@@ -621,7 +621,6 @@ setupModelVertex(aiMesh* pAiMesh, Mesh* pMesh) {
         if (pAiMesh->mTextureCoords[0]) {
             vertex.uv.x = pAiMesh->mTextureCoords[0][iVertex].x;
             vertex.uv.y = pAiMesh->mTextureCoords[0][iVertex].y;
-            pVertices[iVertex].uv = vertex.uv;
         } else {
             vertex.uv = hmm_vec2{0.0f, 0.0f};
         }
@@ -768,7 +767,7 @@ ENGINE_API void
 loadModel(Model* pModel, const char* pPath, const Shader* pMaterial) {
     Assimp::Importer importer;
     const aiScene* pScene = 
-        importer.ReadFile(pPath, aiProcess_Triangulate | aiProcess_FlipUVs);
+        importer.ReadFile(pPath, aiProcess_Triangulate);// | aiProcess_FlipUVs);
     
     if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode) {
         printf(importer.GetErrorString());

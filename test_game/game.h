@@ -12,6 +12,7 @@ struct Game {
     Tilemap tilemap;
     Camera camera;
     Model model;
+    Model model2;
     f32 camX, camY;
     f32 timer;
 };
