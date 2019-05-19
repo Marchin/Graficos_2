@@ -21,7 +21,9 @@ struct ENGINE_API Camera {
 	hmm_vec3 worldUp;
     hmm_mat4 model;
     hmm_mat4 projection;
-    Rotor3 rotor;
+    Rotor3 rotorYZ;
+    Rotor3 rotorZX;
+    Rotor3 rotorXY;
 	
     f32 movementSpeed;
 	f32 mouseSensitivity;

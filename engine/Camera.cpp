@@ -30,9 +30,11 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->yaw = 0.f;
 	pCamera->pitch = 0.f;
 	pCamera->roll = 0.f;
-    pCamera->rotor.a = 1.f;
     //pCamera->rotor = rotorFromAngleAndBivec(pitch, BivecYZ);
     //pCamera->rotor *= rotorFromAngleAndBivec(yaw, BivecZX);
+    pCamera->rotorYZ = RotorYZ;
+    pCamera->rotorZX = RotorZX;
+    pCamera->rotorXY = RotorXY;
     pCamera->movementSpeed = SPEED;
     pCamera->mouseSensitivity = SENSITIVITY;
     pCamera->zoom = ZOOM;
@@ -49,10 +51,10 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
 
 ENGINE_API hmm_mat4 
 getViewMatrix(Camera* pCamera) {
-    //return HMM_LookAt(pCamera->position, pCamera->position + pCamera->front, pCamera->up);
-    hmm_mat4 result = getRotorMat4(pCamera->rotor);
+    return HMM_LookAt(pCamera->position, pCamera->position + pCamera->front, pCamera->up);
+    //hmm_mat4 result = getRotorMat4(pCamera->rotor);
     
-    return result;
+    //return result;
 }
 
 ENGINE_API void 
@@ -148,21 +150,22 @@ rotateXY(f32 angle) {
 
 ENGINE_API void
 updateCameraVectors(Camera* pCamera) {
-    Rotor3 rotor;
-    /*rotor = rotorFromAngleAndBivec(pCamera->pitch*PI32/180.f, wedge(pCamera->up, 
-                                                                    pCamera->front));
-    rotorNormalize(&rotor);
-    rotor *= rotorFromAngleAndBivec(pCamera->yaw*PI32/180.f, wedge(pCamera->front, 
-                                                                   pCamera->right));
-    rotorNormalize(&rotor);
-    rotor *= rotorFromAngleAndBivec(pCamera->roll*PI32/180.f, wedge(pCamera->right, 
-                                                                    pCamera->up));
-    rotorNormalize(&rotor);
-    */
+    pCamera->rotorYZ *= rotorFromAngleAndBivec(pCamera->pitch*PI32/180.f, wedge(pCamera->up, 
+                                                                                pCamera->front));
+    rotorNormalize(&pCamera->rotorYZ);
+    pCamera->rotorZX *= rotorFromAngleAndBivec(pCamera->yaw*PI32/180.f, wedge(pCamera->front, 
+                                                                              pCamera->right));
+    rotorNormalize(&pCamera->rotorZX);
+    pCamera->rotorXY *= rotorFromAngleAndBivec(pCamera->roll*PI32/180.f, wedge(pCamera->right, 
+                                                                               pCamera->up));
+    rotorNormalize(&pCamera->rotorXY);
+    
+#if 0
     rotor = rotateXY(pCamera->roll);
     rotor *= rotateZX(pCamera->yaw);
     rotor *= rotateYZ(pCamera->pitch);
     pCamera->rotor *= rotor;
+#endif
     
     //pCamera->front = HMM_NormalizeVec3(getRotatedVector(-1.f*VEC3_Z, pCamera->rotor));
     //pCamera->up = HMM_NormalizeVec3(getRotatedVector(VEC3_Y, pCamera->rotor));
