@@ -124,13 +124,14 @@ updateCameraVectors(Camera* pCamera) {
     front.y = sinf(HMM_ToRadians((f32)pCamera->pitch));
     front.z = sinf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
     
-    hmm_vec3 up;
-    up.x = sinf(HMM_ToRadians((f32)pCamera->roll));
-    up.y = cosf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
-    up.z = sinf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
+    //hmm_vec3 up;
+    //up.x = sinf(HMM_ToRadians((f32)pCamera->roll));
+    //up.y = cosf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
+    //up.z = sinf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
     pCamera->front = HMM_NormalizeVec3(front);
-    pCamera->up = HMM_NormalizeVec3(up);
+    //pCamera->up = HMM_NormalizeVec3(up);
+    pCamera->right = HMM_Cross(pCamera->front, pCamera->worldUp);
     // Also re-calculate the Right and Up vector
-    pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+    //pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
 }

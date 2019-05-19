@@ -3,21 +3,21 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     pGame->camX = {};
     pGame->camY = {};
     
-    Shader basicMaterial;
-    initShader(&basicMaterial, "Shader" ,"..//resources//shaders//vShader.glsl", 
-               "..//resources//shaders//fShader.glsl");
+    Material basicMaterial;
+    initMaterial(&basicMaterial, "Shader" ,"..//resources//shaders//vShader.glsl", 
+                 "..//resources//shaders//fShader.glsl");
     
-    Shader colorMaterial;
-    initShader(&colorMaterial, "Color", "..//resources//shaders//vColor.glsl", 
-               "..//resources//shaders//fColor.glsl");
+    Material colorMaterial;
+    initMaterial(&colorMaterial, "Color", "..//resources//shaders//vColor.glsl", 
+                 "..//resources//shaders//fColor.glsl");
     
-    Shader textureMaterial;
-    initShader(&textureMaterial, "Texture", "..//resources//shaders//vTexture.glsl", 
-               "..//resources//shaders//fTexture.glsl");
+    Material textureMaterial;
+    initMaterial(&textureMaterial, "Texture", "..//resources//shaders//vTexture.glsl", 
+                 "..//resources//shaders//fTexture.glsl");
     
-    Shader modelMaterial;
-    initShader(&modelMaterial, "Model", "..//resources//shaders//vModel.glsl", 
-               "..//resources//shaders//fModel.glsl");
+    Material modelMaterial;
+    initMaterial(&modelMaterial, "Model", "..//resources//shaders//vModel.glsl", 
+                 "..//resources//shaders//fModel.glsl");
     
     const char* pSpritePath = "..//resources//container.jpg";
     const char* pSpriteSheetPath = "..//resources//spriteSheet.png";
@@ -49,9 +49,10 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
-    loadModel(&pGame->model, "../resources/nanosuit/nanosuit.obj", &modelMaterial);
-    //loadModel(&pGame->model2, "../resources/cube.obj", &modelMaterial);
-    loadModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
+    initModel(&pGame->model, "../resources/nanosuit_reflection/nanosuit.obj", &modelMaterial);
+    //initModel(&pGame->model2, "../resources/cube.obj", &modelMaterial);
+    initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
+    freeModel(&pGame->model2);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));

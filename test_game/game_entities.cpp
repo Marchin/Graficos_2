@@ -1,9 +1,9 @@
 internal void
 initCharacter(Character* pCharacter, CollisionManager* pCM) {
 	initTransform(&pCharacter->transform);
-    Shader materialSprite;
-    initShader(&materialSprite, "Texture", "..//resources//shaders//vTexture.glsl", 
-               "..//resources//shaders//fTexture.glsl");
+    Material materialSprite;
+    initMaterial(&materialSprite, "Texture", "..//resources//shaders//vTexture.glsl", 
+                 "..//resources//shaders//fTexture.glsl");
     
     char* pSSPath = "..//resources//spriteSheet.png";
 	f32 squareVertices[] = {

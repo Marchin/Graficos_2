@@ -286,7 +286,7 @@ tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer) {
 
 ENGINE_API void
 initTilemap(Tilemap* pTilemap, const char* pTilemapDir, SpriteSheet* pTileset, 
-            Shader* pMaterial, Renderer* pRenderer) {
+            Material* pMaterial, Renderer* pRenderer) {
     *pTilemap = {};
     pTilemap->tileSize = 1.f;
     
@@ -363,7 +363,7 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
         pTilemap->cacheCamPosY = camPosY;
         tilemapCalculateVisibleTiles(pTilemap, pRenderer);
     }
-    shaderBindID(pTilemap->material.id);
+    materialBindID(pTilemap->material.id);
     textureBindID(pTilemap->tileset.spriteRenderer.texture.id, 0);
     pRenderer->pCamera->model = pTilemap->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);

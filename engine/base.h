@@ -81,5 +81,11 @@ shrinkStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize,
     }
 }
 
+internal void
+freeStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize, 
+               size_t sizeOfType, void* pElement, size_t oldSize) {
+    shrinkStackBlock(pBuffer, pOffset, bufferSize, sizeOfType, pElement, oldSize, 0);
+}
+
 
 #endif //BASE_H

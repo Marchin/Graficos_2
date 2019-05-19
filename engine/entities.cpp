@@ -53,7 +53,7 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
 ////////////////////////////////
 
 ENGINE_API void
-initTriangle(Triangle* pTriangle, Shader* pMaterial, const void* pData, u32 size) {
+initTriangle(Triangle* pTriangle, Material* pMaterial, const void* pData, u32 size) {
     initTransform(&pTriangle->transform);
     initVA(&pTriangle->va);
     vaBind(pTriangle->va);
@@ -79,7 +79,7 @@ freeTriangle(Triangle* pTriangle) {
 
 ENGINE_API void
 drawTriangle(Triangle* pTriangle, Renderer* pRenderer) {
-    shaderBindID(pTriangle->material.id);
+    materialBindID(pTriangle->material.id);
 	pRenderer->pCamera->model = pTriangle->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTriangle->material, 
@@ -102,7 +102,7 @@ setTriangleVertices(Triangle* pTriangle, const void* pData) {
 ////////////////////////////////
 
 ENGINE_API void
-initColorSquare(ColorSquare* pCS, Shader* pMaterial, 
+initColorSquare(ColorSquare* pCS, Material* pMaterial, 
                 const void* pPosition, const void* pColor) {
     
     initTransform(&pCS->transform);
@@ -134,7 +134,7 @@ freeColorSquare(ColorSquare* pCS) {
 
 ENGINE_API void
 drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
-	shaderBindID(pCS->material.id); 
+	materialBindID(pCS->material.id); 
 	pRenderer->pCamera->model = pCS->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
 	shaderSetMat4(&pCS->material, "uModelViewProjection", &mvp);
@@ -190,7 +190,7 @@ circleRecalculate(Circle* pCircle) {
 }
 
 ENGINE_API void
-initCircle(Circle* pCircle, Shader* pMaterial, u32 sidesAmount, f32 radius) {
+initCircle(Circle* pCircle, Material* pMaterial, u32 sidesAmount, f32 radius) {
     pCircle->sides = sidesAmount;
     pCircle->radius = radius;
     pCircle->material = *pMaterial;
@@ -221,7 +221,7 @@ freeCircle(Circle* pCircle) {
 
 ENGINE_API void
 drawCircle(Circle* pCircle, Renderer* pRenderer) {
-	shaderBindID(pCircle->material.id);
+	materialBindID(pCircle->material.id);
 	pRenderer->pCamera->model = pCircle->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
 	shaderSetMat4(&pCircle->material, "uModelViewProjection", &mvp);
@@ -236,7 +236,7 @@ drawCircle(Circle* pCircle, Renderer* pRenderer) {
 ////////////////////////////////
 
 ENGINE_API void
-initSpriteRenderer(SpriteRenderer* pSR, Shader* pMaterial, 
+initSpriteRenderer(SpriteRenderer* pSR, Material* pMaterial, 
                    const char* pTexturePath,
                    const void* pPosition, const void* pUV) {
     
@@ -263,7 +263,7 @@ initSpriteRenderer(SpriteRenderer* pSR, Shader* pMaterial,
     initVB(&pSR->vbPosition, pPosition, 12 * sizeof(f32));
     initVB(&pSR->vbUV, pUV, 8 * sizeof(f32));
     pSR->material = *pMaterial;
-    shaderBindID(pSR->material.id);
+    materialBindID(pSR->material.id);
     textureBindID(pSR->texture.id, 0);
     shaderSetInt(&pSR->material, "tex", 0);
     
@@ -301,7 +301,7 @@ spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
 
 ENGINE_API void
 drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* pRenderer) {
-	shaderBindID(pSR->material.id);
+	materialBindID(pSR->material.id);
 	textureBindID(pSR->texture.id, 0);
 	pRenderer->pCamera->model = pTransform->model;
 	hmm_mat4 mvp = getModelViewProj(pRenderer);
@@ -318,7 +318,7 @@ drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* p
 ////////////////////////////////
 
 ENGINE_API void
-initSpriteSheet(SpriteSheet* pSS, Shader* pMaterial, const char* pTexturePath, 
+initSpriteSheet(SpriteSheet* pSS, Material* pMaterial, const char* pTexturePath, 
                 const void* pPosition, const void* pUV) { 
     
     *pSS = {};
@@ -479,13 +479,14 @@ initMesh(Mesh* pMesh) {
     
     
     VertexBufferLayout layout = {};
-    u32 layoutsAmount = 2;
+    u32 layoutsAmount = 3;
     layout.pElements = 
         (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout.elementsMaxSize = layoutsAmount;
+    
     vbLayoutPushFloat(&layout, 3);
-    //vbLayoutPushFloat(&layout, 3);
+    vbLayoutPushFloat(&layout, 3);
     vbLayoutPushFloat(&layout, 2);
     
     vaAddBuffer(pMesh->va, pMesh->vb, &layout);
@@ -518,7 +519,7 @@ drawMesh(Mesh* pMesh) {
         if (MeowHashesAreEqual(type, diffuseHash)) {
             number = diffuseNr++;
             typeIndex = 0;
-        }/* else if (MeowHashesAreEqual(type, specularHash)) {
+        } else if (MeowHashesAreEqual(type, specularHash)) {
             number = specularNr++;
             typeIndex = 1;
         } else if (MeowHashesAreEqual(type, normalHash)) {
@@ -527,7 +528,7 @@ drawMesh(Mesh* pMesh) {
         } else if (MeowHashesAreEqual(type, reflectionHash)) {
             number = reflectionNr++;
             typeIndex = 3;
-        }*/
+        }
         
         strcpy(pName, pTypes[typeIndex]);
         size_t iEndOfString = strlen(pTypes[typeIndex]);
@@ -535,7 +536,7 @@ drawMesh(Mesh* pMesh) {
         char pNumber[2];
         _itoa(number, pNumber, 10);
         strcat(pName, pNumber);
-        //shaderBindID(pMesh->pMaterial->id);
+        //materialBindID(pMesh->pMaterial->id);
         shaderSetInt(pMesh->pMaterial, pName, i);
         glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i]->id));
     }
@@ -545,8 +546,41 @@ drawMesh(Mesh* pMesh) {
 }
 
 ENGINE_API void
+freeMesh(Mesh* pMesh) {
+    freeEB(&pMesh->eb);
+    freeVB(&pMesh->vb);
+    freeVA(&pMesh->va);
+    pMesh->pMaterial = 0;
+    freeStackBlock(gpMeshComponentsPool->vertices,
+                   &gpMeshComponentsPool->verticesOffset,
+                   MAX_VERTICES,
+                   sizeof(Vertex),
+                   pMesh->pVertices,
+                   pMesh->verticesCount);
+    freeStackBlock(gpMeshComponentsPool->pTextures,
+                   &gpMeshComponentsPool->texturesOffset,
+                   MAX_TEXTURES_POINTERS,
+                   sizeof(ModelTexture*),
+                   pMesh->pModelTextures,
+                   pMesh->texturesCount);
+    freeStackBlock(gpMeshComponentsPool->indices,
+                   &gpMeshComponentsPool->indicesOffset,
+                   MAX_INDICES,
+                   sizeof(u32),
+                   pMesh->pIndices,
+                   pMesh->indicesCount);
+    pMesh->verticesCount = 0;
+    pMesh->texturesCount = 0;
+    pMesh->indicesCount = 0;
+}
+
+ENGINE_API void
 drawModel(Model* pModel, Renderer* pRenderer) {
-    shaderBindID(pModel->material.id);
+    if (pModel->meshesCount <= 0) {
+        return;
+    }
+    
+    materialBindID(pModel->material.id);
     Mesh* pMeshes = pModel->pMeshes;
 	pRenderer->pCamera->model = pModel->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
@@ -554,8 +588,8 @@ drawModel(Model* pModel, Renderer* pRenderer) {
                   "uModelViewProjection", 
                   &mvp);
     u32 meshesCount = pModel->meshesCount;
-    for (u32 i = 0; i < meshesCount; ++i) {
-        drawMesh(&pMeshes[i]);
+    for (u32 iMesh = 0; iMesh < meshesCount; ++iMesh) {
+        drawMesh(&pMeshes[iMesh]);
     }
 }
 
@@ -576,8 +610,6 @@ loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial,
     
     u32 texturesCount = pMaterial->GetTextureCount(type);
     u32 modelTexturesCount = pModel->texturesCount;
-    //ModelTexture* pTextures = (ModelTexture*)malloc(texturesCount*sizeof(ModelTexture));
-    //u32 textureIndex = 0;
     
     for (u32 i = 0; i < texturesCount; ++i) {
         b32 skip = false;
@@ -618,9 +650,13 @@ setupModelVertex(aiMesh* pAiMesh, Mesh* pMesh) {
         vertex.pos.y = pAiMesh->mVertices[iVertex].y;
         vertex.pos.z = pAiMesh->mVertices[iVertex].z;
         
+        vertex.normal.x = pAiMesh->mNormals[iVertex].x;
+        vertex.normal.y = pAiMesh->mNormals[iVertex].y;
+        vertex.normal.z = pAiMesh->mNormals[iVertex].z;
+        
         if (pAiMesh->mTextureCoords[0]) {
-            vertex.uv.x = pAiMesh->mTextureCoords[0][iVertex].x;
-            vertex.uv.y = pAiMesh->mTextureCoords[0][iVertex].y;
+            vertex.uv.u = pAiMesh->mTextureCoords[0][iVertex].x;
+            vertex.uv.v = pAiMesh->mTextureCoords[0][iVertex].y;
         } else {
             vertex.uv = hmm_vec2{0.0f, 0.0f};
         }
@@ -665,8 +701,8 @@ processMeshes(Model* pModel, const aiScene* pScene) {
                                                 sizeof(Vertex), 
                                                 verticesCount);
         
-        for (u32 i = 0; i < facesCount; ++i) {
-            indicesCount += pAiMesh->mFaces[i].mNumIndices;
+        for (u32 iFace = 0; iFace < facesCount; ++iFace) {
+            indicesCount += pAiMesh->mFaces[iFace].mNumIndices;
         }
         pMesh->pIndices = (u32*)pushToStack(gpMeshComponentsPool->indices, 
                                             &gpMeshComponentsPool->indicesOffset, 
@@ -692,6 +728,11 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         for (u32 i = 0; i < facesCount; ++i) {
             aiFace face = pAiMesh->mFaces[i];
             u32 faceIndicesCount = face.mNumIndices;
+            
+            if (faceIndicesCount != 3) {
+                continue;
+            }
+            
             memcpy(&pMesh->pIndices[iIndex], face.mIndices, faceIndicesCount*sizeof(u32));
             iIndex += faceIndicesCount;
         }
@@ -708,7 +749,7 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         if (materialIndex >= 0) {
             texturesCount = pMaterial->GetTextureCount(aiTextureType_DIFFUSE);
             pMesh->pModelTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures,
-                                                                &gpMeshComponentsPool->texturesOffet, 
+                                                                &gpMeshComponentsPool->texturesOffset, 
                                                                 MAX_TEXTURES_POINTERS, 
                                                                 sizeof(ModelTexture*), 
                                                                 texturesCount);
@@ -764,7 +805,7 @@ processNode(Model* pModel, aiNode* pNode, const aiScene* pScene) {
 }
 */
 ENGINE_API void 
-loadModel(Model* pModel, const char* pPath, const Shader* pMaterial) {
+initModel(Model* pModel, const char* pPath, const Material* pMaterial) {
     Assimp::Importer importer;
     const aiScene* pScene = 
         importer.ReadFile(pPath, aiProcess_Triangulate);// | aiProcess_FlipUVs);
@@ -793,4 +834,24 @@ loadModel(Model* pModel, const char* pPath, const Shader* pMaterial) {
     initTransform(&pModel->transform);
     
     processMeshes(pModel, pScene);
+}
+
+ENGINE_API void
+freeModel(Model* pModel) {
+    u32 meshesCount = pModel->meshesCount;
+    for (u32 iMesh = 0; iMesh < meshesCount; ++iMesh) {
+        freeMesh(&pModel->pMeshes[iMesh]);
+    }
+    pModel->meshesCount = 0;
+    
+    u32 texturesCount = pModel->texturesCount;
+    for (u32 iTexture = 0; iTexture < texturesCount; ++iTexture){
+        ModelTexture* pTexture = &pModel->pLoadedTextures[iTexture];
+        freeTexture(&pTexture->id);
+        *pTexture = {};
+    }
+    pModel->texturesCount = 0;
+    
+    pModel->pPath[0] = '\0';
+    pModel->material = {};
 }
