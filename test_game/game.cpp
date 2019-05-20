@@ -49,15 +49,16 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
-    initModel(&pGame->model, "../resources/nanosuit_reflection/nanosuit.obj", &modelMaterial);
+    initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);
+    initModel(&pGame->model2, "../resources/nanosuit_reflection/nanosuit.obj", &modelMaterial);
     //initModel(&pGame->model2, "../resources/cube.obj", &modelMaterial);
-    initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
-    freeModel(&pGame->model2);
+    //initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
+    freeModel(&pGame->model);
     
 #if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
     transformScale(&pGame->triangle.transform, 9.f, 3.f, 3.f);
-    initColorSquare(&pGame->cs, &colorMaterial, & squareVertices, squareColors);
+    initColorSquare(&pGame->cs, &colorMaterial, &squareVertices, squareColors);
     transformScale(&pGame->cs.transform, 5.f, 5.f, 5.f);
     
     initCircle(&pGame->circle, &basicMaterial, 16, 5.f);

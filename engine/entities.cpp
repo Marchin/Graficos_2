@@ -827,13 +827,17 @@ initModel(Model* pModel, const char* pPath, const Material* pMaterial) {
     pModel->texturesCount = pScene->mNumTextures;
     pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));
     pModel->pLoadedTextures = 
-        (ModelTexture*)malloc(12*sizeof(ModelTexture));
+        (ModelTexture*)malloc(48*sizeof(ModelTexture));
     pModel->material = *pMaterial;
     //processNode(pModel, pScene->mRootNode, pScene);
     
     initTransform(&pModel->transform);
     
     processMeshes(pModel, pScene);
+    
+    pModel->pLoadedTextures = 
+        (ModelTexture*)realloc(pModel->pLoadedTextures, 
+                               pModel->texturesCount*sizeof(ModelTexture));
 }
 
 ENGINE_API void

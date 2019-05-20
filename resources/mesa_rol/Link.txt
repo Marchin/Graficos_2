@@ -1,0 +1,5 @@
+Link a sketchfab: https://skfb.ly/6yZRT
+
+Modelado (Todo menos latas, dados, hoja de personaje y dm screen) y Texturizado: Leandro Sebastian Rodriguez
+Modelado (latas, dados, hoja de personaje y dm screen): Ian Franco Leguizamon
+Mapeado de UV's: José Quintana Martin
