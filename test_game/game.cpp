@@ -50,8 +50,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     };
     
     initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);
+    //initModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
     initModel(&pGame->model2, "../resources/nanosuit_reflection/nanosuit.obj", &modelMaterial);
-    //initModel(&pGame->model2, "../resources/cube.obj", &modelMaterial);
     //initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
     freeModel(&pGame->model);
     

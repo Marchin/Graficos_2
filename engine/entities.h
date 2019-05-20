@@ -86,7 +86,7 @@ struct ENGINE_API ModelTexture {
 global const u32 MAX_VERTICES = megabytes(128)/sizeof(Vertex);
 global const u32 MAX_TEXTURES_POINTERS = kilobytes(512)/sizeof(ModelTexture);
 global const u32 MAX_INDICES = megabytes(32)/sizeof(u32);
-global const u32 MAX_IDS = 2048;
+global const u32 MAX_IDS = megabytes(1);
 
 enum MeshComponentType {
     VERTICES,
@@ -103,11 +103,12 @@ struct MeshComponentsPool {
     size_t texturesOffset;
     size_t indicesOffset;
     
-    u32 verticesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
-    u32 texturesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
-    u32 indicesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
+    Vertex* verticesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
+    ModelTexture** texturesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
+    u32* indicesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
     
     size_t idsUsed[MAX_IDS/sizeof(size_t)];
+    size_t idsCount;
 };
 
 struct ENGINE_API Mesh {
@@ -115,6 +116,7 @@ struct ENGINE_API Mesh {
     Vertex* pVertices;
     ModelTexture** pModelTextures;
     u32* pIndices;
+    size_t meshComponentID;
     u32 verticesCount;
     u32 texturesCount;
     u32 indicesCount;

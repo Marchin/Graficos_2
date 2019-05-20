@@ -461,9 +461,15 @@ changeAnimation(Animation* pAnimation, u32* pFrames, u32 count) {
 
 
 internal size_t
-getID() {
+getMeshComponentID() {
+    u32 size = sizeof(size_t);
     for (size_t iID = 0; iID < MAX_IDS; ++iID) {
-        if (((gpMeshComponentsPool->idsUsed[iID/sizeof(size_t)] >> iID) & 1) != 0) {
+        size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
+        size_t offset = iID%size;
+        if (((((*pCurrentWord  >> offset)) & 1) == 0)) {
+            *pCurrentWord = *pCurrentWord | ((size_t)1 << offset);
+            
+            ++gpMeshComponentsPool->idsCount;
             return iID;
         }
     }
@@ -471,51 +477,177 @@ getID() {
     return 0;
 }
 
-internal void*
-pushToStack(void* pBuffer, size_t* pOffset, size_t bufferSize, 
-            size_t sizeOfType, size_t amountToReserve) {
+internal void
+pushToStack(size_t id, MeshComponentType type, u32 amountToReserve) {
+    u8* pBuffer; 
+    size_t* pOffset;
+    size_t bufferSize;
+    size_t sizeOfType;
     
-    u8* pEndOfStack = (u8*)pBuffer + (*pOffset)*sizeOfType;
+    if (type == VERTICES) {
+        pBuffer = (u8*)gpMeshComponentsPool->vertices;
+        pOffset = &gpMeshComponentsPool->verticesOffset;
+        bufferSize = MAX_VERTICES;
+        sizeOfType = sizeof(Vertex);
+        
+        if (gpMeshComponentsPool->verticesSlotsBeginnings[id] != 0) {
+            return;
+        }
+    } else if (type == TEXTURES) {
+        pBuffer = (u8*)gpMeshComponentsPool->pTextures;
+        pOffset = &gpMeshComponentsPool->texturesOffset;
+        bufferSize = MAX_TEXTURES_POINTERS;
+        sizeOfType = sizeof(ModelTexture*);
+        
+        if (gpMeshComponentsPool->texturesSlotsBeginnings[id] != 0) {
+            return;
+        }
+    } else if (type == INDICES) {
+        pBuffer = (u8*)gpMeshComponentsPool->indices;
+        pOffset = &gpMeshComponentsPool->indicesOffset;
+        bufferSize = MAX_INDICES;
+        sizeOfType = sizeof(u32);
+        
+        if (gpMeshComponentsPool->indicesSlotsBeginnings[id] != 0) {
+            return;
+        }
+    } else {
+        return;
+    }
+    
+    u8* pEndOfStack = pBuffer + (*pOffset)*sizeOfType;
     void* pReserved = 0;
     
-    if (pEndOfStack + amountToReserve*sizeOfType < (u8*)pBuffer + bufferSize*sizeOfType) {
+    if (pEndOfStack + amountToReserve*sizeOfType < pBuffer + bufferSize*sizeOfType) {
         pReserved = pEndOfStack;
         *pOffset += amountToReserve;
     } else {
         assert(false);
     }
     
-    return pReserved;
+    if (type == VERTICES) {
+        gpMeshComponentsPool->verticesSlotsBeginnings[id] = (Vertex*)pReserved;
+    }
+    else if (type == TEXTURES) {
+        gpMeshComponentsPool->texturesSlotsBeginnings[id] = (ModelTexture**)pReserved;
+    }
+    else if (type == INDICES) {
+        gpMeshComponentsPool->indicesSlotsBeginnings[id] = (u32*)pReserved;
+    }
 }
 
 
 internal void
-shrinkStackBlock(MeshComponentType type, void* pElement, size_t oldSize, size_t newSize) {
+shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSize) {
     u8* pBuffer; 
     size_t* pOffset; 
     size_t bufferSize;
     size_t sizeOfType;
+    u8* pElement;
     
-    u8* pBottom = (u8*)pBuffer;
+    if (type == VERTICES) {
+        pBuffer = (u8*)gpMeshComponentsPool->vertices;
+        pOffset = &gpMeshComponentsPool->verticesOffset;
+        bufferSize = MAX_VERTICES;
+        sizeOfType = sizeof(Vertex);
+        pElement = (u8*)gpMeshComponentsPool->verticesSlotsBeginnings[id];
+    } else if (type == TEXTURES) {
+        pBuffer = (u8*)gpMeshComponentsPool->pTextures;
+        pOffset = &gpMeshComponentsPool->texturesOffset;
+        bufferSize = MAX_TEXTURES_POINTERS;
+        sizeOfType = sizeof(ModelTexture*);
+        pElement = (u8*)gpMeshComponentsPool->texturesSlotsBeginnings[id];
+    } else if (type == INDICES) {
+        pBuffer = (u8*)gpMeshComponentsPool->indices;
+        pOffset = &gpMeshComponentsPool->indicesOffset;
+        bufferSize = MAX_INDICES;
+        sizeOfType = sizeof(u32);
+        pElement = (u8*)gpMeshComponentsPool->indicesSlotsBeginnings[id];
+    } else {
+        return;
+    }
     
     if (newSize >= oldSize) {
         return;
     }
     
-    if (pBottom + ((*pOffset) * newSize)*sizeOfType < pBottom + bufferSize*sizeOfType) {
-        u8* pFrom = (u8*)pElement + oldSize*sizeOfType;
-        u8* pTo = (u8*)pElement + newSize*sizeOfType;
-        size_t chunkSize = *pOffset*sizeOfType - (pFrom - pBottom);
+    if (pBuffer + ((*pOffset) * newSize)*sizeOfType < pBuffer + bufferSize*sizeOfType) {
+        u8* pFrom = pElement + oldSize*sizeOfType;
+        u8* pTo = pElement + newSize*sizeOfType;
+        size_t chunkSize = *pOffset*sizeOfType - (pFrom - pBuffer);
         memmove(pTo, pFrom, chunkSize);
     } else {
         assert(false);
     }
+    
+    size_t idCount = 0;
+    u32 size = sizeof(size_t);
+    if (type == VERTICES) {
+        if (newSize == 0) {
+            gpMeshComponentsPool->verticesSlotsBeginnings[id] = 0;
+        }
+        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+            size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
+            size_t offset = iID%size;
+            if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
+                gpMeshComponentsPool->verticesSlotsBeginnings[iID] -= (oldSize - newSize);
+                ++idCount;
+            }
+            
+            if (idCount >= gpMeshComponentsPool->idsCount) {
+                break;
+            }
+        }
+    }
+    else if (type == TEXTURES) {
+        if (newSize == 0) {
+            gpMeshComponentsPool->texturesSlotsBeginnings[id] = 0;
+        }
+        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+            size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
+            size_t offset = iID%size;
+            if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
+                gpMeshComponentsPool->texturesSlotsBeginnings[iID] -= (oldSize - newSize);
+                ++idCount;
+            }
+            
+            if (idCount >= gpMeshComponentsPool->idsCount) {
+                break;
+            }
+        }
+    }
+    else if (type == INDICES) {
+        if (newSize == 0) {
+            gpMeshComponentsPool->indicesSlotsBeginnings[id] = 0;
+        }
+        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+            size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
+            size_t offset = iID%size;
+            if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
+                gpMeshComponentsPool->indicesSlotsBeginnings[iID] -= (oldSize - newSize);
+                ++idCount;
+            }
+            
+            if (idCount >= gpMeshComponentsPool->idsCount) {
+                break;
+            }
+        }
+    }
+    
+    if (gpMeshComponentsPool->verticesSlotsBeginnings[id] == 0 && 
+        gpMeshComponentsPool->texturesSlotsBeginnings[id] == 0 && 
+        gpMeshComponentsPool->indicesSlotsBeginnings[id] == 0) 
+    {
+        size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[id/size];
+        size_t offset = id%size;
+        *pCurrentWord = *pCurrentWord & ~(1 << offset);
+        --gpMeshComponentsPool->idsCount;
+    }
 }
 
 internal void
-freeStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize, 
-               size_t sizeOfType, void* pElement, size_t oldSize) {
-    shrinkStackBlock(pBuffer, pOffset, bufferSize, sizeOfType, pElement, oldSize, 0);
+freeStackBlock(size_t id, MeshComponentType type, size_t oldSize) {
+    shrinkStackBlock(id, type, oldSize, 0);
 }
 
 
@@ -537,10 +669,11 @@ initMesh(Mesh* pMesh) {
     initVA(&pMesh->va);
     vaBind(pMesh->va);
     
-    initVB(&pMesh->vb, pMesh->pVertices, pMesh->verticesCount*sizeof(Vertex));
+    size_t id = pMesh->meshComponentID;
+    initVB(&pMesh->vb, gpMeshComponentsPool->verticesSlotsBeginnings[id], pMesh->verticesCount*sizeof(Vertex));
     vbBind(pMesh->vb);
     
-    initEB(&pMesh->eb, pMesh->pIndices, pMesh->indicesCount);
+    initEB(&pMesh->eb, gpMeshComponentsPool->indicesSlotsBeginnings[id], pMesh->indicesCount);
     ebBind(pMesh->eb);
     
     
@@ -574,6 +707,7 @@ drawMesh(Mesh* pMesh) {
     meow_hash reflectionHash = 
         MeowHash_Accelerated(0, sizeof(gpReflection),(void*)gpReflection);
     const char* pTypes[] = { gpDiffuse, gpSpecular, gpNormal, gpReflection }; 
+    size_t id = pMesh->meshComponentID;
     
     char pName[512];
     for (u32 i = 0; i < texturesSize; ++i) {
@@ -604,7 +738,7 @@ drawMesh(Mesh* pMesh) {
         strcat(pName, pNumber);
         //materialBindID(pMesh->pMaterial->id);
         shaderSetInt(pMesh->pMaterial, pName, i);
-        glCall(glBindTexture(GL_TEXTURE_2D, pMesh->pModelTextures[i]->id));
+        glCall(glBindTexture(GL_TEXTURE_2D, gpMeshComponentsPool->texturesSlotsBeginnings[id][i]->id));
     }
     vaBind(pMesh->va);
     drawElements(pMesh->indicesCount);
@@ -617,23 +751,14 @@ freeMesh(Mesh* pMesh) {
     freeVB(&pMesh->vb);
     freeVA(&pMesh->va);
     pMesh->pMaterial = 0;
-    freeStackBlock(gpMeshComponentsPool->vertices,
-                   &gpMeshComponentsPool->verticesOffset,
-                   MAX_VERTICES,
-                   sizeof(Vertex),
-                   pMesh->pVertices,
+    freeStackBlock(pMesh->meshComponentID,
+                   VERTICES,
                    pMesh->verticesCount);
-    freeStackBlock(gpMeshComponentsPool->pTextures,
-                   &gpMeshComponentsPool->texturesOffset,
-                   MAX_TEXTURES_POINTERS,
-                   sizeof(ModelTexture*),
-                   pMesh->pModelTextures,
+    freeStackBlock(pMesh->meshComponentID,
+                   TEXTURES,
                    pMesh->texturesCount);
-    freeStackBlock(gpMeshComponentsPool->indices,
-                   &gpMeshComponentsPool->indicesOffset,
-                   MAX_INDICES,
-                   sizeof(u32),
-                   pMesh->pIndices,
+    freeStackBlock(pMesh->meshComponentID,
+                   INDICES,
                    pMesh->indicesCount);
     pMesh->verticesCount = 0;
     pMesh->texturesCount = 0;
@@ -761,20 +886,25 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         
         *pMesh = {};
         
-        pMesh->pVertices = (Vertex*)pushToStack(gpMeshComponentsPool->vertices, 
-                                                &gpMeshComponentsPool->verticesOffset, 
-                                                MAX_VERTICES, 
-                                                sizeof(Vertex), 
-                                                verticesCount);
+        size_t id = getMeshComponentID();
+        pMesh->meshComponentID = id; 
+        
+        
+        pushToStack(pMesh->meshComponentID, 
+                    VERTICES, 
+                    verticesCount);
+        
+        pMesh->pVertices = gpMeshComponentsPool->verticesSlotsBeginnings[id];
+        
         
         for (u32 iFace = 0; iFace < facesCount; ++iFace) {
             indicesCount += pAiMesh->mFaces[iFace].mNumIndices;
         }
-        pMesh->pIndices = (u32*)pushToStack(gpMeshComponentsPool->indices, 
-                                            &gpMeshComponentsPool->indicesOffset, 
-                                            MAX_INDICES, 
-                                            sizeof(u32), 
-                                            indicesCount);
+        pushToStack(pMesh->meshComponentID, 
+                    INDICES, 
+                    indicesCount);
+        
+        pMesh->pIndices = gpMeshComponentsPool->indicesSlotsBeginnings[id];
         
         setupModelVertex(pAiMesh, pMesh);
         
@@ -814,11 +944,10 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         //ModelTexture*** pMeshTextures = &pMesh->pModelTextures;
         if (materialIndex >= 0) {
             texturesCount = pMaterial->GetTextureCount(aiTextureType_DIFFUSE);
-            pMesh->pModelTextures = (ModelTexture**)pushToStack(gpMeshComponentsPool->pTextures,
-                                                                &gpMeshComponentsPool->texturesOffset, 
-                                                                MAX_TEXTURES_POINTERS, 
-                                                                sizeof(ModelTexture*), 
-                                                                texturesCount);
+            pushToStack(pMesh->meshComponentID,
+                        TEXTURES, 
+                        texturesCount);
+            pMesh->pModelTextures = gpMeshComponentsPool->texturesSlotsBeginnings[id];
             loadMaterialsTextures(pModel, pMesh, pMaterial, 
                                   aiTextureType_DIFFUSE, gpDiffuse);
             
