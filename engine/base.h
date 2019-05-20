@@ -43,29 +43,13 @@ global const f32 PI32 = 3.14159265359f;
 
 //Stack Memory
 
-internal void*
-pushToStack(void* pBuffer, size_t* pOffset, size_t bufferSize, 
-            size_t sizeOfType, size_t amountToReserve) {
-    
-    u8* pEndOfStack = (u8*)pBuffer + (*pOffset)*sizeOfType;
-    void* pReserved = 0;
-    
-    if (pEndOfStack + amountToReserve*sizeOfType < (u8*)pBuffer + bufferSize*sizeOfType) {
-        pReserved = pEndOfStack;
-        *pOffset += amountToReserve;
-    } else {
-        assert(false);
-    }
-    
-    return pReserved;
-}
-
+#if 0
 
 internal void
 shrinkStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize, 
                  size_t sizeOfType, void* pElement, size_t oldSize, size_t newSize) {
     
-    u8* pBottom = (u8*)pBuffer;
+    u8* pBottom = (u8*)pBufferType;
     
     if (newSize >= oldSize) {
         return;
@@ -86,6 +70,6 @@ freeStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize,
                size_t sizeOfType, void* pElement, size_t oldSize) {
     shrinkStackBlock(pBuffer, pOffset, bufferSize, sizeOfType, pElement, oldSize, 0);
 }
-
+#endif
 
 #endif //BASE_H

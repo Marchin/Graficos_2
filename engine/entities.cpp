@@ -459,6 +459,72 @@ changeAnimation(Animation* pAnimation, u32* pFrames, u32 count) {
 
 ////////////////////////////////
 
+
+internal size_t
+getID() {
+    for (size_t iID = 0; iID < MAX_IDS; ++iID) {
+        if (((gpMeshComponentsPool->idsUsed[iID/sizeof(size_t)] >> iID) & 1) != 0) {
+            return iID;
+        }
+    }
+    assert(0);
+    return 0;
+}
+
+internal void*
+pushToStack(void* pBuffer, size_t* pOffset, size_t bufferSize, 
+            size_t sizeOfType, size_t amountToReserve) {
+    
+    u8* pEndOfStack = (u8*)pBuffer + (*pOffset)*sizeOfType;
+    void* pReserved = 0;
+    
+    if (pEndOfStack + amountToReserve*sizeOfType < (u8*)pBuffer + bufferSize*sizeOfType) {
+        pReserved = pEndOfStack;
+        *pOffset += amountToReserve;
+    } else {
+        assert(false);
+    }
+    
+    return pReserved;
+}
+
+
+internal void
+shrinkStackBlock(MeshComponentType type, void* pElement, size_t oldSize, size_t newSize) {
+    u8* pBuffer; 
+    size_t* pOffset; 
+    size_t bufferSize;
+    size_t sizeOfType;
+    
+    u8* pBottom = (u8*)pBuffer;
+    
+    if (newSize >= oldSize) {
+        return;
+    }
+    
+    if (pBottom + ((*pOffset) * newSize)*sizeOfType < pBottom + bufferSize*sizeOfType) {
+        u8* pFrom = (u8*)pElement + oldSize*sizeOfType;
+        u8* pTo = (u8*)pElement + newSize*sizeOfType;
+        size_t chunkSize = *pOffset*sizeOfType - (pFrom - pBottom);
+        memmove(pTo, pFrom, chunkSize);
+    } else {
+        assert(false);
+    }
+}
+
+internal void
+freeStackBlock(void* pBuffer, size_t* pOffset, size_t bufferSize, 
+               size_t sizeOfType, void* pElement, size_t oldSize) {
+    shrinkStackBlock(pBuffer, pOffset, bufferSize, sizeOfType, pElement, oldSize, 0);
+}
+
+
+
+
+
+
+
+
 inline b32
 operator==(Vertex vA, Vertex vB) {
     b32 result = ((vA.pos == vB.pos) && (vA.uv == vB.uv));
