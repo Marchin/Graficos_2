@@ -586,7 +586,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
         if (newSize == 0) {
             gpMeshComponentsPool->verticesSlotsBeginnings[id] = 0;
         }
-        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+        for (size_t iID = id; iID < MAX_IDS; ++iID) {
             size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
             size_t offset = iID%size;
             if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
@@ -594,7 +594,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
                 ++idCount;
             }
             
-            if (idCount >= gpMeshComponentsPool->idsCount) {
+            if (idCount >= gpMeshComponentsPool->idsCount - id) {
                 break;
             }
         }
@@ -603,7 +603,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
         if (newSize == 0) {
             gpMeshComponentsPool->texturesSlotsBeginnings[id] = 0;
         }
-        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+        for (size_t iID = id; iID < MAX_IDS; ++iID) {
             size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
             size_t offset = iID%size;
             if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
@@ -611,7 +611,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
                 ++idCount;
             }
             
-            if (idCount >= gpMeshComponentsPool->idsCount) {
+            if (idCount >= gpMeshComponentsPool->idsCount - id) {
                 break;
             }
         }
@@ -620,7 +620,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
         if (newSize == 0) {
             gpMeshComponentsPool->indicesSlotsBeginnings[id] = 0;
         }
-        for (size_t iID = id + 1; iID < MAX_IDS; ++iID) {
+        for (size_t iID = id; iID < MAX_IDS; ++iID) {
             size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[iID/size];
             size_t offset = iID%size;
             if (((((*pCurrentWord  >> offset)) & 1) == 1)) {
@@ -628,7 +628,7 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
                 ++idCount;
             }
             
-            if (idCount >= gpMeshComponentsPool->idsCount) {
+            if (idCount >= gpMeshComponentsPool->idsCount - id) {
                 break;
             }
         }
