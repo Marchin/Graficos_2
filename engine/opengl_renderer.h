@@ -98,10 +98,10 @@ ENGINE_API inline void vaUnbind();
 ENGINE_API void vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout);
 ENGINE_API void vaAddBufferByLocation(u32 va, u32 vb, 
                                       VertexBufferLayout* pLayout, u32 location);
-//ENGINE_API b32 startWindow(Window* pWindow);
+
+//WINDOW
 ENGINE_API b32 stopWindow(Window* pWindow);
 ENGINE_API inline b32 windowShouldClose(Window* pWindow);
-//ENGINE_API inline void pollEventsFromWindow(Window* pWindow);
 ENGINE_API inline b32 isKeyPressed(Renderer* pRenderer, u32 key);
 ENGINE_API inline void getMousePos(Window* pWindow, f64* pX, f64* pY);
 
@@ -109,9 +109,6 @@ ENGINE_API inline void getMousePos(Window* pWindow, f64* pX, f64* pY);
 ENGINE_API void updateProjection(Camera* pCamera);
 ENGINE_API inline b32 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera);
 ENGINE_API inline b32 stopRenderer();
-//ENGINE_API inline void clearRenderer();
-//ENGINE_API inline void fillColor(f32 red, f32 green, f32 blue);
-//ENGINE_API inline void swapBuffers(Window* pWindow);
 ENGINE_API inline void drawBuffer(u32 offset, u32 count);
 ENGINE_API inline void drawBufferStrip(u32 offset, u32 count);
 ENGINE_API inline void drawBufferFan(u32 offset, u32 count);

@@ -51,7 +51,6 @@ struct ENGINE_API SpriteRenderer {
     Material material;
 };
 
-// NOTE(Marchin): see if there is a better way to architect this
 struct ENGINE_API SpriteSheet {
 	u32 frameWidth;
 	u32 frameHeight;
@@ -95,19 +94,25 @@ enum MeshComponentType {
 };
 
 struct MeshComponentsPool {
+    //Stacks of buffers
     Vertex vertices[MAX_VERTICES];
     ModelTexture* pTextures[MAX_TEXTURES_POINTERS];
     u32 indices[MAX_INDICES];
     
+    //offset to end
     size_t verticesOffset;
     size_t texturesOffset;
     size_t indicesOffset;
     
+    //directions of beginnings of buffers
     Vertex* verticesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
     ModelTexture** texturesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
     u32* indicesSlotsBeginnings[MAX_IDS]; // TODO(Marchin): choose a better name
     
+    //bitmask, if a bit is set the id is currently in uses
     size_t idsUsed[MAX_IDS/sizeof(size_t)];
+    
+    //amount of ids in use
     size_t idsCount;
 };
 
@@ -135,27 +140,36 @@ struct ENGINE_API Model {
     u32 texturesCount;
 };
 
+//TRANSFORM
 ENGINE_API inline void transformUpdateMC(Transform* pTransform);
 ENGINE_API void initTransform(Transform* pTransform);
 ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis);
 ENGINE_API inline void transformScale(Transform* pTransform, f32 x, f32 y, f32 z);
+
+//TRIANGLE
 ENGINE_API void initTriangle(Triangle* pTriangle, Material* pMaterial, 
                              const void* pData, u32 size);
 ENGINE_API void freeTriangle(Triangle* pTriangle);
 ENGINE_API void drawTriangle(Triangle* pTriangle, Renderer* pRenderer);
 ENGINE_API inline void setTriangleVertices(Triangle* pTriangle, const void* pData);
+
+//COLOR_SQUARE
 ENGINE_API void initColorSquare(ColorSquare* pCS, Material* pMaterial, 
                                 const void* pPosition, const void* pColor);
 ENGINE_API void freeColorSquare(ColorSquare* pCS);
 ENGINE_API void drawColorSquare(ColorSquare* pCS, Renderer* pRenderer);
 ENGINE_API inline void colorSquareSetVertices(ColorSquare* pCS, const void* pPosition);
 ENGINE_API inline void colorSquareSetColors(ColorSquare* pCS, const void* pColor);
+
+//CIRCLE
 ENGINE_API void circleRecalculate(Circle* pCircle);
 ENGINE_API void initCircle(Circle* pCircle, Material* pMaterial, u32 sidesAmount, f32 radius);
 ENGINE_API inline void freeCircle(Circle* pCircle);
 ENGINE_API void drawCircle(Circle* pCircle, Renderer* pRenderer);
+
+//SPRITE_RENDERER
 ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR, Material* pMaterial, 
                                    const char* pTexturePath,
                                    const void* pPosition = 0, const void* pUV = 0);
@@ -164,13 +178,16 @@ ENGINE_API inline void spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords);
 ENGINE_API void drawSpriteRenderer(SpriteRenderer* pSR, 
                                    const Transform* pTransform, 
                                    Renderer* pRenderer);
+
+//SPRITE_SHEET
 ENGINE_API void initSpriteSheet(SpriteSheet* pSS, Material* pMaterial, 
                                 const char* pTexturePath, 
                                 const void* pPosition = 0, const void* pUV = 0);
 ENGINE_API inline void freeSpriteSheet(SpriteSheet* pSS);
 ENGINE_API void spriteSheetSetFrame(SpriteSheet* pSS, u32 frame);
-ENGINE_API void spriteSheetSetupUV(SpriteSheet* pSS);
 ENGINE_API void spriteSheetSetFrameSize(SpriteSheet* pSS, u32 width, u32 height = 0);
+
+//ANIMATION
 ENGINE_API void initAnimation(Animation* pAnimation, SpriteSheet* pSS, 
                               u32* pFrames, u32 count);
 ENGINE_API inline void freeAnimation(Animation* pAnimation);
@@ -184,11 +201,6 @@ ENGINE_API void drawMesh(Mesh* pMesh);
 ENGINE_API void freeMesh(Mesh* pMesh);
 ENGINE_API void drawModel(Model* pModel, Renderer* pRenderer);
 ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
-ENGINE_API ModelTexture* loadMaterialsTextures(Model* pModel, aiMaterial* pMaterial, 
-                                               aiTextureType type, const char* pTypeName);
-ENGINE_API Vertex setupModelVertex(aiMesh* mesh, u32 i);
-ENGINE_API Mesh processMesh(Model* pModel, aiMesh* pAiMesh, const aiScene* pScene);
-ENGINE_API void processNode(Model* pModel, aiNode * node, const aiScene * scene);
 ENGINE_API void initModel(Model* pModel, const char* pPath, const Material* pMaterial);
 ENGINE_API void freeModel(Model* pModel);
 #endif //ENTITIES_H

@@ -51,8 +51,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);
     //initModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
-    initModel(&pGame->model2, "../resources/nanosuit_reflection/nanosuit.obj", &modelMaterial);
-    //initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
+    initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
     freeModel(&pGame->model);
     
 #if 0
@@ -132,7 +131,6 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     }
     
 #endif
-    //pRenderer->pCamera->position = HMM_Vec3(pGame->camX, pGame->camY, pRenderer->pCamera->position.z);
     if (isKeyPressed(pRenderer, KEY_D)) {
         moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
     }
@@ -175,6 +173,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     drawCharacter(&pGame->character3, pRenderer);
     tilemapCheckCollisions(&pGame->tilemap);
 #endif
+    
     drawModel(&pGame->model, pRenderer);
     drawModel(&pGame->model2, pRenderer);
     f64 x, y;
