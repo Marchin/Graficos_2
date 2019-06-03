@@ -10,6 +10,12 @@ struct ENGINE_API Transform {
 	hmm_vec3 position;
     hmm_vec3 eulerAngles;
     hmm_vec3 scale;
+    
+    void(*draw)();
+    void(*update)();
+    Transform* pParent;
+    Transform* pChildren;
+    u32 childrenCount;
 }; 
 
 struct ENGINE_API Triangle {

@@ -51,6 +51,29 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
 	transformUpdateMC(pTransform);
 }
 
+inline void
+transformDraw(Transform* pTransform) {
+    hmm_mat4 modelMatrix = pTransform->model;
+    u32 childrenCount = pTransform->childrenCount;
+    for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
+        Transform* pChild = &pTransform->pChildren[iTransform];
+        hmm_mat4 modelChild = pChild->model;
+        pChild->model = pChild->model * pTransform->model;
+        pChild->draw();
+        transformDraw(pChild);
+        pChild->model = modelChild;
+    }
+}
+
+inline void
+transformUpdate(Transform* pTransform) {
+    u32 childrenCount = pTransform->childrenCount;
+    for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
+        Transform* pChild = &pTransform->pChildren[iTransform];
+        pChild->update();
+        transformUpdate(pChild);
+    }
+}
 
 ////////////////////////////////
 
