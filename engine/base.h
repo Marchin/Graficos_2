@@ -23,10 +23,10 @@ global const f32 PI32 = 3.14159265359f;
 
 // NOTE(Marchin): if expression is false, write into 0 (invalid memory) for a
 //plaftorm independent break
-#if SLOW
 #ifdef assert
 #undef assert
 #endif
+#if SLOW
 #define assert(expression) if(!(expression)) { *(int*)0 = 0; } 
 #else
 #define assert(expression) 

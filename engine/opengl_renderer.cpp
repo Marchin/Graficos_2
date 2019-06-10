@@ -515,7 +515,7 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
     //glCall(glEnable(GL_BLEND));
-    glCall(glEnable(GL_DEPTH_TEST));
+    //glCall(glEnable(GL_DEPTH_TEST));
     glCullFace(GL_BACK);
     //glDepthFunc(GL_EQUAL);
     //glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));

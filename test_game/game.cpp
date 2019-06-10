@@ -49,12 +49,12 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
+#if 0
     initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);
     //initModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
     initModel(&pGame->model2, "../resources/bath.obj", &modelMaterial);
     freeModel(&pGame->model);
     
-#if 0
     initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
     transformScale(&pGame->triangle.transform, 9.f, 3.f, 3.f);
     initColorSquare(&pGame->cs, &colorMaterial, &squareVertices, squareColors);
@@ -68,23 +68,24 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     transformScale(&pGame->sprite.transform, 6.f, 6.f, 6.f);
     
     initAnimation(&pGame->anim, &ss, frames, ArrayCount(frames));
-#endif
     
-#if 0    
     initSpriteSheet(&pGame->ss, &textureMaterial, pSpriteSheetPath, 
                     squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->ss, 64);
+#endif
     
-    initCharacter(&pGame->character1, pCM);
-    initCharacter(&pGame->character2, pCM);
-    initCharacter(&pGame->character3, pCM);
-    moveCharacter(&pGame->character1, 20.f, -9.f);
-    moveCharacter(&pGame->character2, 9.f, 0.f);
-    moveCharacter(&pGame->character3, 0.f, -7.f);
-    pGame->character2.pCollider->mass = 5.f;
+    initFigure(&pGame->figure1, pCM);
+    initFigure(&pGame->figure2, pCM);
+    initFigure(&pGame->figure3, pCM);
+    moveFigure(&pGame->figure1, 20.f, -9.f);
+    moveFigure(&pGame->figure2, 9.f, 0.f);
+    moveFigure(&pGame->figure3, 0.f, -7.f);
+    pGame->figure2.pCollider->mass = 5.f;
+#if 1    
     
 	char* pTilesetPath = "..//resources//tileset.png";
-	initSpriteSheet(&pGame->tileset, &textureMaterial, pTilesetPath, squareVertices, squareUV);
+	initSpriteSheet(&pGame->tileset, &pGame->tilemap.transform,
+                    &textureMaterial, pTilesetPath, squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->tileset, 32);
     
     initTilemap(&pGame->tilemap, "..//resources//tilemap.csv", 
@@ -94,12 +95,17 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                  collisionableTiles, 
                                  sizeof(collisionableTiles) / sizeof(s32));
     
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character1.pCollider);
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character3.pCollider);
+	tilemapRegisterColliders(&pGame->tilemap, pGame->figure1.pCollider);
+	tilemapRegisterColliders(&pGame->tilemap, pGame->figure2.pCollider);
+	tilemapRegisterColliders(&pGame->tilemap, pGame->figure3.pCollider);
 #endif
     
+    initTransform(&pGame->scene);
+    addChild(&pGame->figure1.transform, &pGame->scene);
+    addChild(&pGame->figure2.transform, &pGame->scene);
+    addChild(&pGame->figure3.transform, &pGame->scene);
     pGame->timer = {};
+    pGame->camera.projectionType = ORTHOGRAPHIC;
 }
 
 internal void
@@ -158,24 +164,26 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
-#if 0
-    transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
-    //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     drawTilemap(&pGame->tilemap, pRenderer);
-    moveCharacter(&pGame->character1, -2.f * pTime->deltaTime, 0.f);
-    updateCharacter(&pGame->character1, pTime->deltaTime);
-    drawCharacter(&pGame->character1, pRenderer);
-    moveCharacter(&pGame->character2, 0.f, -2.f * pTime->deltaTime);
-    updateCharacter(&pGame->character2, pTime->deltaTime);
-    drawCharacter(&pGame->character2, pRenderer);
-    moveCharacter(&pGame->character3, 2.f * pTime->deltaTime, 0.f);
-    updateCharacter(&pGame->character3, pTime->deltaTime);
-    drawCharacter(&pGame->character3, pRenderer);
-    tilemapCheckCollisions(&pGame->tilemap);
-#endif
-    
+    moveFigure(&pGame->figure1, -2.f * pTime->deltaTime, 0.f);
+    moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
+    moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
+#if 0
+    transformRotate(&pGame->figure1.transform, 1.f, VEC3_X);
+    //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
+    updateFigure(&pGame->figure1, pTime->deltaTime);
+    drawFigure(&pGame->figure1, pRenderer);
+    updateFigure(&pGame->figure2, pTime->deltaTime);
+    drawFigure(&pGame->figure2, pRenderer);
+    updateFigure(&pGame->figure3, pTime->deltaTime);
+    drawFigure(&pGame->figure3, pRenderer);
+    transformRotate(&pGame->model2.transform, 1.f, VEC3_X);
     drawModel(&pGame->model, pRenderer);
     drawModel(&pGame->model2, pRenderer);
+#endif
+    tilemapCheckCollisions(&pGame->tilemap);
+    transformUpdate(&pGame->scene, pTime->deltaTime);
+    transformDraw(&pGame->scene, pRenderer);
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);

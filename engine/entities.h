@@ -11,26 +11,28 @@ struct ENGINE_API Transform {
     hmm_vec3 eulerAngles;
     hmm_vec3 scale;
     
-    void(*draw)();
-    void(*update)();
+    void(*draw)(void* pEntity, Renderer* pRenderer);
+    void(*update)(void* pEntity, f32 deltaTime);
     Transform* pParent;
-    Transform* pChildren;
+    Transform** pChildren;
+    void* pEntity;
     u32 childrenCount;
+    u32 maxAmountOfChildren;
 }; 
 
 struct ENGINE_API Triangle {
     u32 va;
     u32 vb;
-    Transform transform;
-    Material material;
+    Transform* pTransform;
+    Material* pMaterial;
 }; 
 
 struct ENGINE_API ColorSquare {
     u32 va;
     u32 vbPosition;
     u32 vbColor;
-    Transform transform;
-    Material material;
+    Transform* pTransform;
+    Material* pMaterial;
 };
 
 struct ENGINE_API Circle {
@@ -38,8 +40,8 @@ struct ENGINE_API Circle {
     u32 sides;
     u32 va;
     u32 vb;
-    Transform transform;
-    Material material;
+    Transform* pTransform;
+    Material* pMaterial;
 };
 
 struct ENGINE_API Coords {
@@ -54,7 +56,8 @@ struct ENGINE_API SpriteRenderer {
     u32 vbPosition;
     u32 vbUV;
     Texture texture;
-    Material material;
+    Material* pMaterial;
+    Transform* pTransform;
 };
 
 struct ENGINE_API SpriteSheet {
@@ -137,8 +140,8 @@ struct ENGINE_API Mesh {
 };
 
 struct ENGINE_API Model {
-    Transform transform;
-    Material material;
+    Transform* pTransform;
+    Material* pMaterial;
     Mesh* pMeshes;
     ModelTexture* pLoadedTextures;
     char pPath[MAX_PATH_SIZE];
@@ -148,21 +151,27 @@ struct ENGINE_API Model {
 
 //TRANSFORM
 ENGINE_API inline void transformUpdateMC(Transform* pTransform);
+ENGINE_API inline void reserveChildren(Transform* pTransform, u32 amount);
+ENGINE_API inline void addChild(Transform* pChild, Transform* pParent);
 ENGINE_API void initTransform(Transform* pTransform);
 ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis);
 ENGINE_API inline void transformScale(Transform* pTransform, f32 x, f32 y, f32 z);
+ENGINE_API inline void transformDraw(Transform* pTransform, Renderer* pRenderer);
+ENGINE_API inline void transformUpdate(Transform* pTransform, f32 deltaTime);
 
 //TRIANGLE
-ENGINE_API void initTriangle(Triangle* pTriangle, Material* pMaterial, 
+ENGINE_API void initTriangle(Triangle* pTriangle, 
+                             Transform* pTransform, Material* pMaterial, 
                              const void* pData, u32 size);
 ENGINE_API void freeTriangle(Triangle* pTriangle);
 ENGINE_API void drawTriangle(Triangle* pTriangle, Renderer* pRenderer);
 ENGINE_API inline void setTriangleVertices(Triangle* pTriangle, const void* pData);
 
 //COLOR_SQUARE
-ENGINE_API void initColorSquare(ColorSquare* pCS, Material* pMaterial, 
+ENGINE_API void initColorSquare(ColorSquare* pCS, 
+                                Transform* pTransform, Material* pMaterial, 
                                 const void* pPosition, const void* pColor);
 ENGINE_API void freeColorSquare(ColorSquare* pCS);
 ENGINE_API void drawColorSquare(ColorSquare* pCS, Renderer* pRenderer);
@@ -171,22 +180,24 @@ ENGINE_API inline void colorSquareSetColors(ColorSquare* pCS, const void* pColor
 
 //CIRCLE
 ENGINE_API void circleRecalculate(Circle* pCircle);
-ENGINE_API void initCircle(Circle* pCircle, Material* pMaterial, u32 sidesAmount, f32 radius);
+ENGINE_API void initCircle(Circle* pCircle, 
+                           Transform* pTransform,  Material* pMaterial, 
+                           u32 sidesAmount, f32 radius);
 ENGINE_API inline void freeCircle(Circle* pCircle);
 ENGINE_API void drawCircle(Circle* pCircle, Renderer* pRenderer);
 
 //SPRITE_RENDERER
-ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR, Material* pMaterial, 
+ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR,  
+                                   Transform* pTransform, Material* pMaterial, 
                                    const char* pTexturePath,
                                    const void* pPosition = 0, const void* pUV = 0);
 ENGINE_API inline void spriteSetVertices(SpriteRenderer* pSR, const void* pPosition);
 ENGINE_API inline void spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords);
-ENGINE_API void drawSpriteRenderer(SpriteRenderer* pSR, 
-                                   const Transform* pTransform, 
-                                   Renderer* pRenderer);
+ENGINE_API void drawSpriteRenderer(SpriteRenderer* pSR, Renderer* pRenderer);
 
 //SPRITE_SHEET
-ENGINE_API void initSpriteSheet(SpriteSheet* pSS, Material* pMaterial, 
+ENGINE_API void initSpriteSheet(SpriteSheet* pSS, 
+                                Transform* pTransform, Material* pMaterial, 
                                 const char* pTexturePath, 
                                 const void* pPosition = 0, const void* pUV = 0);
 ENGINE_API inline void freeSpriteSheet(SpriteSheet* pSS);
@@ -207,6 +218,7 @@ ENGINE_API void drawMesh(Mesh* pMesh);
 ENGINE_API void freeMesh(Mesh* pMesh);
 ENGINE_API void drawModel(Model* pModel, Renderer* pRenderer);
 ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
-ENGINE_API void initModel(Model* pModel, const char* pPath, const Material* pMaterial);
+ENGINE_API void initModel(Model* pModel, const char* pPath,  
+                          Transform* pTransform,  Material* pMaterial);
 ENGINE_API void freeModel(Model* pModel);
 #endif //ENTITIES_H

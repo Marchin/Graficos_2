@@ -22,6 +22,26 @@ initTransform(Transform* pTransform) {
 	transformUpdateMC(pTransform);
 }
 
+ENGINE_API inline void
+reserveChildren(Transform* pTransform, u32 amount) {
+    pTransform->maxAmountOfChildren += amount;
+    pTransform->pChildren = (Transform**)realloc(pTransform->pChildren, 
+                                                 pTransform->maxAmountOfChildren * sizeof(Transform*));
+}
+
+ENGINE_API inline void
+addChild(Transform* pChild, Transform* pParent) {
+    u32 maxAmountOfChildren = pParent->maxAmountOfChildren;
+    if (pParent->childrenCount == maxAmountOfChildren) {
+        maxAmountOfChildren += 4;
+        pParent->pChildren = (Transform**)realloc(pParent->pChildren, 
+                                                  maxAmountOfChildren * sizeof(Transform*));
+        pParent->maxAmountOfChildren = maxAmountOfChildren;
+    }
+    pParent->pChildren[pParent->childrenCount++] = pChild;
+    pChild->pParent = pParent;
+}
+
 ENGINE_API inline void 
 transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z) {
 	pTransform->position = HMM_Vec3(x, y, z);
@@ -51,27 +71,27 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
 	transformUpdateMC(pTransform);
 }
 
-inline void
-transformDraw(Transform* pTransform) {
+ENGINE_API inline void
+transformDraw(Transform* pTransform, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pTransform->model;
     u32 childrenCount = pTransform->childrenCount;
     for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
-        Transform* pChild = &pTransform->pChildren[iTransform];
+        Transform* pChild = pTransform->pChildren[iTransform];
         hmm_mat4 modelChild = pChild->model;
         pChild->model = pChild->model * pTransform->model;
-        pChild->draw();
-        transformDraw(pChild);
+        pChild->draw(pChild->pEntity, pRenderer);
+        transformDraw(pChild, pRenderer);
         pChild->model = modelChild;
     }
 }
 
-inline void
-transformUpdate(Transform* pTransform) {
+ENGINE_API inline void
+transformUpdate(Transform* pTransform, f32 deltaTime) {
     u32 childrenCount = pTransform->childrenCount;
     for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
-        Transform* pChild = &pTransform->pChildren[iTransform];
-        pChild->update();
-        transformUpdate(pChild);
+        Transform* pChild = pTransform->pChildren[iTransform];
+        pChild->update(pChild->pEntity, deltaTime);
+        transformUpdate(pChild, deltaTime);
     }
 }
 
@@ -82,12 +102,14 @@ transformUpdate(Transform* pTransform) {
 ////////////////////////////////
 
 ENGINE_API void
-initTriangle(Triangle* pTriangle, Material* pMaterial, const void* pData, u32 size) {
-    initTransform(&pTriangle->transform);
+initTriangle(Triangle* pTriangle, 
+             Transform* pTransform, Material* pMaterial, 
+             const void* pData, u32 size) {
     initVA(&pTriangle->va);
     vaBind(pTriangle->va);
     initVB(&pTriangle->vb, pData, size);
-    pTriangle->material = *pMaterial;
+    pTriangle->pTransform = pTransform;
+    pTriangle->pMaterial = pMaterial;
 	
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
@@ -108,10 +130,10 @@ freeTriangle(Triangle* pTriangle) {
 
 ENGINE_API void
 drawTriangle(Triangle* pTriangle, Renderer* pRenderer) {
-    materialBindID(pTriangle->material.id);
-	pRenderer->pCamera->model = pTriangle->transform.model;
+    materialBindID(pTriangle->pMaterial->id);
+	pRenderer->pCamera->model = pTriangle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pTriangle->material, 
+    shaderSetMat4(pTriangle->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
 	vaBind(pTriangle->va);
@@ -131,16 +153,17 @@ setTriangleVertices(Triangle* pTriangle, const void* pData) {
 ////////////////////////////////
 
 ENGINE_API void
-initColorSquare(ColorSquare* pCS, Material* pMaterial, 
+initColorSquare(ColorSquare* pCS, 
+                Transform* pTransform, Material* pMaterial, 
                 const void* pPosition, const void* pColor) {
     
-    initTransform(&pCS->transform);
     initVA(&pCS->va);
     vaBind(pCS->va);
     initVB(&pCS->vbPosition, pPosition, 12 * sizeof(f32));
     initVB(&pCS->vbColor, pColor, 12 * sizeof(f32));
-    pCS->material = *pMaterial;
-	
+	pCS->pTransform = pTransform;
+    pCS->pMaterial = pMaterial;
+    
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 2;
     layout.pElements = 
@@ -163,10 +186,10 @@ freeColorSquare(ColorSquare* pCS) {
 
 ENGINE_API void
 drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
-	materialBindID(pCS->material.id); 
-	pRenderer->pCamera->model = pCS->transform.model;
+	materialBindID(pCS->pMaterial->id); 
+	pRenderer->pCamera->model = pCS->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-	shaderSetMat4(&pCS->material, "uModelViewProjection", &mvp);
+	shaderSetMat4(pCS->pMaterial, "uModelViewProjection", &mvp);
 	vaBind(pCS->va);
 	drawBufferStrip(0, 4);
 }
@@ -219,16 +242,17 @@ circleRecalculate(Circle* pCircle) {
 }
 
 ENGINE_API void
-initCircle(Circle* pCircle, Material* pMaterial, u32 sidesAmount, f32 radius) {
+initCircle(Circle* pCircle, 
+           Transform* pTransform, Material* pMaterial, 
+           u32 sidesAmount, f32 radius) {
     pCircle->sides = sidesAmount;
     pCircle->radius = radius;
-    pCircle->material = *pMaterial;
     
-    initTransform(&pCircle->transform);
     initVA(&pCircle->va);
     vaBind(pCircle->va);
     initVB(&pCircle->vb);
-    pCircle->material = *pMaterial;
+    pCircle->pTransform = pTransform;
+    pCircle->pMaterial = pMaterial;
 	
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
@@ -250,13 +274,14 @@ freeCircle(Circle* pCircle) {
 
 ENGINE_API void
 drawCircle(Circle* pCircle, Renderer* pRenderer) {
-	materialBindID(pCircle->material.id);
-	pRenderer->pCamera->model = pCircle->transform.model;
+	materialBindID(pCircle->pMaterial->id);
+	pRenderer->pCamera->model = pCircle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-	shaderSetMat4(&pCircle->material, "uModelViewProjection", &mvp);
+	shaderSetMat4(pCircle->pMaterial, "uModelViewProjection", &mvp);
 	vaBind(pCircle->va);
 	drawBufferFan(0, pCircle->sides + 2);
 }
+
 
 ////////////////////////////////
 
@@ -265,7 +290,8 @@ drawCircle(Circle* pCircle, Renderer* pRenderer) {
 ////////////////////////////////
 
 ENGINE_API void
-initSpriteRenderer(SpriteRenderer* pSR, Material* pMaterial, 
+initSpriteRenderer(SpriteRenderer* pSR, 
+                   Transform* pTransform, Material* pMaterial, 
                    const char* pTexturePath,
                    const void* pPosition, const void* pUV) {
     
@@ -291,10 +317,11 @@ initSpriteRenderer(SpriteRenderer* pSR, Material* pMaterial,
     vaBind(pSR->va);
     initVB(&pSR->vbPosition, pPosition, 12 * sizeof(f32));
     initVB(&pSR->vbUV, pUV, 8 * sizeof(f32));
-    pSR->material = *pMaterial;
-    materialBindID(pSR->material.id);
+    pSR->pMaterial = pMaterial;
+    pSR->pTransform = pTransform;
+    materialBindID(pSR->pMaterial->id);
     textureBindID(pSR->texture.id, 0);
-    shaderSetInt(&pSR->material, "tex", 0);
+    shaderSetInt(pSR->pMaterial, "tex", 0);
     
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
@@ -329,12 +356,12 @@ spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
 }
 
 ENGINE_API void
-drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* pRenderer) {
-	materialBindID(pSR->material.id);
+drawSpriteRenderer(SpriteRenderer* pSR, Renderer* pRenderer) {
+	materialBindID(pSR->pMaterial->id);
 	textureBindID(pSR->texture.id, 0);
-	pRenderer->pCamera->model = pTransform->model;
+	pRenderer->pCamera->model = pSR->pTransform->model;
 	hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pSR->material, "uModelViewProjection", &mvp);
+    shaderSetMat4(pSR->pMaterial, "uModelViewProjection", &mvp);
 	vaBind(pSR->va);
 	drawBufferStrip(0, 4);
 }
@@ -347,11 +374,16 @@ drawSpriteRenderer(SpriteRenderer* pSR, const Transform* pTransform, Renderer* p
 ////////////////////////////////
 
 ENGINE_API void
-initSpriteSheet(SpriteSheet* pSS, Material* pMaterial, const char* pTexturePath, 
+initSpriteSheet(SpriteSheet* pSS, 
+                Transform* pTransform, Material* pMaterial, 
+                const char* pTexturePath, 
                 const void* pPosition, const void* pUV) { 
     
     *pSS = {};
-    initSpriteRenderer(&pSS->spriteRenderer, pMaterial, pTexturePath, pPosition, pUV);
+    initSpriteRenderer(&pSS->spriteRenderer, 
+                       pTransform, pMaterial, 
+                       pTexturePath, 
+                       pPosition, pUV);
 }
 
 ENGINE_API inline void
@@ -800,11 +832,11 @@ drawModel(Model* pModel, Renderer* pRenderer) {
         return;
     }
     
-    materialBindID(pModel->material.id);
+    materialBindID(pModel->pMaterial->id);
     Mesh* pMeshes = pModel->pMeshes;
-	pRenderer->pCamera->model = pModel->transform.model;
+	pRenderer->pCamera->model = pModel->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pModel->material, 
+    shaderSetMat4(pModel->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
     u32 meshesCount = pModel->meshesCount;
@@ -975,14 +1007,15 @@ processMeshes(Model* pModel, const aiScene* pScene) {
 #endif
         }
         
-        pMesh->pMaterial = &pModel->material;
+        pMesh->pMaterial = pModel->pMaterial;
         
         initMesh(pMesh);
     }
 }
 
 ENGINE_API void 
-initModel(Model* pModel, const char* pPath, const Material* pMaterial) {
+initModel(Model* pModel, const char* pPath, 
+          Material* pMaterial, Transform* pTransform) {
     Assimp::Importer importer;
     const aiScene* pScene = 
         importer.ReadFile(pPath, aiProcess_Triangulate);// | aiProcess_FlipUVs);
@@ -1005,9 +1038,8 @@ initModel(Model* pModel, const char* pPath, const Material* pMaterial) {
     pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));
     pModel->pLoadedTextures = 
         (ModelTexture*)malloc(48*sizeof(ModelTexture));
-    pModel->material = *pMaterial;
-    
-    initTransform(&pModel->transform);
+    pModel->pTransform = pTransform;
+    pModel->pMaterial = pMaterial;
     
     processMeshes(pModel, pScene);
     
@@ -1033,5 +1065,4 @@ freeModel(Model* pModel) {
     pModel->texturesCount = 0;
     
     pModel->pPath[0] = '\0';
-    pModel->material = {};
 }
