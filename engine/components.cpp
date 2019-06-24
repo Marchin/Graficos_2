@@ -131,6 +131,23 @@ addChild(Transform* pChild, Transform* pParent) {
     pChild->pParent = pParent;
 }
 
+ENGINE_API inline void
+removeChild(Transform* pChild) {
+    Transform* pParent = pChild->pParent;
+    
+    if (pParent) {
+        u32 childrenCount = pParent->childrenCount;
+        for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform) {
+            if (pParent->pChildren[iTransform] == pChild) {
+                pParent->pChildren[iTransform] = 0;
+                --pParent->childrenCount;
+                pChild->pParent = 0;
+                break;
+            }
+        }
+    }
+}
+
 ENGINE_API inline void 
 transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z) {
     pTransform->position = HMM_Vec3(x, y, z);
@@ -164,33 +181,37 @@ ENGINE_API inline void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pTransform->model;
     u32 childrenCount = pTransform->childrenCount;
-    for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
+    for (u32 iTransform = 0, i = 0; iTransform < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
+        if (pChild == 0) { continue; }
         hmm_mat4 modelChild = pChild->model;
         pChild->model = pTransform->model * pChild->model;
         if (pChild->draw) {
             pChild->draw(pChild->pEntity, pRenderer);
         }
         u32 componentCount = pChild->componentsCount;
-        for (u32 i = 0; i < componentCount; ++i) {
-            if (pChild->pComponents[i] && pChild->pComponents[i]->draw) {
-                pChild->pComponents[i]->draw(pChild->pComponents[i], pRenderer);
+        for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
+            if (pChild->pComponents[iComponent] && pChild->pComponents[iComponent]->draw) {
+                pChild->pComponents[iComponent]->draw(pChild->pComponents[iComponent], pRenderer);
             }
         }
         transformDraw(pChild, pRenderer);
         pChild->model = modelChild;
+        ++i;
     }
 }
 
 ENGINE_API inline void
 transformUpdate(Transform* pTransform, f32 deltaTime) {
     u32 childrenCount = pTransform->childrenCount;
-    for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
+    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
+        if (pChild == 0) { continue; }
         if (pChild->update) {
             pChild->update(pChild->pEntity, deltaTime);
         }
         transformUpdate(pChild, deltaTime);
+        ++i;
     }
 }
 

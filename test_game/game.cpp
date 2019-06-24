@@ -121,6 +121,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     addChild(&pGame->figure3.transform, &pGame->scene);
     addChild(&pGame->character.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
+    removeChild(&pGame->figure1.transform);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
 }
@@ -201,6 +202,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     moveFigure(&pGame->figure1, -2.f * pTime->deltaTime, 0.f);
     transformRotate(&pGame->figure1.transform, 1.f, VEC3_Y);
     transformRotate(&pGame->figure2.transform, 5.f, VEC3_Y);
+    transformRotate(&pGame->go.transform, 5.f, VEC3_Y);
     //moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
     //moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
 #if 0

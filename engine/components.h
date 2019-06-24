@@ -194,6 +194,7 @@ ENGINE_API inline void removeComponent(ComponentID componentID,
 ENGINE_API inline void transformUpdateMC(Transform* pTransform);
 ENGINE_API inline void reserveChildren(Transform* pTransform, u32 amount);
 ENGINE_API inline void addChild(Transform* pChild, Transform* pParent);
+ENGINE_API inline void removeChild(Transform* pChild);
 ENGINE_API void initTransform(Transform* pTransform);
 ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z);
