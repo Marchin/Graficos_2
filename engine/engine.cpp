@@ -4,7 +4,7 @@
 #include "opengl_renderer.cpp"
 #endif
 
-#include "entities.cpp"
+#include "components.cpp"
 #include "physics.cpp"
 #include "tilemap.cpp"
 #include "camera.cpp"

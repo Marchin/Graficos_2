@@ -1,12 +1,105 @@
 ////////////////////////////////
 
+//Components
+
+////////////////////////////////
+
+internal Component*
+createComponent(ComponentID componentID) {
+    Component* result = {};
+    switch (componentID) {
+        case TRIANGLE: {
+            result = (Component*)malloc(sizeof(Triangle));
+            memset(result, 0, sizeof(Triangle));
+        } break;
+        case COLOR_SQUARE: {
+            result = (Component*)malloc(sizeof(ColorSquare));
+            memset(result, 0, sizeof(ColorSquare));
+        } break;
+        case CIRCLE: {
+            result = (Component*)malloc(sizeof(Circle));
+            memset(result, 0, sizeof(Circle));
+        } break;
+        case SPRITE_RENDERER: {
+            result = (Component*)malloc(sizeof(SpriteRenderer));
+            memset(result, 0, sizeof(SpriteRenderer));
+        } break;
+        case SPRITE_SHEET: {
+            result = (Component*)malloc(sizeof(SpriteSheet));
+            memset(result, 0, sizeof(SpriteSheet));
+        } break;
+        case ANIMATION: {
+            result = (Component*)malloc(sizeof(Animation));
+            memset(result, 0, sizeof(Animation));
+        } break;
+        case MODEL: {
+            result = (Component*)malloc(sizeof(Model));
+            memset(result, 0, sizeof(Model));
+        } break;
+        default: {
+            result = 0;
+        } break;
+    }
+    
+    return result;
+}
+
+ENGINE_API inline Component*
+getComponent(ComponentID componentID, Component** pComponents, s32 componentsSize) {
+    for (s32 i = 0; i < componentsSize; ++i) {
+        if (pComponents[i]->id == componentID) {
+            return pComponents[i];
+        }
+    }
+    
+    return 0;
+}
+
+ENGINE_API inline Component*
+addComponent(ComponentID componentID, Transform* pTransform) {
+    u32 componentsCapacity = pTransform->componentsCapacity;
+    if (pTransform->componentsCount == componentsCapacity) {
+        componentsCapacity += 4;
+        
+        
+        // TODO(Marchin): clean memory
+        
+        
+        pTransform->pComponents = (Component**)realloc(pTransform->pComponents, 
+                                                       componentsCapacity * sizeof(Component*));
+        memset(pTransform->pComponents, 0, componentsCapacity * sizeof(Component*));
+        pTransform->componentsCapacity = componentsCapacity;
+    }
+    for (u32 i = 0; i < componentsCapacity; ++i) {
+        if (pTransform->pComponents[i] == NULL) {
+            pTransform->pComponents[i] = createComponent(componentID);
+            ++pTransform->componentsCount;
+            return pTransform->pComponents[i];
+        }
+    }
+    
+    return 0;
+}
+
+ENGINE_API inline void
+removeComponent(ComponentID componentID, Component** pComponents, s32 componentsSize) {
+    for (s32 i = 0; i < componentsSize; ++i) {
+        if (pComponents[i] && pComponents[i]->id == componentID) {
+            free(pComponents[i]);
+            pComponents[i] = 0;
+        }
+    }
+}
+
+////////////////////////////////
+
 //Transform
 
 ////////////////////////////////
 
 ENGINE_API inline void 
 transformUpdateMC(Transform* pTransform) {
-	pTransform->model = 
+    pTransform->model = 
         pTransform->positionMatrix * pTransform->rotationMatrix * pTransform->scaleMatrix;
 }
 
@@ -19,7 +112,7 @@ initTransform(Transform* pTransform) {
     pTransform->eulerAngles = HMM_Vec3T(0.f);
     pTransform->scale = HMM_Vec3T(1.f);
     
-	transformUpdateMC(pTransform);
+    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void
@@ -44,16 +137,16 @@ addChild(Transform* pChild, Transform* pParent) {
 
 ENGINE_API inline void 
 transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z) {
-	pTransform->position = HMM_Vec3(x, y, z);
-	pTransform->positionMatrix = HMM_Translate(pTransform->position);
-	transformUpdateMC(pTransform);
+    pTransform->position = HMM_Vec3(x, y, z);
+    pTransform->positionMatrix = HMM_Translate(pTransform->position);
+    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void 
 transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z) {
-	pTransform->position += HMM_Vec3(x, y, z);
-	pTransform->positionMatrix = HMM_Translate(pTransform->position);
-	transformUpdateMC(pTransform);
+    pTransform->position += HMM_Vec3(x, y, z);
+    pTransform->positionMatrix = HMM_Translate(pTransform->position);
+    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void 
@@ -61,14 +154,14 @@ transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis) {
     pTransform->eulerAngles += angle * axis;
     pTransform->eulerAngles %= 360.f;
     pTransform->rotationMatrix = HMM_Rotate(angle, axis) * pTransform->rotationMatrix;
-	transformUpdateMC(pTransform);
+    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void
 transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
-	pTransform->scale = HMM_Vec3(x, y, z);
+    pTransform->scale = HMM_Vec3(x, y, z);
     pTransform->scaleMatrix = HMM_Scale(pTransform->scale);
-	transformUpdateMC(pTransform);
+    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void
@@ -79,7 +172,15 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
         Transform* pChild = pTransform->pChildren[iTransform];
         hmm_mat4 modelChild = pChild->model;
         pChild->model = pChild->model * pTransform->model;
-        pChild->draw(pChild->pEntity, pRenderer);
+        if (pChild->draw) {
+            pChild->draw(pChild->pEntity, pRenderer);
+        }
+        u32 componentCount = pChild->componentsCount;
+        for (u32 i = 0; i < componentCount; ++i) {
+            if (pChild->pComponents[i] && pChild->pComponents[i]->draw) {
+                pChild->pComponents[i]->draw(pChild->pComponents[i], pRenderer);
+            }
+        }
         transformDraw(pChild, pRenderer);
         pChild->model = modelChild;
     }
@@ -90,7 +191,9 @@ transformUpdate(Transform* pTransform, f32 deltaTime) {
     u32 childrenCount = pTransform->childrenCount;
     for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
-        pChild->update(pChild->pEntity, deltaTime);
+        if (pChild->update) {
+            pChild->update(pChild->pEntity, deltaTime);
+        }
         transformUpdate(pChild, deltaTime);
     }
 }
@@ -105,12 +208,14 @@ ENGINE_API void
 initTriangle(Triangle* pTriangle, 
              Transform* pTransform, Material* pMaterial, 
              const void* pData, u32 size) {
+    pTriangle->component.id = TRIANGLE;
+    pTriangle->component.draw = drawTriangle;
     initVA(&pTriangle->va);
     vaBind(pTriangle->va);
     initVB(&pTriangle->vb, pData, size);
     pTriangle->pTransform = pTransform;
     pTriangle->pMaterial = pMaterial;
-	
+    
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
     layout.pElements = 
@@ -129,20 +234,21 @@ freeTriangle(Triangle* pTriangle) {
 }
 
 ENGINE_API void
-drawTriangle(Triangle* pTriangle, Renderer* pRenderer) {
-    materialBindID(pTriangle->pMaterial->id);
-	pRenderer->pCamera->model = pTriangle->pTransform->model;
+drawTriangle(void* pTriangle, Renderer* pRenderer) {
+    Triangle* pCastedTriangle = (Triangle*) pTriangle; 
+    materialBindID(pCastedTriangle->pMaterial->id);
+    pRenderer->pCamera->model = pCastedTriangle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pTriangle->pMaterial, 
+    shaderSetMat4(pCastedTriangle->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
-	vaBind(pTriangle->va);
-	drawBufferStrip(0, 3);
+    vaBind(pCastedTriangle->va);
+    drawBufferStrip(0, 3);
 }
 
 ENGINE_API inline void 
 setTriangleVertices(Triangle* pTriangle, const void* pData) {
-	vbSetData(pTriangle->vb, pData, 12 * sizeof(f32));
+    vbSetData(pTriangle->vb, pData, 12 * sizeof(f32));
 }
 
 
@@ -157,11 +263,12 @@ initColorSquare(ColorSquare* pCS,
                 Transform* pTransform, Material* pMaterial, 
                 const void* pPosition, const void* pColor) {
     
+    pCS->component.id = COLOR_SQUARE;
     initVA(&pCS->va);
     vaBind(pCS->va);
     initVB(&pCS->vbPosition, pPosition, 12 * sizeof(f32));
     initVB(&pCS->vbColor, pColor, 12 * sizeof(f32));
-	pCS->pTransform = pTransform;
+    pCS->pTransform = pTransform;
     pCS->pMaterial = pMaterial;
     
     VertexBufferLayout layout = {};
@@ -186,22 +293,22 @@ freeColorSquare(ColorSquare* pCS) {
 
 ENGINE_API void
 drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
-	materialBindID(pCS->pMaterial->id); 
-	pRenderer->pCamera->model = pCS->pTransform->model;
+    materialBindID(pCS->pMaterial->id); 
+    pRenderer->pCamera->model = pCS->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-	shaderSetMat4(pCS->pMaterial, "uModelViewProjection", &mvp);
-	vaBind(pCS->va);
-	drawBufferStrip(0, 4);
+    shaderSetMat4(pCS->pMaterial, "uModelViewProjection", &mvp);
+    vaBind(pCS->va);
+    drawBufferStrip(0, 4);
 }
 
 ENGINE_API inline void
 colorSquareSetVertices(ColorSquare* pCS, const void* pPosition) {
-	vbSetData(pCS->vbPosition, pPosition, 12 * sizeof(f32));
+    vbSetData(pCS->vbPosition, pPosition, 12 * sizeof(f32));
 }
 
 ENGINE_API inline void
 colorSquareSetColors(ColorSquare* pCS, void * pColor) {
-	vbSetData(pCS->vbColor, pColor, 12 * sizeof(f32));
+    vbSetData(pCS->vbColor, pColor, 12 * sizeof(f32));
 }
 
 
@@ -213,31 +320,31 @@ colorSquareSetColors(ColorSquare* pCS, void * pColor) {
 
 ENGINE_API void
 circleRecalculate(Circle* pCircle) {
-	if (pCircle->sides < 3) {
-		pCircle->sides = 3;
-	} 
-	u32 sides = pCircle->sides;
+    if (pCircle->sides < 3) {
+        pCircle->sides = 3;
+    } 
+    u32 sides = pCircle->sides;
     f32 currAngle = 0.f;
-	f32 rate = 2.f * 3.1415f / (f32)sides;
-	f32* pData = (f32*)malloc(sizeof(f32) * ((2 + sides) * 3));
+    f32 rate = 2.f * 3.1415f / (f32)sides;
+    f32* pData = (f32*)malloc(sizeof(f32) * ((2 + sides) * 3));
     
-	pData[0] = 0.f;
-	pData[1] = 0.f;
-	pData[2] = 0.f;
+    pData[0] = 0.f;
+    pData[1] = 0.f;
+    pData[2] = 0.f;
     
-	pData[3] = 1.f * pCircle->radius;
-	pData[4] = 0.f;
-	pData[5] = 0.f;
+    pData[3] = 1.f * pCircle->radius;
+    pData[4] = 0.f;
+    pData[5] = 0.f;
     
     f32 radius = pCircle->radius;
-	for (u32  i = 0; i < sides; ++i) {
-		currAngle += rate;
-		pData[6 + (i * 3)] = cosf(currAngle) * radius;
-		pData[7 + (i * 3)] = sinf(currAngle) * radius;
-		pData[8 + (i * 3)] = 0.f;
-	}
+    for (u32  i = 0; i < sides; ++i) {
+        currAngle += rate;
+        pData[6 + (i * 3)] = cosf(currAngle) * radius;
+        pData[7 + (i * 3)] = sinf(currAngle) * radius;
+        pData[8 + (i * 3)] = 0.f;
+    }
     
-	vbSetData(pCircle->vb, pData, sizeof(f32) * ((2 + pCircle->sides) * 3));
+    vbSetData(pCircle->vb, pData, sizeof(f32) * ((2 + pCircle->sides) * 3));
     free(pData);
 }
 
@@ -248,12 +355,13 @@ initCircle(Circle* pCircle,
     pCircle->sides = sidesAmount;
     pCircle->radius = radius;
     
+    pCircle->component.id = CIRCLE;
     initVA(&pCircle->va);
     vaBind(pCircle->va);
     initVB(&pCircle->vb);
     pCircle->pTransform = pTransform;
     pCircle->pMaterial = pMaterial;
-	
+    
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
     layout.pElements = 
@@ -274,12 +382,12 @@ freeCircle(Circle* pCircle) {
 
 ENGINE_API void
 drawCircle(Circle* pCircle, Renderer* pRenderer) {
-	materialBindID(pCircle->pMaterial->id);
-	pRenderer->pCamera->model = pCircle->pTransform->model;
+    materialBindID(pCircle->pMaterial->id);
+    pRenderer->pCamera->model = pCircle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-	shaderSetMat4(pCircle->pMaterial, "uModelViewProjection", &mvp);
-	vaBind(pCircle->va);
-	drawBufferFan(0, pCircle->sides + 2);
+    shaderSetMat4(pCircle->pMaterial, "uModelViewProjection", &mvp);
+    vaBind(pCircle->va);
+    drawBufferFan(0, pCircle->sides + 2);
 }
 
 
@@ -295,22 +403,23 @@ initSpriteRenderer(SpriteRenderer* pSR,
                    const char* pTexturePath,
                    const void* pPosition, const void* pUV) {
     
+    pSR->component.id = SPRITE_RENDERER;
     if (pPosition == NULL) {
-		f32 squareVertices[] = {
-			-1.f, -1.f, 0.f,
-			-1.f,  1.f, 0.f,
-			1.f, -1.f, 0.f,
-			1.f,  1.f, 0.f
-		};
-	}
-	if (pUV == NULL) {
-		f32 squareUV[] = {
-			0.f, 0.f,
-			0.f, 1.f,
-			1.f, 0.f,
-			1.f, 1.f
-		};
-	}
+        f32 squareVertices[] = {
+            -1.f, -1.f, 0.f,
+            -1.f,  1.f, 0.f,
+            1.f, -1.f, 0.f,
+            1.f,  1.f, 0.f
+        };
+    }
+    if (pUV == NULL) {
+        f32 squareUV[] = {
+            0.f, 0.f,
+            0.f, 1.f,
+            1.f, 0.f,
+            1.f, 1.f
+        };
+    }
     
     initTexture(&pSR->texture, pTexturePath, true);
     initVA(&pSR->va);
@@ -357,13 +466,13 @@ spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
 
 ENGINE_API void
 drawSpriteRenderer(SpriteRenderer* pSR, Renderer* pRenderer) {
-	materialBindID(pSR->pMaterial->id);
-	textureBindID(pSR->texture.id, 0);
-	pRenderer->pCamera->model = pSR->pTransform->model;
-	hmm_mat4 mvp = getModelViewProj(pRenderer);
+    materialBindID(pSR->pMaterial->id);
+    textureBindID(pSR->texture.id, 0);
+    pRenderer->pCamera->model = pSR->pTransform->model;
+    hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pSR->pMaterial, "uModelViewProjection", &mvp);
-	vaBind(pSR->va);
-	drawBufferStrip(0, 4);
+    vaBind(pSR->va);
+    drawBufferStrip(0, 4);
 }
 
 
@@ -380,6 +489,7 @@ initSpriteSheet(SpriteSheet* pSS,
                 const void* pPosition, const void* pUV) { 
     
     *pSS = {};
+    pSS->component.id = SPRITE_SHEET;
     initSpriteRenderer(&pSS->spriteRenderer, 
                        pTransform, pMaterial, 
                        pTexturePath, 
@@ -394,74 +504,74 @@ freeSpriteSheet(SpriteSheet* pSS) {
 
 ENGINE_API void
 spriteSheetSetFrame(SpriteSheet* pSS, u32 frame) {
-	f32 buff[8] = {
-		pSS->pUVData[(frame * 8) + 0], pSS->pUVData[(frame * 8) + 1],
-		pSS->pUVData[(frame * 8) + 2], pSS->pUVData[(frame * 8) + 3],
-		pSS->pUVData[(frame * 8) + 4], pSS->pUVData[(frame * 8) + 5],
-		pSS->pUVData[(frame * 8) + 6], pSS->pUVData[(frame * 8) + 7]
-	};
-	vbSetData(pSS->spriteRenderer.vbUV, buff, sizeof(buff));
+    f32 buff[8] = {
+        pSS->pUVData[(frame * 8) + 0], pSS->pUVData[(frame * 8) + 1],
+        pSS->pUVData[(frame * 8) + 2], pSS->pUVData[(frame * 8) + 3],
+        pSS->pUVData[(frame * 8) + 4], pSS->pUVData[(frame * 8) + 5],
+        pSS->pUVData[(frame * 8) + 6], pSS->pUVData[(frame * 8) + 7]
+    };
+    vbSetData(pSS->spriteRenderer.vbUV, buff, sizeof(buff));
 }
 
 internal void
 spriteSheetSetupUV(SpriteSheet* pSS) {
-	if (pSS->columns == 0) {
-		assert(pSS->frameWidth != 0);
-		pSS->columns = pSS->spriteRenderer.texture.width / pSS->frameWidth;
-	}
-	if (pSS->rows == 0) {
-		assert(pSS->frameHeight != 0);
+    if (pSS->columns == 0) {
+        assert(pSS->frameWidth != 0);
+        pSS->columns = pSS->spriteRenderer.texture.width / pSS->frameWidth;
+    }
+    if (pSS->rows == 0) {
+        assert(pSS->frameHeight != 0);
         pSS->rows = pSS->spriteRenderer.texture.height / pSS->frameHeight;
-	}
-	if (pSS->pUVCoords != 0) {
+    }
+    if (pSS->pUVCoords != 0) {
         free(pSS->pUVCoords);
-		pSS->pUVCoords = 0;
-	}
-	pSS->pUVCoords = (Coords*)malloc(sizeof(Coords) *(pSS->columns * pSS->rows));
-	s32 id = 0;
+        pSS->pUVCoords = 0;
+    }
+    pSS->pUVCoords = (Coords*)malloc(sizeof(Coords) *(pSS->columns * pSS->rows));
+    s32 id = 0;
     s32 ssWidth = pSS->spriteRenderer.texture.width;
     s32 ssHeight = pSS->spriteRenderer.texture.height;
-	for (u32 iRow = 0; iRow < pSS->rows; ++iRow) {
-		for (u32 iColumn = 0; iColumn < pSS->columns; ++iColumn) {
-			f32 x = (f32)(id % pSS->columns) * (f32)pSS->frameWidth;
-			f32 y = (f32)(id / pSS->columns) * (f32)pSS->frameHeight;
-			pSS->pUVCoords[id].u0 = x / (f32)ssWidth;
-			pSS->pUVCoords[id].u1 = 
+    for (u32 iRow = 0; iRow < pSS->rows; ++iRow) {
+        for (u32 iColumn = 0; iColumn < pSS->columns; ++iColumn) {
+            f32 x = (f32)(id % pSS->columns) * (f32)pSS->frameWidth;
+            f32 y = (f32)(id / pSS->columns) * (f32)pSS->frameHeight;
+            pSS->pUVCoords[id].u0 = x / (f32)ssWidth;
+            pSS->pUVCoords[id].u1 = 
                 (x + (f32)pSS->frameWidth) / (f32)ssWidth;
-			pSS->pUVCoords[id].v0 = 1.f - (y / (f32)ssHeight) ;
-			pSS->pUVCoords[id].v1 = 
+            pSS->pUVCoords[id].v0 = 1.f - (y / (f32)ssHeight) ;
+            pSS->pUVCoords[id].v1 = 
                 1.f - ((y + (f32)pSS->frameHeight) / (f32)ssHeight); 
-			
+            
             ++id;
-		}
-	}
-	if (pSS->pUVData != 0) {
-		delete pSS->pUVCoords;
-		pSS->pUVData = 0;
-	}
-	pSS->pUVData = (f32*)malloc(sizeof(f32) * id * 8);
-	for (s32 i = 0; i < id; ++i) {
-		pSS->pUVData[i * 8] = pSS->pUVCoords[i].u0;
-		pSS->pUVData[i * 8 + 1] = pSS->pUVCoords[i].v1;
-		pSS->pUVData[i * 8 + 2] = pSS->pUVCoords[i].u0;
-		pSS->pUVData[i * 8 + 3] = pSS->pUVCoords[i].v0;
-		pSS->pUVData[i * 8 + 4] = pSS->pUVCoords[i].u1;
-		pSS->pUVData[i * 8 + 5] = pSS->pUVCoords[i].v1;
-		pSS->pUVData[i * 8 + 6] = pSS->pUVCoords[i].u1;
-		pSS->pUVData[i * 8 + 7] = pSS->pUVCoords[i].v0;
-	}
-	spriteSheetSetFrame(pSS, 0);
+        }
+    }
+    if (pSS->pUVData != 0) {
+        delete pSS->pUVCoords;
+        pSS->pUVData = 0;
+    }
+    pSS->pUVData = (f32*)malloc(sizeof(f32) * id * 8);
+    for (s32 i = 0; i < id; ++i) {
+        pSS->pUVData[i * 8] = pSS->pUVCoords[i].u0;
+        pSS->pUVData[i * 8 + 1] = pSS->pUVCoords[i].v1;
+        pSS->pUVData[i * 8 + 2] = pSS->pUVCoords[i].u0;
+        pSS->pUVData[i * 8 + 3] = pSS->pUVCoords[i].v0;
+        pSS->pUVData[i * 8 + 4] = pSS->pUVCoords[i].u1;
+        pSS->pUVData[i * 8 + 5] = pSS->pUVCoords[i].v1;
+        pSS->pUVData[i * 8 + 6] = pSS->pUVCoords[i].u1;
+        pSS->pUVData[i * 8 + 7] = pSS->pUVCoords[i].v0;
+    }
+    spriteSheetSetFrame(pSS, 0);
 }
 
 ENGINE_API void
 spriteSheetSetFrameSize(SpriteSheet* pSS, u32 width, u32 height) {
-	pSS->frameWidth = width;
-	if (height == 0) {
-		pSS->frameHeight = pSS->frameWidth;
-	} else {
-		pSS->frameHeight = height;
-	}
-	spriteSheetSetupUV(pSS);
+    pSS->frameWidth = width;
+    if (height == 0) {
+        pSS->frameHeight = pSS->frameWidth;
+    } else {
+        pSS->frameHeight = height;
+    }
+    spriteSheetSetupUV(pSS);
 }
 
 
@@ -474,11 +584,12 @@ spriteSheetSetFrameSize(SpriteSheet* pSS, u32 width, u32 height) {
 ENGINE_API void
 initAnimation(Animation* pAnimation, SpriteSheet* pSS, u32* pFrames, u32 count) {
     *pAnimation = {};
+    pAnimation->component.id = ANIMATION;
     pAnimation->pSS = pSS;
     pAnimation->interval = 1.f / 3.f;
     pAnimation->count = count;
     pAnimation->pFrames = (u32*)malloc(count * sizeof(u32));
-	memcpy(pAnimation->pFrames, pFrames, count * sizeof(u32));
+    memcpy(pAnimation->pFrames, pFrames, count * sizeof(u32));
 }
 
 ENGINE_API inline void
@@ -488,29 +599,29 @@ freeAnimation(Animation* pAnimation) {
 
 ENGINE_API void
 updateAnimation(Animation* pAnimation, f32 deltaTime) {
-	pAnimation->counter += deltaTime;
-	if (pAnimation->counter >= pAnimation->interval) {
-		pAnimation->currentFrame++;
-		pAnimation->currentFrame %= pAnimation->count;
-		spriteSheetSetFrame(pAnimation->pSS,
+    pAnimation->counter += deltaTime;
+    if (pAnimation->counter >= pAnimation->interval) {
+        pAnimation->currentFrame++;
+        pAnimation->currentFrame %= pAnimation->count;
+        spriteSheetSetFrame(pAnimation->pSS,
                             *(pAnimation->pFrames + pAnimation->currentFrame));
-		pAnimation->counter = 0.f;
-	}
+        pAnimation->counter = 0.f;
+    }
 }
 
 ENGINE_API inline void
 setAnimationFPS(Animation* pAnimation, u32 fps) {
-	pAnimation->interval = 1.f / (f32)fps;
+    pAnimation->interval = 1.f / (f32)fps;
 }
 
 ENGINE_API void
 changeAnimation(Animation* pAnimation, u32* pFrames, u32 count) {
-	pAnimation->currentFrame = 0;
-	pAnimation->counter = 0.f;
-	pAnimation->count = count;
+    pAnimation->currentFrame = 0;
+    pAnimation->counter = 0.f;
+    pAnimation->count = count;
     free(pAnimation->pFrames);
     pAnimation->pFrames = (u32*)malloc(count * sizeof(u32));
-	memcpy(pAnimation->pFrames, pFrames, count * sizeof(u32));
+    memcpy(pAnimation->pFrames, pFrames, count * sizeof(u32));
 }
 
 
@@ -834,7 +945,7 @@ drawModel(Model* pModel, Renderer* pRenderer) {
     
     materialBindID(pModel->pMaterial->id);
     Mesh* pMeshes = pModel->pMeshes;
-	pRenderer->pCamera->model = pModel->pTransform->model;
+    pRenderer->pCamera->model = pModel->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pModel->pMaterial, 
                   "uModelViewProjection", 
@@ -1032,6 +1143,7 @@ initModel(Model* pModel, const char* pPath,
         size = sizeof(pPath);
     }
     memcpy(pModel->pPath, pPath, size);
+    pModel->component.id = MODEL;
     pModel->pPath[size] = '\0';
     pModel->meshesCount = pScene->mNumMeshes;
     pModel->texturesCount = pScene->mNumTextures;

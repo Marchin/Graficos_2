@@ -70,6 +70,27 @@ freeFigure(Figure* pFigure, CollisionManager* pCM) {
 ////////////////////////////////
 
 internal void
-initCharacter() {
+drawCharacter(void* pCharacter, Renderer* pRenderer) {
+    Character* pCastedCharacter = (Character*)pCharacter;
+	drawModel(&pCastedCharacter->model, pRenderer);
+}
+
+inline void
+updateCharacter(void* pCharacter, f32 deltaTime) {
+    //Character* pCastedCharacter = (Character*)pCharacter;
+}
+
+internal void
+initCharacter(Character* pCharacter, const char* pModelPath) {
+    initTransform(&pCharacter->transform);
+    pCharacter->transform.pEntity = pCharacter;
+    pCharacter->transform.draw = drawCharacter;
+    pCharacter->transform.update = updateCharacter;
+    
+    initMaterial(&pCharacter->material, "Model", "..//resources//shaders//vModel.glsl", 
+                 "..//resources//shaders//fModel.glsl");
+    
+    initModel(&pCharacter->model, pModelPath, &pCharacter->material, &pCharacter->transform);
+    
     
 }

@@ -12,8 +12,8 @@ struct Game {
     SpriteSheet tileset;
     Tilemap tilemap;
     Camera camera;
-    Model model;
-    Model model2;
+    Character character;
+    BasicGO go;
     Transform scene;
     f32 camX, camY;
     f32 timer;

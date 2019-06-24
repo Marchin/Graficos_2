@@ -49,6 +49,15 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
         0, 7, 2, 5, 4,
     };
     
+    initTransform(&pGame->go.transform);
+    pGame->go.transform.pEntity = &pGame->go;
+    pGame->go.material = basicMaterial;
+    Triangle* pTriangle = (Triangle*)addComponent(TRIANGLE, 
+                                                  &pGame->go.transform);
+    initTriangle(pTriangle, &pGame->go.transform, &pGame->go.material, 
+                 &vertices, sizeof(vertices));
+    // TODO(Marchin): IMPLEMENT UPDATE AND DRAW COMPONENT
+    
 #if 0
     initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);
     //initModel(&pGame->model, "../resources/cube.obj", &modelMaterial);
@@ -100,19 +109,24 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 	tilemapRegisterColliders(&pGame->tilemap, pGame->figure3.pCollider);
 #endif
     
+    initCharacter(&pGame->character, "../resources/bath.obj");
+    
     initTransform(&pGame->scene);
     addChild(&pGame->figure1.transform, &pGame->scene);
     addChild(&pGame->figure2.transform, &pGame->scene);
     addChild(&pGame->figure3.transform, &pGame->scene);
+    addChild(&pGame->character.transform, &pGame->scene);
+    addChild(&pGame->go.transform, &pGame->scene);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
 }
+local_persist s32 counter;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     //transformTranslate(&pGame->sprite.transform, .01f, 0.f, 0.f);
     //transformTranslate(&pGame->cs.transform, -.01f, 0f, 0.f);
-    //drawTriangle(&pGame->triangle, pRenderer);
+    //drawTriangle(pGame->pTriangle, pRenderer);
     //drawColorSquare(&pGame->cs, pRenderer);
     //drawCircle(&pGame->circle, pRenderer);
     //drawSprite(&pGame->sprite, pRenderer);
@@ -121,7 +135,22 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //transformRotateY(&pGame->cs.transform, 5.f);
     //transformRotate(&pGame->sprite.transform, 5.f, );
     pGame->timer += pTime->deltaTime;
-#if 1
+    counter++;
+    
+    float vertices[] = {
+		-0.5f, -0.5f, 0.f,
+		-0.5f,  0.5f, 0.f,
+		0.5f,  0.f, 0.f
+	};
+    if (counter == 200) {
+        removeComponent(TRIANGLE, pGame->go.transform.pComponents, 4);
+    } else if (counter == 300) {
+        Triangle* pTriangle = (Triangle*)addComponent(TRIANGLE, 
+                                                      &pGame->go.transform);
+        initTriangle(pTriangle, &pGame->go.transform, &pGame->go.material, 
+                     &vertices, sizeof(vertices));
+    }
+#if 0
     if (pGame->timer >= 3.f) {
         pRenderer->pCamera->fov += 10.f;
         pGame->timer = 0.f;

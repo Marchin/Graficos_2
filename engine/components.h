@@ -1,6 +1,23 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+enum ENGINE_API ComponentID {
+    NONE,
+    TRIANGLE,
+    COLOR_SQUARE,
+    CIRCLE,
+    SPRITE_RENDERER,
+    SPRITE_SHEET,
+    ANIMATION,
+    MODEL,
+};
+
+struct Component {
+    ComponentID id;
+    void(*draw)(void* pComponent, Renderer* pRenderer);
+    void(*update)(void* pComponent, f32 deltaTime);
+};
+
 struct ENGINE_API Transform {
     hmm_mat4 model;
 	hmm_mat4 positionMatrix;
@@ -10,6 +27,10 @@ struct ENGINE_API Transform {
 	hmm_vec3 position;
     hmm_vec3 eulerAngles;
     hmm_vec3 scale;
+    
+    Component** pComponents;
+    u32 componentsCount;
+    u32 componentsCapacity;
     
     void(*draw)(void* pEntity, Renderer* pRenderer);
     void(*update)(void* pEntity, f32 deltaTime);
@@ -21,6 +42,8 @@ struct ENGINE_API Transform {
 }; 
 
 struct ENGINE_API Triangle {
+    Component component;
+    
     u32 va;
     u32 vb;
     Transform* pTransform;
@@ -28,6 +51,8 @@ struct ENGINE_API Triangle {
 }; 
 
 struct ENGINE_API ColorSquare {
+    Component component;
+    
     u32 va;
     u32 vbPosition;
     u32 vbColor;
@@ -36,6 +61,8 @@ struct ENGINE_API ColorSquare {
 };
 
 struct ENGINE_API Circle {
+    Component component;
+    
     f32 radius;
     u32 sides;
     u32 va;
@@ -52,6 +79,8 @@ struct ENGINE_API Coords {
 };
 
 struct ENGINE_API SpriteRenderer {
+    Component component;
+    
     u32 va;
     u32 vbPosition;
     u32 vbUV;
@@ -61,6 +90,8 @@ struct ENGINE_API SpriteRenderer {
 };
 
 struct ENGINE_API SpriteSheet {
+    Component component;
+    
 	u32 frameWidth;
 	u32 frameHeight;
 	u32 rows;
@@ -71,6 +102,8 @@ struct ENGINE_API SpriteSheet {
 };
 
 struct ENGINE_API Animation {
+    Component component;
+    
 	SpriteSheet* pSS;
 	u32* pFrames;
 	u32 count;
@@ -140,6 +173,8 @@ struct ENGINE_API Mesh {
 };
 
 struct ENGINE_API Model {
+    Component component;
+    
     Transform* pTransform;
     Material* pMaterial;
     Mesh* pMeshes;
@@ -149,6 +184,12 @@ struct ENGINE_API Model {
     u32 texturesCount;
 };
 
+//COMPONENT
+ENGINE_API inline Component* getComponent(ComponentID componentID, 
+                                          Component** pComponents, s32 componentsSize);
+ENGINE_API inline Component* addComponent(ComponentID componentID, Transform* pTransform);
+ENGINE_API inline void removeComponent(ComponentID componentID, 
+                                       Component** pComponents, s32 componentsSize);
 //TRANSFORM
 ENGINE_API inline void transformUpdateMC(Transform* pTransform);
 ENGINE_API inline void reserveChildren(Transform* pTransform, u32 amount);
@@ -166,7 +207,7 @@ ENGINE_API void initTriangle(Triangle* pTriangle,
                              Transform* pTransform, Material* pMaterial, 
                              const void* pData, u32 size);
 ENGINE_API void freeTriangle(Triangle* pTriangle);
-ENGINE_API void drawTriangle(Triangle* pTriangle, Renderer* pRenderer);
+ENGINE_API void drawTriangle(void* pTriangle, Renderer* pRenderer);
 ENGINE_API inline void setTriangleVertices(Triangle* pTriangle, const void* pData);
 
 //COLOR_SQUARE
@@ -218,7 +259,7 @@ ENGINE_API void drawMesh(Mesh* pMesh);
 ENGINE_API void freeMesh(Mesh* pMesh);
 ENGINE_API void drawModel(Model* pModel, Renderer* pRenderer);
 ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
-ENGINE_API void initModel(Model* pModel, const char* pPath,  
-                          Transform* pTransform,  Material* pMaterial);
+ENGINE_API void initModel(Model* pModel, const char* pPath, Material* pMaterial,  
+                          Transform* pTransform);
 ENGINE_API void freeModel(Model* pModel);
 #endif //ENTITIES_H

@@ -1,6 +1,11 @@
 #ifndef GAME_ENTITIES_H
 #define GAME_ENTITIES_H
 
+struct BasicGO {
+    Transform transform;
+    Material material;
+};
+
 struct Figure {
 	BoxCollider* pCollider;
     SpriteSheet spriteSheet;

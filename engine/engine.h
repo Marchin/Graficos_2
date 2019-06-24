@@ -51,7 +51,7 @@
 #endif
 
 
-#include "entities.h"
+#include "components.h"
 #include "physics.h"
 #include "tilemap.h"
 
