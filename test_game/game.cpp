@@ -117,7 +117,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     initTransform(&pGame->scene);
     addChild(&pGame->figure1.transform, &pGame->scene);
-    addChild(&pGame->figure2.transform, &pGame->scene);
+    addChild(&pGame->figure2.transform, &pGame->figure1.transform);
     addChild(&pGame->figure3.transform, &pGame->scene);
     addChild(&pGame->character.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
@@ -199,8 +199,10 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     }
     drawTilemap(&pGame->tilemap, pRenderer);
     moveFigure(&pGame->figure1, -2.f * pTime->deltaTime, 0.f);
-    moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
-    moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
+    transformRotate(&pGame->figure1.transform, 1.f, VEC3_Y);
+    transformRotate(&pGame->figure2.transform, 5.f, VEC3_Y);
+    //moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
+    //moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
 #if 0
     transformRotate(&pGame->figure1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);

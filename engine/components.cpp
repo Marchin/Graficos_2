@@ -167,7 +167,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
     for (u32 iTransform = 0; iTransform < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
         hmm_mat4 modelChild = pChild->model;
-        pChild->model = pChild->model * pTransform->model;
+        pChild->model = pTransform->model * pChild->model;
         if (pChild->draw) {
             pChild->draw(pChild->pEntity, pRenderer);
         }
