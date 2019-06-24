@@ -56,7 +56,11 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                                   &pGame->go.transform);
     initTriangle(pTriangle, &pGame->go.transform, &pGame->go.material, 
                  &vertices, sizeof(vertices));
-    // TODO(Marchin): IMPLEMENT UPDATE AND DRAW COMPONENT
+    
+    Circle* pCircle = (Circle*)addComponent(CIRCLE, 
+                                            &pGame->go.transform);
+    initCircle(pCircle, &pGame->go.transform, &pGame->go.material, 
+               16, .5f);
     
 #if 0
     initModel(&pGame->model, "../resources/mesa_rol/MesaRol.obj", &modelMaterial);

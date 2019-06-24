@@ -61,10 +61,6 @@ addComponent(ComponentID componentID, Transform* pTransform) {
     if (pTransform->componentsCount == componentsCapacity) {
         componentsCapacity += 4;
         
-        
-        // TODO(Marchin): clean memory
-        
-        
         pTransform->pComponents = (Component**)realloc(pTransform->pComponents, 
                                                        componentsCapacity * sizeof(Component*));
         memset(pTransform->pComponents, 0, componentsCapacity * sizeof(Component*));
@@ -264,6 +260,7 @@ initColorSquare(ColorSquare* pCS,
                 const void* pPosition, const void* pColor) {
     
     pCS->component.id = COLOR_SQUARE;
+    pCS->component.draw = drawColorSquare;
     initVA(&pCS->va);
     vaBind(pCS->va);
     initVB(&pCS->vbPosition, pPosition, 12 * sizeof(f32));
@@ -292,12 +289,13 @@ freeColorSquare(ColorSquare* pCS) {
 }
 
 ENGINE_API void
-drawColorSquare(ColorSquare* pCS, Renderer* pRenderer) {
-    materialBindID(pCS->pMaterial->id); 
-    pRenderer->pCamera->model = pCS->pTransform->model;
+drawColorSquare(void* pCS, Renderer* pRenderer) {
+    ColorSquare* pCastedCS = (ColorSquare*)pCS;
+    materialBindID(pCastedCS->pMaterial->id); 
+    pRenderer->pCamera->model = pCastedCS->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pCS->pMaterial, "uModelViewProjection", &mvp);
-    vaBind(pCS->va);
+    shaderSetMat4(pCastedCS->pMaterial, "uModelViewProjection", &mvp);
+    vaBind(pCastedCS->va);
     drawBufferStrip(0, 4);
 }
 
@@ -356,6 +354,7 @@ initCircle(Circle* pCircle,
     pCircle->radius = radius;
     
     pCircle->component.id = CIRCLE;
+    pCircle->component.draw = drawCircle;
     initVA(&pCircle->va);
     vaBind(pCircle->va);
     initVB(&pCircle->vb);
@@ -381,13 +380,14 @@ freeCircle(Circle* pCircle) {
 }
 
 ENGINE_API void
-drawCircle(Circle* pCircle, Renderer* pRenderer) {
-    materialBindID(pCircle->pMaterial->id);
-    pRenderer->pCamera->model = pCircle->pTransform->model;
+drawCircle(void* pCircle, Renderer* pRenderer) {
+    Circle* pCastedCircle = (Circle*)pCircle;
+    materialBindID(pCastedCircle->pMaterial->id);
+    pRenderer->pCamera->model = pCastedCircle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pCircle->pMaterial, "uModelViewProjection", &mvp);
-    vaBind(pCircle->va);
-    drawBufferFan(0, pCircle->sides + 2);
+    shaderSetMat4(pCastedCircle->pMaterial, "uModelViewProjection", &mvp);
+    vaBind(pCastedCircle->va);
+    drawBufferFan(0, pCastedCircle->sides + 2);
 }
 
 
@@ -404,6 +404,7 @@ initSpriteRenderer(SpriteRenderer* pSR,
                    const void* pPosition, const void* pUV) {
     
     pSR->component.id = SPRITE_RENDERER;
+    pSR->component.draw = drawSpriteRenderer;
     if (pPosition == NULL) {
         f32 squareVertices[] = {
             -1.f, -1.f, 0.f,
@@ -465,13 +466,14 @@ spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
 }
 
 ENGINE_API void
-drawSpriteRenderer(SpriteRenderer* pSR, Renderer* pRenderer) {
-    materialBindID(pSR->pMaterial->id);
-    textureBindID(pSR->texture.id, 0);
-    pRenderer->pCamera->model = pSR->pTransform->model;
+drawSpriteRenderer(void* pSR, Renderer* pRenderer) {
+    SpriteRenderer* pCastedSR = (SpriteRenderer*)pSR;
+    materialBindID(pCastedSR->pMaterial->id);
+    textureBindID(pCastedSR->texture.id, 0);
+    pRenderer->pCamera->model = pCastedSR->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pSR->pMaterial, "uModelViewProjection", &mvp);
-    vaBind(pSR->va);
+    shaderSetMat4(pCastedSR->pMaterial, "uModelViewProjection", &mvp);
+    vaBind(pCastedSR->va);
     drawBufferStrip(0, 4);
 }
 
@@ -585,6 +587,7 @@ ENGINE_API void
 initAnimation(Animation* pAnimation, SpriteSheet* pSS, u32* pFrames, u32 count) {
     *pAnimation = {};
     pAnimation->component.id = ANIMATION;
+    pAnimation->component.update = updateAnimation;
     pAnimation->pSS = pSS;
     pAnimation->interval = 1.f / 3.f;
     pAnimation->count = count;
@@ -598,14 +601,15 @@ freeAnimation(Animation* pAnimation) {
 }
 
 ENGINE_API void
-updateAnimation(Animation* pAnimation, f32 deltaTime) {
-    pAnimation->counter += deltaTime;
-    if (pAnimation->counter >= pAnimation->interval) {
-        pAnimation->currentFrame++;
-        pAnimation->currentFrame %= pAnimation->count;
-        spriteSheetSetFrame(pAnimation->pSS,
-                            *(pAnimation->pFrames + pAnimation->currentFrame));
-        pAnimation->counter = 0.f;
+updateAnimation(void* pAnimation, f32 deltaTime) {
+    Animation* pCastedAnimation = (Animation*)pAnimation;
+    pCastedAnimation->counter += deltaTime;
+    if (pCastedAnimation->counter >= pCastedAnimation->interval) {
+        pCastedAnimation->currentFrame++;
+        pCastedAnimation->currentFrame %= pCastedAnimation->count;
+        spriteSheetSetFrame(pCastedAnimation->pSS,
+                            *(pCastedAnimation->pFrames + pCastedAnimation->currentFrame));
+        pCastedAnimation->counter = 0.f;
     }
 }
 
@@ -938,19 +942,20 @@ freeMesh(Mesh* pMesh) {
 }
 
 ENGINE_API void
-drawModel(Model* pModel, Renderer* pRenderer) {
-    if (pModel->meshesCount <= 0) {
+drawModel(void* pModel, Renderer* pRenderer) {
+    Model* pCastedModel = (Model*)pModel;
+    if (pCastedModel->meshesCount <= 0) {
         return;
     }
     
-    materialBindID(pModel->pMaterial->id);
-    Mesh* pMeshes = pModel->pMeshes;
-    pRenderer->pCamera->model = pModel->pTransform->model;
+    materialBindID(pCastedModel->pMaterial->id);
+    Mesh* pMeshes = pCastedModel->pMeshes;
+    pRenderer->pCamera->model = pCastedModel->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pModel->pMaterial, 
+    shaderSetMat4(pCastedModel->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
-    u32 meshesCount = pModel->meshesCount;
+    u32 meshesCount = pCastedModel->meshesCount;
     for (u32 iMesh = 0; iMesh < meshesCount; ++iMesh) {
         drawMesh(&pMeshes[iMesh]);
     }
@@ -1144,6 +1149,7 @@ initModel(Model* pModel, const char* pPath,
     }
     memcpy(pModel->pPath, pPath, size);
     pModel->component.id = MODEL;
+    pModel->component.draw = drawModel;
     pModel->pPath[size] = '\0';
     pModel->meshesCount = pScene->mNumMeshes;
     pModel->texturesCount = pScene->mNumTextures;

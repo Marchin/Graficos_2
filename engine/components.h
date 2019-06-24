@@ -215,7 +215,7 @@ ENGINE_API void initColorSquare(ColorSquare* pCS,
                                 Transform* pTransform, Material* pMaterial, 
                                 const void* pPosition, const void* pColor);
 ENGINE_API void freeColorSquare(ColorSquare* pCS);
-ENGINE_API void drawColorSquare(ColorSquare* pCS, Renderer* pRenderer);
+ENGINE_API void drawColorSquare(void* pCS, Renderer* pRenderer);
 ENGINE_API inline void colorSquareSetVertices(ColorSquare* pCS, const void* pPosition);
 ENGINE_API inline void colorSquareSetColors(ColorSquare* pCS, const void* pColor);
 
@@ -225,7 +225,7 @@ ENGINE_API void initCircle(Circle* pCircle,
                            Transform* pTransform,  Material* pMaterial, 
                            u32 sidesAmount, f32 radius);
 ENGINE_API inline void freeCircle(Circle* pCircle);
-ENGINE_API void drawCircle(Circle* pCircle, Renderer* pRenderer);
+ENGINE_API void drawCircle(void* pCircle, Renderer* pRenderer);
 
 //SPRITE_RENDERER
 ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR,  
@@ -234,7 +234,7 @@ ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR,
                                    const void* pPosition = 0, const void* pUV = 0);
 ENGINE_API inline void spriteSetVertices(SpriteRenderer* pSR, const void* pPosition);
 ENGINE_API inline void spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords);
-ENGINE_API void drawSpriteRenderer(SpriteRenderer* pSR, Renderer* pRenderer);
+ENGINE_API void drawSpriteRenderer(void* pSR, Renderer* pRenderer);
 
 //SPRITE_SHEET
 ENGINE_API void initSpriteSheet(SpriteSheet* pSS, 
@@ -249,7 +249,7 @@ ENGINE_API void spriteSheetSetFrameSize(SpriteSheet* pSS, u32 width, u32 height 
 ENGINE_API void initAnimation(Animation* pAnimation, SpriteSheet* pSS, 
                               u32* pFrames, u32 count);
 ENGINE_API inline void freeAnimation(Animation* pAnimation);
-ENGINE_API void updateAnimation(Animation* pAnimation, f32 deltaTime);
+ENGINE_API void updateAnimation(void* pAnimation, f32 deltaTime);
 ENGINE_API inline void setAnimationFPS(Animation* pAnimation, u32 fps);
 ENGINE_API void changeAnimation(Animation* pAnimation, u32* pFrames, u32 count);
 
@@ -257,7 +257,7 @@ ENGINE_API void changeAnimation(Animation* pAnimation, u32* pFrames, u32 count);
 ENGINE_API void initMesh(Mesh* pMesh);
 ENGINE_API void drawMesh(Mesh* pMesh);
 ENGINE_API void freeMesh(Mesh* pMesh);
-ENGINE_API void drawModel(Model* pModel, Renderer* pRenderer);
+ENGINE_API void drawModel(void* pModel, Renderer* pRenderer);
 ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
 ENGINE_API void initModel(Model* pModel, const char* pPath, Material* pMaterial,  
                           Transform* pTransform);
