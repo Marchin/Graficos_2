@@ -1,6 +1,8 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+#define DEFAULT_CHILDREN_ADDED 4
+
 enum ENGINE_API ComponentID {
     NONE,
     TRIANGLE,
@@ -172,6 +174,16 @@ struct ENGINE_API Mesh {
     u32 eb;
 };
 
+struct ENGINE_API Model;
+
+struct ENGINE_API ModelNode {
+    Transform transform;
+    
+    Model* pModel;
+    u32* pMeshIndices;
+    u32 meshIndicesCount;
+};
+
 struct ENGINE_API Model {
     Component component;
     
@@ -179,9 +191,11 @@ struct ENGINE_API Model {
     Material* pMaterial;
     Mesh* pMeshes;
     ModelTexture* pLoadedTextures;
+    ModelNode* pNodes;
     char pPath[MAX_PATH_SIZE];
     u32 meshesCount;
     u32 texturesCount;
+    u32 nodesCount;
 };
 
 //COMPONENT

@@ -91,6 +91,9 @@ initCharacter(Character* pCharacter, const char* pModelPath) {
                  "..//resources//shaders//fModel.glsl");
     
     initModel(&pCharacter->model, pModelPath, &pCharacter->material, &pCharacter->transform);
-    
-    
+}
+
+internal void
+freeCharacter(Character* pCharacter) {
+    freeModel(&pCharacter->model);
 }

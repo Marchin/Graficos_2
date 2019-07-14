@@ -59,7 +59,7 @@ ENGINE_API inline Component*
 addComponent(ComponentID componentID, Transform* pTransform) {
     u32 componentsCapacity = pTransform->componentsCapacity;
     if (pTransform->componentsCount == componentsCapacity) {
-        componentsCapacity += 4;
+        componentsCapacity += DEFAULT_CHILDREN_ADDED;
         
         pTransform->pComponents = (Component**)realloc(pTransform->pComponents, 
                                                        componentsCapacity * sizeof(Component*));
@@ -101,6 +101,7 @@ transformUpdateMC(Transform* pTransform) {
 
 ENGINE_API void
 initTransform(Transform* pTransform) {
+    *pTransform = {};
     pTransform->positionMatrix = HMM_Mat4d(1.f);
     pTransform->rotationMatrix = HMM_Mat4d(1.f);
     pTransform->scaleMatrix = HMM_Mat4d(1.f);
@@ -122,7 +123,7 @@ ENGINE_API inline void
 addChild(Transform* pChild, Transform* pParent) {
     u32 maxAmountOfChildren = pParent->maxAmountOfChildren;
     if (pParent->childrenCount == maxAmountOfChildren) {
-        maxAmountOfChildren += 4;
+        maxAmountOfChildren += DEFAULT_CHILDREN_ADDED;
         pParent->pChildren = (Transform**)realloc(pParent->pChildren, 
                                                   maxAmountOfChildren * sizeof(Transform*));
         pParent->maxAmountOfChildren = maxAmountOfChildren;
@@ -847,22 +848,10 @@ freeStackBlock(size_t id, MeshComponentType type, size_t oldSize) {
     shrinkStackBlock(id, type, oldSize, 0);
 }
 
-
-
-
-
-
-
-
-inline b32
-operator==(Vertex vA, Vertex vB) {
-    b32 result = ((vA.pos == vB.pos) && (vA.uv == vB.uv));
-    
-    return result;
-}
-
 ENGINE_API void 
 initMesh(Mesh* pMesh) {
+    //initTransform(&pMesh->transform);
+    
     initVA(&pMesh->va);
     vaBind(pMesh->va);
     
@@ -929,11 +918,10 @@ drawMesh(Mesh* pMesh) {
         
         strcpy(pName, pTypes[typeIndex]);
         size_t iEndOfString = strlen(pTypes[typeIndex]);
-        // NOTE(Marchin): I assume no model will have more that 99 textures of one kind
+        // NOTE(Marchin): I assume no model will have more than 99 textures of one kind
         char pNumber[2];
         _itoa(number, pNumber, 10);
         strcat(pName, pNumber);
-        //materialBindID(pMesh->pMaterial->id);
         shaderSetInt(pMesh->pMaterial, pName, i);
         glCall(glBindTexture(GL_TEXTURE_2D, gpMeshComponentsPool->texturesSlotsBeginnings[id][i]->id));
     }
@@ -976,10 +964,12 @@ drawModel(void* pModel, Renderer* pRenderer) {
     shaderSetMat4(pCastedModel->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
+#if 0
     u32 meshesCount = pCastedModel->meshesCount;
     for (u32 iMesh = 0; iMesh < meshesCount; ++iMesh) {
         drawMesh(&pMeshes[iMesh]);
     }
+#endif
 }
 
 ENGINE_API u32 
@@ -1150,6 +1140,58 @@ processMeshes(Model* pModel, const aiScene* pScene) {
     }
 }
 
+ENGINE_API void
+drawModelNode(void* pNode, Renderer* pRenderer) {
+    ModelNode* pCastedNode = (ModelNode*)pNode;
+    
+    u32 meshCount = pCastedNode->meshIndicesCount;
+    Mesh* pMeshes = pCastedNode->pModel->pMeshes;
+    
+    for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
+        drawMesh(&pMeshes[pCastedNode->pMeshIndices[iMesh]]);
+    }
+}
+
+internal void
+processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
+    u32 childCount = pNode->mNumChildren;
+    ModelNode* pModelNode = &pModel->pNodes[pModel->nodesCount++];
+    initTransform(&pModelNode->transform);
+    addChild(&pModelNode->transform, pParent);
+    
+    pModelNode->meshIndicesCount = pNode->mNumMeshes;
+    u32 sizeOfIndicesInBytes = pModelNode->meshIndicesCount*sizeof(u32);
+    pModelNode->pMeshIndices = (u32*)malloc(sizeOfIndicesInBytes);
+    memcpy(pModelNode->pMeshIndices, pNode->mMeshes, sizeOfIndicesInBytes);
+    pModelNode->pModel = pModel;
+    pModelNode->transform.pEntity = pModelNode;
+    pModelNode->transform.draw = drawModelNode;
+    
+    for (u32 iChild = 0; iChild < childCount; ++iChild) {
+        processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform);
+    }
+}
+
+internal u32
+countNodes(aiNode* pNode) {
+    u32 childCount = pNode->mNumChildren;
+    u32 amount = 1;
+    for (u32 iChild = 0; iChild < childCount; ++iChild) {
+        amount += countNodes(pNode->mChildren[iChild]);
+    }
+    
+    return amount;
+}
+
+internal void
+freeNode(ModelNode* pNode) {
+    u32 childCount = pNode->transform.childrenCount;
+    free(pNode->pMeshIndices);
+    for (u32 iChild = 0; iChild < childCount; ++iChild) {
+        freeNode((ModelNode*)(pNode->transform.pChildren[iChild]->pEntity));
+    }
+}
+
 ENGINE_API void 
 initModel(Model* pModel, const char* pPath, 
           Material* pMaterial, Transform* pTransform) {
@@ -1182,6 +1224,13 @@ initModel(Model* pModel, const char* pPath,
     
     processMeshes(pModel, pScene);
     
+    int nodesCount = countNodes(pScene->mRootNode);
+    pModel->pNodes = (ModelNode*)malloc(nodesCount*sizeof(ModelNode));
+    memset(pModel->pNodes, 0, nodesCount*sizeof(ModelNode));
+    
+    pModel->nodesCount = 0;
+    processNode(pModel, pScene->mRootNode, pModel->pTransform);
+    
     pModel->pLoadedTextures = 
         (ModelTexture*)realloc(pModel->pLoadedTextures, 
                                pModel->texturesCount*sizeof(ModelTexture));
@@ -1204,4 +1253,8 @@ freeModel(Model* pModel) {
     pModel->texturesCount = 0;
     
     pModel->pPath[0] = '\0';
+    
+    freeNode(&pModel->pNodes[0]);
+    
+    free(pModel->pNodes);
 }
