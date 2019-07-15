@@ -90,8 +90,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initFigure(&pGame->figure1, pCM);
     initFigure(&pGame->figure2, pCM);
     initFigure(&pGame->figure3, pCM);
-    moveFigure(&pGame->figure1, 20.f, -9.f);
-    moveFigure(&pGame->figure2, 9.f, 0.f);
+    moveFigure(&pGame->figure1, 2.f, -9.f);
+    moveFigure(&pGame->figure2, 1.f, 0.f);
     moveFigure(&pGame->figure3, 0.f, -7.f);
     pGame->figure2.pCollider->mass = 5.f;
 #if 1    
@@ -119,13 +119,14 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     addChild(&pGame->figure1.transform, &pGame->scene);
     addChild(&pGame->figure2.transform, &pGame->figure1.transform);
     addChild(&pGame->figure3.transform, &pGame->scene);
-    addChild(&pGame->character.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
-    removeChild(&pGame->figure1.transform);
+    //addChild(&pGame->character.transform, &pGame->scene);
+    removeChild(&pGame->figure2.transform);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
     transformTranslate(&pGame->character.transform, 0.f, 0.f, -60.f);
 }
+
 local_persist s32 counter;
 
 internal void
@@ -143,6 +144,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     pGame->timer += pTime->deltaTime;
     counter++;
     
+#if 0
     float vertices[] = {
 		-0.5f, -0.5f, 0.f,
 		-0.5f,  0.5f, 0.f,
@@ -156,7 +158,6 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         initTriangle(pTriangle, &pGame->go.transform, &pGame->go.material, 
                      &vertices, sizeof(vertices));
     }
-#if 0
     if (pGame->timer >= 3.f) {
         pRenderer->pCamera->fov += 10.f;
         pGame->timer = 0.f;
@@ -199,6 +200,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
+#if 0
     drawTilemap(&pGame->tilemap, pRenderer);
     moveFigure(&pGame->figure1, -2.f * pTime->deltaTime, 0.f);
     transformRotate(&pGame->figure1.transform, 1.f, VEC3_Y);
@@ -207,7 +209,6 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     transformTranslate(&pGame->figure3.transform, 0.f, 0.01f, .01f);
     //moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
     //moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
-#if 0
     transformRotate(&pGame->figure1.transform, 1.f, VEC3_X);
     //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
     updateFigure(&pGame->figure1, pTime->deltaTime);

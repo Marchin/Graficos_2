@@ -213,11 +213,13 @@ updateProjection(Camera* pCamera) {
 inline b32
 IsPointInsideFrustum(hmm_vec3 point, Camera* pCamera) {
     for (u32 iPlane = 0; iPlane < 6; ++iPlane) {
+        //Plane is defined in utils.h, i probably should find a better place for it
         Plane plane = pCamera->frustumPlanes[iPlane];
-        //-1.f*dot because we use: origin - any dot belonging to the plane
         hmm_vec3 normal = plane.normal;
-        //f32 signedDistanceToOrigin = plane.d / (normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
         f32 signedDistanceToPoint = HMM_DotVec3(normal, point);
+        //plane.d is "how many normals" we need to get to the origin
+        //if the sum is negative it means that the point is on the opposite
+        //side of the normal direction
         if (signedDistanceToPoint + plane.d < 0) {
             return false;
         }

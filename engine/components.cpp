@@ -55,6 +55,12 @@ getComponent(ComponentID componentID, Component** pComponents, s32 componentsSiz
     return 0;
 }
 
+//the components system works similar to the scene graph in that every component
+//stores the needed draw and update functions, and we add 4 components everytime
+//it runs out of space in order to save allocations.
+//Every component has a componentID at the beginning of the structure so that,
+//when casted, it can obtain what kind of component it is and the respective
+//draw and update functions, which are called through the scene graph
 ENGINE_API inline Component*
 addComponent(ComponentID componentID, Transform* pTransform) {
     u32 componentsCapacity = pTransform->componentsCapacity;
@@ -93,6 +99,11 @@ removeComponent(ComponentID componentID, Component** pComponents, s32 components
 
 ////////////////////////////////
 
+//The scene graph is implemented inside the transform system, 
+//it works by having pointers to their respective draw and update functions if needed
+//and it keeps a reference to the entity itself to send it to those functions
+
+
 ENGINE_API inline void 
 transformUpdateMC(Transform* pTransform) {
     pTransform->model = 
@@ -123,7 +134,9 @@ ENGINE_API inline void
 addChild(Transform* pChild, Transform* pParent) {
     u32 maxAmountOfChildren = pParent->maxAmountOfChildren;
     if (pParent->childrenCount == maxAmountOfChildren) {
-        maxAmountOfChildren += DEFAULT_CHILDREN_ADDED;
+        //We add more children than needed in case the user needs more
+        //The memory, if wasted, is still cheaper than the allocation process
+        maxAmountOfChildren += DEFAULT_CHILDREN_ADDED; 
         pParent->pChildren = (Transform**)realloc(pParent->pChildren, 
                                                   maxAmountOfChildren * sizeof(Transform*));
         pParent->maxAmountOfChildren = maxAmountOfChildren;
@@ -182,7 +195,7 @@ ENGINE_API inline void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pTransform->model;
     u32 childrenCount = pTransform->childrenCount;
-    for (u32 iTransform = 0, i = 0; iTransform < childrenCount; ++iTransform){
+    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
         hmm_mat4 modelChild = pChild->model;
@@ -210,6 +223,12 @@ transformUpdate(Transform* pTransform, f32 deltaTime) {
         if (pChild == 0) { continue; }
         if (pChild->update) {
             pChild->update(pChild->pEntity, deltaTime);
+        }
+        u32 componentCount = pChild->componentsCount;
+        for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
+            if (pChild->pComponents[iComponent] && pChild->pComponents[iComponent]->update) {
+                pChild->pComponents[iComponent]->update(pChild->pComponents[iComponent], deltaTime);
+            }
         }
         transformUpdate(pChild, deltaTime);
         ++i;
