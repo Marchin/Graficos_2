@@ -124,6 +124,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     removeChild(&pGame->figure1.transform);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
+    transformTranslate(&pGame->character.transform, 0.f, 0.f, -60.f);
 }
 local_persist s32 counter;
 
@@ -203,6 +204,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     transformRotate(&pGame->figure1.transform, 1.f, VEC3_Y);
     transformRotate(&pGame->figure2.transform, 5.f, VEC3_Y);
     transformRotate(&pGame->go.transform, 5.f, VEC3_Y);
+    transformTranslate(&pGame->figure3.transform, 0.f, 0.01f, .01f);
     //moveFigure(&pGame->figure2, 0.f, -2.f * pTime->deltaTime);
     //moveFigure(&pGame->figure3, 2.f * pTime->deltaTime, 0.f);
 #if 0

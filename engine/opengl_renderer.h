@@ -115,6 +115,7 @@ ENGINE_API inline void drawBufferFan(u32 offset, u32 count);
 ENGINE_API inline void drawElements(u32 count);
 ENGINE_API inline void resetModelMatrix(Renderer* pRenderer);
 ENGINE_API inline void multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation);
+ENGINE_API inline hmm_mat4 getModelView(Renderer* pRenderer);
 ENGINE_API inline hmm_mat4 getModelViewProj(Renderer* pRenderer);
 ENGINE_API inline hmm_vec3 getCameraPosition(Renderer* pRenderer);
 ENGINE_API inline f32 getCameraWidth(Renderer* pRenderer);

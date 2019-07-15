@@ -1,24 +1,3 @@
-ENGINE_API void
-updateProjection(Camera* pCamera) {
-    switch (pCamera->projectionType) {
-        case ORTHOGRAPHIC: {
-            pCamera->projection = HMM_Orthographic(-pCamera->halfCamWidth, 
-                                                   pCamera->halfCamWidth, 
-                                                   -pCamera->halfCamHeight, 
-                                                   pCamera->halfCamHeight, 
-                                                   0.f, 100.f);
-        }break;
-        case PERSPECTIVE: {
-            pCamera->projection = HMM_Perspective(pCamera->fov,
-                                                  pCamera->aspectRatio,
-                                                  0.1f, 100.f); 
-        }break;
-        default: {
-            assert(0);
-        }break;
-    }
-}
-
 ENGINE_API void 
 initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) {
     
@@ -34,7 +13,9 @@ initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) 
     pCamera->halfCamHeight = 10.f; 
     pCamera->halfCamWidth = 10.f; 
     pCamera->fov = 45;
-    pCamera->aspectRatio = 800/600;
+    pCamera->minDist = 0.1f;
+    pCamera->maxDist = 100.f;
+    pCamera->aspectRatio = 800.f/600.f;
     pCamera->projectionType = PERSPECTIVE;
     pCamera->model = HMM_Mat4d(1.f);
     pCamera->firstMouseMovement = true;
@@ -99,7 +80,6 @@ cameraMouseMovement(Camera* pCamera, f64 xPos, f64 yPos, b32 constrainPitch) {
         }
     }
     
-    // Update Front, Right and Up Vectors using the updated Euler angles
     updateCameraVectors(pCamera);
 }
 
@@ -118,20 +98,130 @@ cameraMouseScroll(Camera* pCamera, f32 yoffset) {
 
 ENGINE_API void
 updateCameraVectors(Camera* pCamera) {
-    // Calculate the new Front vector
     hmm_vec3 front;
     front.x = cosf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
     front.y = sinf(HMM_ToRadians((f32)pCamera->pitch));
     front.z = sinf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
     
-    //hmm_vec3 up;
-    //up.x = sinf(HMM_ToRadians((f32)pCamera->roll));
-    //up.y = cosf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
-    //up.z = sinf(HMM_ToRadians((f32)pCamera->pitch))*cosf(HMM_ToRadians((f32)pCamera->roll));
     pCamera->front = HMM_NormalizeVec3(front);
-    //pCamera->up = HMM_NormalizeVec3(up);
     pCamera->right = HMM_Cross(pCamera->front, pCamera->worldUp);
-    // Also re-calculate the Right and Up vector
-    //pCamera->right = HMM_NormalizeVec3(HMM_Cross(pCamera->front, pCamera->up));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
+}
+
+internal void
+calculateFrustumPlanes(Camera* pCamera) {
+    f32 halfFovRad = (pCamera->fov * 0.5f * PI32) / 180.f;
+    
+    f32 signedNear = pCamera->minDist * ((pCamera->front.z > 0.f)? 1.f:-1.f);
+    f32 signedFar = pCamera->maxDist * ((pCamera->front.z > 0.f)? 1.f:-1.f);
+    f32 nearTop = tanf(halfFovRad) * signedNear;
+    f32 nearBottom = -nearTop;
+    f32 nearRight = nearTop * pCamera->aspectRatio;
+    f32 nearLeft = -nearRight;
+    
+    f32 farTop = tanf(halfFovRad) * pCamera->maxDist * pCamera->front.z;
+    f32 farBottom = -farTop;
+    f32 farRight = farTop * pCamera->aspectRatio;
+    f32 farLeft = -farRight; 
+    
+    hmm_vec3 nearTopLeft  = {nearLeft, nearTop, signedNear};
+    hmm_vec3 nearTopRight  = {nearRight, nearTop, signedNear};
+    hmm_vec3 nearBottomRight  = {nearRight, nearBottom, signedNear};
+    hmm_vec3 farTopRight = {farRight, farTop, signedFar};
+    hmm_vec3 farTopLeft = {farLeft, farTop, signedFar};
+    hmm_vec3 farBottomRight  = {farRight, farBottom, signedFar};
+    
+    //normals look towards the inside
+    
+    //top and bottom are the same vector, same with left and right
+    hmm_vec3 nearTopSegment = nearTopLeft - nearTopRight;
+    hmm_vec3 nearRightSegment = nearBottomRight - nearTopRight;
+    hmm_vec3 topRightSegment = farTopRight - nearTopRight;
+    hmm_vec3 topLeftSegment = farTopLeft - nearTopLeft;
+    hmm_vec3 bottomRightSegment = farBottomRight - nearBottomRight;
+    
+    Plane nearPlane;
+    nearPlane.normal = HMM_Cross(nearRightSegment, nearTopSegment);
+    nearPlane.normal = HMM_NormalizeVec3(nearPlane.normal);
+    nearPlane.dot = nearTopRight;
+    nearPlane.d = -HMM_DotVec3(nearPlane.normal, nearPlane.dot);
+    
+    Plane rightPlane;
+    rightPlane.normal = HMM_Cross(topRightSegment, nearRightSegment);
+    rightPlane.normal = HMM_NormalizeVec3(rightPlane.normal);
+    rightPlane.dot = nearTopRight;
+    rightPlane.d = -HMM_DotVec3(rightPlane.normal, rightPlane.dot);
+    
+    Plane leftPlane;
+    leftPlane.normal = HMM_Cross(nearRightSegment, topLeftSegment);
+    leftPlane.normal = HMM_NormalizeVec3(leftPlane.normal);
+    leftPlane.dot = nearTopLeft;
+    leftPlane.d = -HMM_DotVec3(leftPlane.normal, leftPlane.dot);
+    
+    Plane topPlane;
+    topPlane.normal = HMM_Cross(nearTopSegment, topRightSegment);
+    topPlane.normal = HMM_NormalizeVec3(topPlane.normal);
+    topPlane.dot = nearTopRight;
+    topPlane.d = -HMM_DotVec3(topPlane.normal, topPlane.dot);
+    
+    Plane bottomPlane;
+    bottomPlane.normal = HMM_Cross(bottomRightSegment, nearTopSegment);
+    bottomPlane.normal = HMM_NormalizeVec3(bottomPlane.normal);
+    bottomPlane.dot = nearBottomRight;
+    bottomPlane.d = -HMM_DotVec3(bottomPlane.normal, bottomPlane.dot);
+    
+    Plane farPlane;
+    //Since we are normalizing, we don't care about the lenght of the vectors
+    //That means we can use the same ones from the near plane since the have the same direction
+    farPlane.normal = -1.f*nearPlane.normal;
+    farPlane.dot = farTopRight;
+    farPlane.d = -HMM_DotVec3(farPlane.normal, farPlane.dot);
+    
+    pCamera->frustumPlanes[0] = nearPlane;
+    pCamera->frustumPlanes[1] = rightPlane;
+    pCamera->frustumPlanes[2] = leftPlane;
+    pCamera->frustumPlanes[3] = topPlane;
+    pCamera->frustumPlanes[4] = bottomPlane;
+    pCamera->frustumPlanes[5] = farPlane;
+}
+
+ENGINE_API void
+updateProjection(Camera* pCamera) {
+    switch (pCamera->projectionType) {
+        case ORTHOGRAPHIC: {
+            pCamera->projection = HMM_Orthographic(-pCamera->halfCamWidth, 
+                                                   pCamera->halfCamWidth, 
+                                                   -pCamera->halfCamHeight, 
+                                                   pCamera->halfCamHeight, 
+                                                   pCamera->minDist, 
+                                                   pCamera->maxDist);
+        }break;
+        case PERSPECTIVE: {
+            pCamera->projection = HMM_Perspective(pCamera->fov,
+                                                  pCamera->aspectRatio,
+                                                  pCamera->minDist, 
+                                                  pCamera->maxDist); 
+            calculateFrustumPlanes(pCamera);
+        }break;
+        default: {
+            assert(0);
+        }break;
+    }
+}
+
+
+inline b32
+IsPointInsideFrustum(hmm_vec3 point, Camera* pCamera) {
+    for (u32 iPlane = 0; iPlane < 6; ++iPlane) {
+        Plane plane = pCamera->frustumPlanes[iPlane];
+        //-1.f*dot because we use: origin - any dot belonging to the plane
+        hmm_vec3 normal = plane.normal;
+        //f32 signedDistanceToOrigin = plane.d / (normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+        f32 signedDistanceToPoint = HMM_DotVec3(normal, point);
+        if (signedDistanceToPoint + plane.d < 0) {
+            return false;
+        }
+    }
+    
+    return true;
 }

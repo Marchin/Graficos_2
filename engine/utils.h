@@ -30,4 +30,11 @@ findCharacter(const char* pString, char toFind, FIRST_LAST from, size_t* pIndex)
     return false;
 }
 
+
+struct ENGINE_API Plane {
+    hmm_vec3 normal;
+    hmm_vec3 dot;
+    f32 d;
+};
+
 #endif //UTILS_H

@@ -583,6 +583,11 @@ getModelViewProj(Renderer* pRenderer) {
     return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
 }
 
+ENGINE_API inline hmm_mat4 
+getModelView(Renderer* pRenderer) {
+    return (getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
+}
+
 ENGINE_API inline hmm_vec3
 getCameraPosition(Renderer* pRenderer) {
     return pRenderer->pCamera->position;

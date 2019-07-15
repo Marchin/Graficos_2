@@ -179,7 +179,8 @@ struct ENGINE_API Model;
 struct ENGINE_API ModelNode {
     Transform transform;
     
-    Model* pModel;
+    Model* pModel; 
+    Material* pMaterial; 
     u32* pMeshIndices;
     u32 meshIndicesCount;
 };

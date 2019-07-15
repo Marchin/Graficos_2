@@ -958,18 +958,6 @@ drawModel(void* pModel, Renderer* pRenderer) {
     }
     
     materialBindID(pCastedModel->pMaterial->id);
-    Mesh* pMeshes = pCastedModel->pMeshes;
-    pRenderer->pCamera->model = pCastedModel->pTransform->model;
-    hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pCastedModel->pMaterial, 
-                  "uModelViewProjection", 
-                  &mvp);
-#if 0
-    u32 meshesCount = pCastedModel->meshesCount;
-    for (u32 iMesh = 0; iMesh < meshesCount; ++iMesh) {
-        drawMesh(&pMeshes[iMesh]);
-    }
-#endif
 }
 
 ENGINE_API u32 
@@ -1140,6 +1128,23 @@ processMeshes(Model* pModel, const aiScene* pScene) {
     }
 }
 
+ENGINE_API b32
+IsMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
+    u32 verticesCount = pMesh->verticesCount;
+    
+    for (u32 iVertex = 0; iVertex < verticesCount; ++iVertex) {
+        hmm_vec4 wcVertex4 = 
+            HMM_MultiplyMat4ByVec4(getModelView(pRenderer),
+                                   HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f));
+        hmm_vec3 wcVertex3 = {wcVertex4.X, wcVertex4.Y, wcVertex4.Z};
+        if (IsPointInsideFrustum(wcVertex3, pCamera)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 ENGINE_API void
 drawModelNode(void* pNode, Renderer* pRenderer) {
     ModelNode* pCastedNode = (ModelNode*)pNode;
@@ -1147,8 +1152,26 @@ drawModelNode(void* pNode, Renderer* pRenderer) {
     u32 meshCount = pCastedNode->meshIndicesCount;
     Mesh* pMeshes = pCastedNode->pModel->pMeshes;
     
+    pRenderer->pCamera->model = pCastedNode->transform.model;
+    
+    hmm_mat4 mvp = getModelViewProj(pRenderer);
+    shaderSetMat4(pCastedNode->pMaterial, 
+                  "uModelViewProjection", 
+                  &mvp);
+    
+    b32 drawable = false;
     for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
-        drawMesh(&pMeshes[pCastedNode->pMeshIndices[iMesh]]);
+        drawable = IsMeshInsideFrustum(&pMeshes[pCastedNode->pMeshIndices[iMesh]], 
+                                       pRenderer->pCamera, pRenderer);
+        
+        if (drawable) { 
+            drawMesh(&pMeshes[pCastedNode->pMeshIndices[iMesh]]);
+            ++gDrawed;
+        }
+    }
+    if (meshCount > 0) {
+        printf("%d\n", gDrawed);
+        gDrawed = 0;
     }
 }
 
@@ -1164,6 +1187,7 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     pModelNode->pMeshIndices = (u32*)malloc(sizeOfIndicesInBytes);
     memcpy(pModelNode->pMeshIndices, pNode->mMeshes, sizeOfIndicesInBytes);
     pModelNode->pModel = pModel;
+    pModelNode->pMaterial = pModel->pMaterial;
     pModelNode->transform.pEntity = pModelNode;
     pModelNode->transform.draw = drawModelNode;
     
