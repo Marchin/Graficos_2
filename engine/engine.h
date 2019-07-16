@@ -70,6 +70,4 @@ ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamer
 ENGINE_API void enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
 ENGINE_API void enginePostUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
 
-global u32 gDrawed;
-
 #endif //ENGINE_H

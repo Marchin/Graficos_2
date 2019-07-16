@@ -1179,18 +1179,19 @@ drawModelNode(void* pNode, Renderer* pRenderer) {
                   &mvp);
     
     b32 drawable = false;
+    u32 drawed = 0;
     for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
         drawable = IsMeshInsideFrustum(&pMeshes[pCastedNode->pMeshIndices[iMesh]], 
                                        pRenderer->pCamera, pRenderer);
         
         if (drawable) { 
             drawMesh(&pMeshes[pCastedNode->pMeshIndices[iMesh]]);
-            ++gDrawed;
+            ++drawed;
         }
     }
     if (meshCount > 0) {
-        printf("%d\n", gDrawed);
-        gDrawed = 0;
+        printf("%d\n", drawed);
+        drawed = 0;
     }
 }
 
