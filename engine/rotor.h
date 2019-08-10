@@ -19,6 +19,7 @@ struct Rotor3 {
             float xy;
         };
         Bivec3 bivec;
+        hmm_vec3 vec;
     };
 };
 
