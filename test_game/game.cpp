@@ -120,7 +120,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     addChild(&pGame->figure2.transform, &pGame->figure1.transform);
     addChild(&pGame->figure3.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
-    //addChild(&pGame->character.transform, &pGame->scene);
+    addChild(&pGame->character.transform, &pGame->scene);
     removeChild(&pGame->figure2.transform);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;

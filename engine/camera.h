@@ -63,5 +63,5 @@ ENGINE_API void cameraMouseMovement(Camera* pCamera,
 ENGINE_API void cameraProcessMouseScroll(Camera* pCamera, f32 xOffset, f32 yOffset);
 
 ENGINE_API void updateCameraVectors(Camera* pCamera);
-inline b32 IsPointInsideFrustum(hmm_vec3 point, Camera* pCamera);
+inline b32 isPointInsideFrustum(hmm_vec3 point, Camera* pCamera);
 #endif //CAMERA_H

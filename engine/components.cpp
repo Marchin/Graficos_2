@@ -1025,11 +1025,37 @@ loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial,
     }
 }
 
+internal void
+checkBounds(BoxBounds* pBounds, hmm_vec3* pPos) {
+    if (pPos->x < *pBounds->pMinX) {
+        pBounds->pMinX = &pPos->x;
+    } else if (pPos->x > *pBounds->pMaxX) {
+        pBounds->pMaxX = &pPos->x;
+    }
+    if (pPos->y < *pBounds->pMinY) {
+        pBounds->pMinY = &pPos->y;
+    } else if (pPos->y > *pBounds->pMaxY) {
+        pBounds->pMaxY = &pPos->y;
+    }
+    if (pPos->z < *pBounds->pMinZ) {
+        pBounds->pMinZ = &pPos->z;
+    } else if (pPos->z > *pBounds->pMaxZ) {
+        pBounds->pMaxZ = &pPos->z;
+    }
+}
+
 internal void 
-setupModelVertex(aiMesh* pAiMesh, Mesh* pMesh) {
+setupMeshVertex(aiMesh* pAiMesh, Mesh* pMesh) {
     Vertex vertex;
     Vertex* pVertices = pMesh->pVertices;
     u32 verticesCount = pAiMesh->mNumVertices;
+    
+    pMesh->bounds.pMinX = &pAiMesh->mVertices[0].x;
+    pMesh->bounds.pMaxX = pMesh->bounds.pMinX;
+    pMesh->bounds.pMinY = pMesh->bounds.pMinX + 1;
+    pMesh->bounds.pMaxY = pMesh->bounds.pMinY;
+    pMesh->bounds.pMinZ = pMesh->bounds.pMinY + 1;
+    pMesh->bounds.pMaxZ = pMesh->bounds.pMinZ;
     
     for (u32 iVertex = 0; iVertex < verticesCount; ++iVertex) {
         vertex.pos.x = pAiMesh->mVertices[iVertex].x;
@@ -1048,6 +1074,7 @@ setupModelVertex(aiMesh* pAiMesh, Mesh* pMesh) {
         }
         
         pVertices[iVertex] = vertex;
+        checkBounds(&pMesh->bounds, &pVertices[iVertex].pos);
     }
 }
 
@@ -1083,7 +1110,7 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         
         pMesh->pIndices = gpMeshComponentsPool->indicesSlotsBeginnings[id];
         
-        setupModelVertex(pAiMesh, pMesh);
+        setupMeshVertex(pAiMesh, pMesh);
         
         pMesh->verticesCount = verticesCount;
         
@@ -1148,15 +1175,31 @@ processMeshes(Model* pModel, const aiScene* pScene) {
 }
 
 ENGINE_API b32
-IsMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
-    u32 verticesCount = pMesh->verticesCount;
+isMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
+    BoxBounds bounds = pMesh->bounds;
+    f32 minX = *bounds.pMinX;
+    f32 minY = *bounds.pMinY;
+    f32 minZ = *bounds.pMinZ;
+    f32 maxX = *bounds.pMaxX;
+    f32 maxY = *bounds.pMaxY;
+    f32 maxZ = *bounds.pMaxZ;
+    hmm_vec3 points[8] = {
+        minX, minY, minZ,
+        minX, minY, maxZ,
+        minX, maxY, minZ,
+        minX, maxY, maxZ,
+        maxX, minY, minZ,
+        maxX, minY, maxZ,
+        maxX, maxY, minZ,
+        maxX, maxY, minZ,
+    }; 
     
-    for (u32 iVertex = 0; iVertex < verticesCount; ++iVertex) {
+    for (u32 iPoint = 0; iPoint < 8; ++iPoint) {
         hmm_vec4 wcVertex4 = 
             HMM_MultiplyMat4ByVec4(getModelView(pRenderer),
-                                   HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f));
+                                   HMM_Vec4v(points[iPoint], 1.f));
         hmm_vec3 wcVertex3 = {wcVertex4.X, wcVertex4.Y, wcVertex4.Z};
-        if (IsPointInsideFrustum(wcVertex3, pCamera)) {
+        if (isPointInsideFrustum(wcVertex3, pCamera)) {
             return true;
         }
     }
@@ -1181,7 +1224,7 @@ drawModelNode(void* pNode, Renderer* pRenderer) {
     b32 drawable = false;
     u32 drawed = 0;
     for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
-        drawable = IsMeshInsideFrustum(&pMeshes[pCastedNode->pMeshIndices[iMesh]], 
+        drawable = isMeshInsideFrustum(&pMeshes[pCastedNode->pMeshIndices[iMesh]], 
                                        pRenderer->pCamera, pRenderer);
         
         if (drawable) { 

@@ -211,7 +211,7 @@ updateProjection(Camera* pCamera) {
 
 
 inline b32
-IsPointInsideFrustum(hmm_vec3 point, Camera* pCamera) {
+isPointInsideFrustum(hmm_vec3 point, Camera* pCamera) {
     for (u32 iPlane = 0; iPlane < 6; ++iPlane) {
         //Plane is defined in utils.h, i probably should find a better place for it
         Plane plane = pCamera->frustumPlanes[iPlane];

@@ -114,6 +114,15 @@ struct ENGINE_API Animation {
 	f32 counter;
 };
 
+struct ENGINE_API BoxBounds {
+    f32* pMinX;
+    f32* pMinY;
+    f32* pMinZ;
+    f32* pMaxX;
+    f32* pMaxY;
+    f32* pMaxZ;
+};
+
 struct ENGINE_API Vertex {
     hmm_vec3 pos;
     hmm_vec3 normal;
@@ -164,6 +173,7 @@ struct ENGINE_API Mesh {
     Material* pMaterial;
     Vertex* pVertices;
     ModelTexture** pModelTextures;
+    BoxBounds bounds;
     u32* pIndices;
     size_t meshComponentID;
     u32 verticesCount;
