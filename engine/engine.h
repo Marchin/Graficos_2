@@ -6,6 +6,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <portaudio/portaudio.h>
+
 #include "meow_intrinsics.h"
 #include "meow_hash.h"
 
