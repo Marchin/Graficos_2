@@ -1227,6 +1227,13 @@ updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
         pChild->model = modelChild;
     }
     
+    pModelNode->bounds.minX = FLT_MAX;
+    pModelNode->bounds.maxX = -FLT_MAX;
+    pModelNode->bounds.minY = FLT_MAX;
+    pModelNode->bounds.maxY = -FLT_MAX;
+    pModelNode->bounds.minZ = FLT_MAX;
+    pModelNode->bounds.maxZ = -FLT_MAX;
+    
     u32 meshIndicesCount = pModelNode->meshIndicesCount;
     for (u32 iMeshIndex = 0; iMeshIndex < meshIndicesCount; ++iMeshIndex) {
         Mesh* pMesh = &pModelNode->pModel->pMeshes[iMeshIndex];
@@ -1254,13 +1261,6 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent, BoxBounds* pBounds
     pModelNode->pModel = pModel;
     pModelNode->pMaterial = pModel->pMaterial;
     pModelNode->transform.pEntity = pModelNode;
-    
-    pModelNode->bounds.minX = FLT_MAX;
-    pModelNode->bounds.maxX = -FLT_MAX;
-    pModelNode->bounds.minY = FLT_MAX;
-    pModelNode->bounds.maxY = -FLT_MAX;
-    pModelNode->bounds.minZ = FLT_MAX;
-    pModelNode->bounds.maxZ = -FLT_MAX;
     
     for (u32 iChild = 0; iChild < childCount; ++iChild) {
         processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform, pBounds);
