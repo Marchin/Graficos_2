@@ -115,12 +115,22 @@ struct ENGINE_API Animation {
 };
 
 struct ENGINE_API BoxBounds {
-    f32* pMinX;
-    f32* pMinY;
-    f32* pMinZ;
-    f32* pMaxX;
-    f32* pMaxY;
-    f32* pMaxZ;
+    union {
+        struct {
+            f32 minX;
+            f32 minY;
+            f32 minZ;
+        };
+        hmm_vec3 min;
+    };
+    union {
+        struct {
+            f32 maxX;
+            f32 maxY;
+            f32 maxZ;
+        };
+        hmm_vec3 max;
+    };
 };
 
 struct ENGINE_API Vertex {
@@ -173,7 +183,6 @@ struct ENGINE_API Mesh {
     Material* pMaterial;
     Vertex* pVertices;
     ModelTexture** pModelTextures;
-    BoxBounds bounds;
     u32* pIndices;
     size_t meshComponentID;
     u32 verticesCount;
@@ -193,6 +202,7 @@ struct ENGINE_API ModelNode {
     Material* pMaterial; 
     u32* pMeshIndices;
     u32 meshIndicesCount;
+    BoxBounds bounds;
 };
 
 struct ENGINE_API Model {
@@ -202,7 +212,7 @@ struct ENGINE_API Model {
     Material* pMaterial;
     Mesh* pMeshes;
     ModelTexture* pLoadedTextures;
-    ModelNode* pNodes;
+    ModelNode* pModelNodes;
     char pPath[MAX_PATH_SIZE];
     u32 meshesCount;
     u32 texturesCount;

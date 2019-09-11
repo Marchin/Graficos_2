@@ -55,7 +55,7 @@ getComponent(ComponentID componentID, Component** pComponents, s32 componentsSiz
     return 0;
 }
 
-//the components system works similar to the scene graph in that every component
+//The components system works similar to the scene graph in that every component
 //stores the needed draw and update functions, and we add 4 components everytime
 //it runs out of space in order to save allocations.
 //Every component has a componentID at the beginning of the structure so that,
@@ -93,6 +93,7 @@ removeComponent(ComponentID componentID, Component** pComponents, s32 components
     }
 }
 
+
 ////////////////////////////////
 
 //Transform
@@ -102,7 +103,6 @@ removeComponent(ComponentID componentID, Component** pComponents, s32 components
 //The scene graph is implemented inside the transform system, 
 //it works by having pointers to their respective draw and update functions if needed
 //and it keeps a reference to the entity itself to send it to those functions
-
 
 ENGINE_API inline void 
 transformUpdateMC(Transform* pTransform) {
@@ -195,7 +195,7 @@ ENGINE_API inline void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pTransform->model;
     u32 childrenCount = pTransform->childrenCount;
-    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
+    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform) {
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
         hmm_mat4 modelChild = pChild->model;
@@ -853,8 +853,8 @@ shrinkStackBlock(size_t id, MeshComponentType type, size_t oldSize, size_t newSi
     
     if (gpMeshComponentsPool->verticesSlotsBeginnings[id] == 0 && 
         gpMeshComponentsPool->texturesSlotsBeginnings[id] == 0 && 
-        gpMeshComponentsPool->indicesSlotsBeginnings[id] == 0) 
-    {
+        gpMeshComponentsPool->indicesSlotsBeginnings[id] == 0) {
+        
         size_t* pCurrentWord = &gpMeshComponentsPool->idsUsed[id/size];
         size_t offset = id%size;
         *pCurrentWord = *pCurrentWord & ~(1 << offset);
@@ -869,8 +869,6 @@ freeStackBlock(size_t id, MeshComponentType type, size_t oldSize) {
 
 ENGINE_API void 
 initMesh(Mesh* pMesh) {
-    //initTransform(&pMesh->transform);
-    
     initVA(&pMesh->va);
     vaBind(pMesh->va);
     
@@ -969,27 +967,6 @@ freeMesh(Mesh* pMesh) {
     pMesh->indicesCount = 0;
 }
 
-ENGINE_API void
-drawModel(void* pModel, Renderer* pRenderer) {
-    Model* pCastedModel = (Model*)pModel;
-    if (pCastedModel->meshesCount <= 0) {
-        return;
-    }
-    
-    materialBindID(pCastedModel->pMaterial->id);
-}
-
-ENGINE_API u32 
-textureFromFile(const char* pTextureName, const char* pModelPath) {
-    Texture texture;
-    char pTexturePath[MAX_PATH_SIZE];
-    strcpy(pTexturePath, pModelPath);
-    strcat(pTexturePath, pTextureName);
-    initTexture(&texture, pTexturePath, true);
-    
-    return texture.id;
-}
-
 internal void
 loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial, 
                       aiTextureType type, const char* pTypeName) {
@@ -1025,37 +1002,11 @@ loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial,
     }
 }
 
-internal void
-checkBounds(BoxBounds* pBounds, hmm_vec3* pPos) {
-    if (pPos->x < *pBounds->pMinX) {
-        pBounds->pMinX = &pPos->x;
-    } else if (pPos->x > *pBounds->pMaxX) {
-        pBounds->pMaxX = &pPos->x;
-    }
-    if (pPos->y < *pBounds->pMinY) {
-        pBounds->pMinY = &pPos->y;
-    } else if (pPos->y > *pBounds->pMaxY) {
-        pBounds->pMaxY = &pPos->y;
-    }
-    if (pPos->z < *pBounds->pMinZ) {
-        pBounds->pMinZ = &pPos->z;
-    } else if (pPos->z > *pBounds->pMaxZ) {
-        pBounds->pMaxZ = &pPos->z;
-    }
-}
-
 internal void 
 setupMeshVertex(aiMesh* pAiMesh, Mesh* pMesh) {
     Vertex vertex;
     Vertex* pVertices = pMesh->pVertices;
     u32 verticesCount = pAiMesh->mNumVertices;
-    
-    pMesh->bounds.pMinX = &pAiMesh->mVertices[0].x;
-    pMesh->bounds.pMaxX = pMesh->bounds.pMinX;
-    pMesh->bounds.pMinY = pMesh->bounds.pMinX + 1;
-    pMesh->bounds.pMaxY = pMesh->bounds.pMinY;
-    pMesh->bounds.pMinZ = pMesh->bounds.pMinY + 1;
-    pMesh->bounds.pMaxZ = pMesh->bounds.pMinZ;
     
     for (u32 iVertex = 0; iVertex < verticesCount; ++iVertex) {
         vertex.pos.x = pAiMesh->mVertices[iVertex].x;
@@ -1074,7 +1025,6 @@ setupMeshVertex(aiMesh* pAiMesh, Mesh* pMesh) {
         }
         
         pVertices[iVertex] = vertex;
-        checkBounds(&pMesh->bounds, &pVertices[iVertex].pos);
     }
 }
 
@@ -1093,13 +1043,11 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         size_t id = getMeshComponentID();
         pMesh->meshComponentID = id; 
         
-        
         pushToStack(pMesh->meshComponentID, 
                     VERTICES, 
                     verticesCount);
         
         pMesh->pVertices = gpMeshComponentsPool->verticesSlotsBeginnings[id];
-        
         
         for (u32 iFace = 0; iFace < facesCount; ++iFace) {
             indicesCount += pAiMesh->mFaces[iFace].mNumIndices;
@@ -1113,7 +1061,6 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         setupMeshVertex(pAiMesh, pMesh);
         
         pMesh->verticesCount = verticesCount;
-        
         
         u32 iIndex = 0;
         for (u32 i = 0; i < facesCount; ++i) {
@@ -1175,14 +1122,14 @@ processMeshes(Model* pModel, const aiScene* pScene) {
 }
 
 ENGINE_API b32
-isMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
-    BoxBounds bounds = pMesh->bounds;
-    f32 minX = *bounds.pMinX;
-    f32 minY = *bounds.pMinY;
-    f32 minZ = *bounds.pMinZ;
-    f32 maxX = *bounds.pMaxX;
-    f32 maxY = *bounds.pMaxY;
-    f32 maxZ = *bounds.pMaxZ;
+isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRenderer) {
+    BoxBounds bounds = pModelNode->bounds;
+    f32 minX = bounds.minX;
+    f32 minY = bounds.minY;
+    f32 minZ = bounds.minZ;
+    f32 maxX = bounds.maxX;
+    f32 maxY = bounds.maxY;
+    f32 maxZ = bounds.maxZ;
     hmm_vec3 points[8] = {
         minX, minY, minZ,
         minX, minY, maxZ,
@@ -1195,11 +1142,14 @@ isMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
     }; 
     
     for (u32 iPoint = 0; iPoint < 8; ++iPoint) {
+#if 1
         hmm_vec4 wcVertex4 = 
-            HMM_MultiplyMat4ByVec4(getModelView(pRenderer),
+            HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
                                    HMM_Vec4v(points[iPoint], 1.f));
         hmm_vec3 wcVertex3 = {wcVertex4.X, wcVertex4.Y, wcVertex4.Z};
+#endif
         if (isPointInsideFrustum(wcVertex3, pCamera)) {
+            //if (isPointInsideFrustum(points[iPoint], pCamera)) {
             return true;
         }
     }
@@ -1208,40 +1158,92 @@ isMeshInsideFrustum(Mesh* pMesh, Camera* pCamera, Renderer* pRenderer) {
 }
 
 ENGINE_API void
-drawModelNode(void* pNode, Renderer* pRenderer) {
-    ModelNode* pCastedNode = (ModelNode*)pNode;
-    
-    u32 meshCount = pCastedNode->meshIndicesCount;
-    Mesh* pMeshes = pCastedNode->pModel->pMeshes;
-    
-    pRenderer->pCamera->model = pCastedNode->transform.model;
+drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
+    hmm_mat4 modelMatrix = pModelNode->transform.model;
+    pRenderer->pCamera->model = modelMatrix;
     
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(pCastedNode->pMaterial, 
+    shaderSetMat4(pModelNode->pMaterial, 
                   "uModelViewProjection", 
                   &mvp);
     
     b32 drawable = false;
+    drawable = isModelNodeInsideFrustum(pModelNode, pRenderer->pCamera, pRenderer);
     u32 drawed = 0;
-    for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
-        drawable = isMeshInsideFrustum(&pMeshes[pCastedNode->pMeshIndices[iMesh]], 
-                                       pRenderer->pCamera, pRenderer);
-        
-        if (drawable) { 
-            drawMesh(&pMeshes[pCastedNode->pMeshIndices[iMesh]]);
+    Mesh* pMeshes = pModelNode->pModel->pMeshes;
+    u32 meshCount = pModelNode->meshIndicesCount;
+    if (drawable) { 
+        for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
+            drawMesh(&pMeshes[pModelNode->pMeshIndices[iMesh]]);
             ++drawed;
         }
+        
+        u32 childCount = pModelNode->transform.childrenCount;
+        for (u32 iModelNode = 0; iModelNode < childCount; ++iModelNode) {
+            Transform* pChild = pModelNode->transform.pChildren[iModelNode];
+            hmm_mat4 modelChild = pChild->model;
+            pChild->model = pModelNode->transform.model * pChild->model;
+            drawModelNode((ModelNode*)pChild->pEntity,
+                          pRenderer);
+            pChild->model = modelChild;
+        }
     }
-    if (meshCount > 0) {
-        printf("%d\n", drawed);
-        drawed = 0;
+    if (meshCount > 0) printf("%d\n", drawed);
+}
+
+internal void
+checkBounds(BoxBounds* pBounds, hmm_vec3* pPos) {
+    if (pPos->x < pBounds->minX) {
+        pBounds->minX = pPos->x;
+    }
+    if (pPos->x > pBounds->maxX) {
+        pBounds->maxX = pPos->x;
+    }
+    if (pPos->y < pBounds->minY) {
+        pBounds->minY = pPos->y;
+    }
+    if (pPos->y > pBounds->maxY) {
+        pBounds->maxY = pPos->y;
+    }
+    if (pPos->z < pBounds->minZ) {
+        pBounds->minZ = pPos->z;
+    }
+    if (pPos->z > pBounds->maxZ) {
+        pBounds->maxZ = pPos->z;
+    }
+}
+
+ENGINE_API void 
+updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
+    if (pBounds == NULL) { pBounds = &pModelNode->bounds; }
+    
+    Transform* pMNTransform = &pModelNode->transform;
+    u32 childrenCount = pMNTransform->childrenCount;
+    for (u32 iChild = 0; iChild < childrenCount; ++iChild) {
+        Transform* pChild = pModelNode->transform.pChildren[iChild];
+        hmm_mat4 modelChild = pChild->model;
+        pChild->model = pModelNode->transform.model * pChild->model;
+        updateModelNode((ModelNode*)pMNTransform->pChildren[iChild]->pEntity, pBounds);
+        pChild->model = modelChild;
+    }
+    
+    u32 meshIndicesCount = pModelNode->meshIndicesCount;
+    for (u32 iMeshIndex = 0; iMeshIndex < meshIndicesCount; ++iMeshIndex) {
+        Mesh* pMesh = &pModelNode->pModel->pMeshes[iMeshIndex];
+        u32 vertexCount = pMesh->verticesCount;
+        for (u32 iVertex = 0; iVertex < vertexCount; ++iVertex) {
+            checkBounds(&pModelNode->bounds, &pMesh->pVertices[iVertex].pos);
+            hmm_vec4 vec4 = HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f);
+            vec4 = pMNTransform->model * vec4;
+            checkBounds(pBounds, &vec4.XYZ);
+        }
     }
 }
 
 internal void
-processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
+processNode(Model* pModel, aiNode* pNode, Transform* pParent, BoxBounds* pBounds) {
     u32 childCount = pNode->mNumChildren;
-    ModelNode* pModelNode = &pModel->pNodes[pModel->nodesCount++];
+    ModelNode* pModelNode = &pModel->pModelNodes[pModel->nodesCount++];
     initTransform(&pModelNode->transform);
     addChild(&pModelNode->transform, pParent);
     
@@ -1252,10 +1254,16 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     pModelNode->pModel = pModel;
     pModelNode->pMaterial = pModel->pMaterial;
     pModelNode->transform.pEntity = pModelNode;
-    pModelNode->transform.draw = drawModelNode;
+    
+    pModelNode->bounds.minX = FLT_MAX;
+    pModelNode->bounds.maxX = -FLT_MAX;
+    pModelNode->bounds.minY = FLT_MAX;
+    pModelNode->bounds.maxY = -FLT_MAX;
+    pModelNode->bounds.minZ = FLT_MAX;
+    pModelNode->bounds.maxZ = -FLT_MAX;
     
     for (u32 iChild = 0; iChild < childCount; ++iChild) {
-        processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform);
+        processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform, pBounds);
     }
 }
 
@@ -1277,6 +1285,33 @@ freeNode(ModelNode* pNode) {
     for (u32 iChild = 0; iChild < childCount; ++iChild) {
         freeNode((ModelNode*)(pNode->transform.pChildren[iChild]->pEntity));
     }
+}
+
+ENGINE_API void
+drawModel(void* pModel, Renderer* pRenderer) {
+    Model* pCastedModel = (Model*)pModel;
+    if (pCastedModel->meshesCount <= 0) {
+        return;
+    }
+    
+    materialBindID(pCastedModel->pMaterial->id);
+    
+    Transform* pChild = pCastedModel->pTransform->pChildren[0];
+    hmm_mat4 modelChild = pChild->model;
+    pChild->model = pCastedModel->pTransform->model * pChild->model;
+    drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
+    pChild->model = modelChild;
+}
+
+internal void
+updateModel(void* pModel, f32 deltaTime) {
+    Model* pCastedModel = (Model*)pModel;
+    
+    Transform* pChild = pCastedModel->pTransform->pChildren[0];
+    hmm_mat4 modelChild = pChild->model;
+    pChild->model = pCastedModel->pTransform->model * pChild->model;
+    updateModelNode(&pCastedModel->pModelNodes[0], NULL);
+    pChild->model = modelChild;
 }
 
 ENGINE_API void 
@@ -1312,11 +1347,14 @@ initModel(Model* pModel, const char* pPath,
     processMeshes(pModel, pScene);
     
     int nodesCount = countNodes(pScene->mRootNode);
-    pModel->pNodes = (ModelNode*)malloc(nodesCount*sizeof(ModelNode));
-    memset(pModel->pNodes, 0, nodesCount*sizeof(ModelNode));
+    pModel->pModelNodes = (ModelNode*)malloc(nodesCount*sizeof(ModelNode));
+    memset(pModel->pModelNodes, 0, nodesCount*sizeof(ModelNode));
+    
+    pModel->pTransform->update = updateModel;
+    pModel->pTransform->draw = drawModel;
     
     pModel->nodesCount = 0;
-    processNode(pModel, pScene->mRootNode, pModel->pTransform);
+    processNode(pModel, pScene->mRootNode, pModel->pTransform, NULL);
     
     pModel->pLoadedTextures = 
         (ModelTexture*)realloc(pModel->pLoadedTextures, 
@@ -1341,7 +1379,18 @@ freeModel(Model* pModel) {
     
     pModel->pPath[0] = '\0';
     
-    freeNode(&pModel->pNodes[0]);
+    freeNode(&pModel->pModelNodes[0]);
     
-    free(pModel->pNodes);
+    free(pModel->pModelNodes);
+}
+
+ENGINE_API u32 
+textureFromFile(const char* pTextureName, const char* pModelPath) {
+    Texture texture;
+    char pTexturePath[MAX_PATH_SIZE];
+    strcpy(pTexturePath, pModelPath);
+    strcat(pTexturePath, pTextureName);
+    initTexture(&texture, pTexturePath, true);
+    
+    return texture.id;
 }

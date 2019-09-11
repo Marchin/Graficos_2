@@ -2,6 +2,7 @@
 #define ENGINE_H
 #define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
+#include <float.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

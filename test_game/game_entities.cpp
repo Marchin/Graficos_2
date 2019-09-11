@@ -84,8 +84,8 @@ internal void
 initCharacter(Character* pCharacter, const char* pModelPath) {
     initTransform(&pCharacter->transform);
     pCharacter->transform.pEntity = pCharacter;
-    pCharacter->transform.draw = drawCharacter;
-    pCharacter->transform.update = updateCharacter;
+    //pCharacter->transform.draw = drawCharacter;
+    //pCharacter->transform.update = updateCharacter;
     
     initMaterial(&pCharacter->material, "Model", "..//resources//shaders//vModel.glsl", 
                  "..//resources//shaders//fModel.glsl");
