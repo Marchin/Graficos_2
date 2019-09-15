@@ -16,7 +16,7 @@ enum ENGINE_API ComponentID {
 
 struct Component {
     ComponentID id;
-    void(*draw)(void* pComponent, Renderer* pRenderer);
+    b32(*draw)(void* pComponent, Renderer* pRenderer);
     void(*update)(void* pComponent, f32 deltaTime);
 };
 
@@ -34,7 +34,7 @@ struct ENGINE_API Transform {
     u32 componentsCount;
     u32 componentsCapacity;
     
-    void(*draw)(void* pEntity, Renderer* pRenderer);
+    b32(*draw)(void* pEntity, Renderer* pRenderer);
     void(*update)(void* pEntity, f32 deltaTime);
     Transform* pParent;
     Transform** pChildren;
@@ -243,7 +243,7 @@ ENGINE_API void initTriangle(Triangle* pTriangle,
                              Transform* pTransform, Material* pMaterial, 
                              const void* pData, u32 size);
 ENGINE_API void freeTriangle(Triangle* pTriangle);
-ENGINE_API void drawTriangle(void* pTriangle, Renderer* pRenderer);
+ENGINE_API b32 drawTriangle(void* pTriangle, Renderer* pRenderer);
 ENGINE_API inline void setTriangleVertices(Triangle* pTriangle, const void* pData);
 
 //COLOR_SQUARE
@@ -251,7 +251,7 @@ ENGINE_API void initColorSquare(ColorSquare* pCS,
                                 Transform* pTransform, Material* pMaterial, 
                                 const void* pPosition, const void* pColor);
 ENGINE_API void freeColorSquare(ColorSquare* pCS);
-ENGINE_API void drawColorSquare(void* pCS, Renderer* pRenderer);
+ENGINE_API b32 drawColorSquare(void* pCS, Renderer* pRenderer);
 ENGINE_API inline void colorSquareSetVertices(ColorSquare* pCS, const void* pPosition);
 ENGINE_API inline void colorSquareSetColors(ColorSquare* pCS, const void* pColor);
 
@@ -261,7 +261,7 @@ ENGINE_API void initCircle(Circle* pCircle,
                            Transform* pTransform,  Material* pMaterial, 
                            u32 sidesAmount, f32 radius);
 ENGINE_API inline void freeCircle(Circle* pCircle);
-ENGINE_API void drawCircle(void* pCircle, Renderer* pRenderer);
+ENGINE_API b32 drawCircle(void* pCircle, Renderer* pRenderer);
 
 //SPRITE_RENDERER
 ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR,  
@@ -270,7 +270,7 @@ ENGINE_API void initSpriteRenderer(SpriteRenderer* pSR,
                                    const void* pPosition = 0, const void* pUV = 0);
 ENGINE_API inline void spriteSetVertices(SpriteRenderer* pSR, const void* pPosition);
 ENGINE_API inline void spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords);
-ENGINE_API void drawSpriteRenderer(void* pSR, Renderer* pRenderer);
+ENGINE_API b32 drawSpriteRenderer(void* pSR, Renderer* pRenderer);
 
 //SPRITE_SHEET
 ENGINE_API void initSpriteSheet(SpriteSheet* pSS, 
@@ -293,7 +293,7 @@ ENGINE_API void changeAnimation(Animation* pAnimation, u32* pFrames, u32 count);
 ENGINE_API void initMesh(Mesh* pMesh);
 ENGINE_API void drawMesh(Mesh* pMesh);
 ENGINE_API void freeMesh(Mesh* pMesh);
-ENGINE_API void drawModel(void* pModel, Renderer* pRenderer);
+ENGINE_API b32 drawModel(void* pModel, Renderer* pRenderer);
 ENGINE_API u32 textureFromFile(const char* pTextureName, const char* pModelPath);
 ENGINE_API void initModel(Model* pModel, const char* pPath, Material* pMaterial,  
                           Transform* pTransform);

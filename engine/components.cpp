@@ -1,3 +1,6 @@
+internal u32 drawnCount;
+
+
 ////////////////////////////////
 
 //Components
@@ -195,13 +198,14 @@ ENGINE_API inline void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pTransform->model;
     u32 childrenCount = pTransform->childrenCount;
+    b32 drawn = false;
     for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform) {
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
         hmm_mat4 modelChild = pChild->model;
         pChild->model = pTransform->model * pChild->model;
         if (pChild->draw) {
-            pChild->draw(pChild->pEntity, pRenderer);
+            drawn = pChild->draw(pChild->pEntity, pRenderer);
         }
         u32 componentCount = pChild->componentsCount;
         for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
@@ -209,9 +213,15 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
                 pChild->pComponents[iComponent]->draw(pChild->pComponents[iComponent], pRenderer);
             }
         }
-        transformDraw(pChild, pRenderer);
+        if (drawn) {
+            transformDraw(pChild, pRenderer);
+        }
         pChild->model = modelChild;
         ++i;
+    }
+    if (pTransform->pParent == NULL) {
+        printf("%d\n", drawnCount);
+        drawnCount = 0;
     }
 }
 
@@ -221,6 +231,8 @@ transformUpdate(Transform* pTransform, f32 deltaTime) {
     for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
+        hmm_mat4 modelChild = pChild->model;
+        pChild->model = pTransform->model * pChild->model;
         if (pChild->update) {
             pChild->update(pChild->pEntity, deltaTime);
         }
@@ -231,6 +243,7 @@ transformUpdate(Transform* pTransform, f32 deltaTime) {
             }
         }
         transformUpdate(pChild, deltaTime);
+        pChild->model = modelChild;
         ++i;
     }
 }
@@ -270,7 +283,7 @@ freeTriangle(Triangle* pTriangle) {
     freeVB(&pTriangle->vb);
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawTriangle(void* pTriangle, Renderer* pRenderer) {
     Triangle* pCastedTriangle = (Triangle*) pTriangle; 
     materialBindID(pCastedTriangle->pMaterial->id);
@@ -281,6 +294,8 @@ drawTriangle(void* pTriangle, Renderer* pRenderer) {
                   &mvp);
     vaBind(pCastedTriangle->va);
     drawBufferStrip(0, 3);
+    
+    return true; 
 }
 
 ENGINE_API inline void 
@@ -329,7 +344,7 @@ freeColorSquare(ColorSquare* pCS) {
     freeVB(&pCS->vbColor);
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawColorSquare(void* pCS, Renderer* pRenderer) {
     ColorSquare* pCastedCS = (ColorSquare*)pCS;
     materialBindID(pCastedCS->pMaterial->id); 
@@ -338,6 +353,8 @@ drawColorSquare(void* pCS, Renderer* pRenderer) {
     shaderSetMat4(pCastedCS->pMaterial, "uModelViewProjection", &mvp);
     vaBind(pCastedCS->va);
     drawBufferStrip(0, 4);
+    
+    return true;
 }
 
 ENGINE_API inline void
@@ -420,7 +437,7 @@ freeCircle(Circle* pCircle) {
     freeVB(&pCircle->vb);
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawCircle(void* pCircle, Renderer* pRenderer) {
     Circle* pCastedCircle = (Circle*)pCircle;
     materialBindID(pCastedCircle->pMaterial->id);
@@ -429,6 +446,8 @@ drawCircle(void* pCircle, Renderer* pRenderer) {
     shaderSetMat4(pCastedCircle->pMaterial, "uModelViewProjection", &mvp);
     vaBind(pCastedCircle->va);
     drawBufferFan(0, pCastedCircle->sides + 2);
+    
+    return true;
 }
 
 
@@ -506,7 +525,7 @@ spriteSetUV(SpriteRenderer* pSR, const void* pUVCoords) {
     vbSetData(pSR->vbUV, pUVCoords, 8 * sizeof(f32));
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawSpriteRenderer(void* pSR, Renderer* pRenderer) {
     SpriteRenderer* pCastedSR = (SpriteRenderer*)pSR;
     materialBindID(pCastedSR->pMaterial->id);
@@ -516,6 +535,8 @@ drawSpriteRenderer(void* pSR, Renderer* pRenderer) {
     shaderSetMat4(pCastedSR->pMaterial, "uModelViewProjection", &mvp);
     vaBind(pCastedSR->va);
     drawBufferStrip(0, 4);
+    
+    return true;
 }
 
 
@@ -1157,7 +1178,7 @@ isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRend
     return false;
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
     hmm_mat4 modelMatrix = pModelNode->transform.model;
     pRenderer->pCamera->model = modelMatrix;
@@ -1169,13 +1190,12 @@ drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
     
     b32 drawable = false;
     drawable = isModelNodeInsideFrustum(pModelNode, pRenderer->pCamera, pRenderer);
-    u32 drawed = 0;
     Mesh* pMeshes = pModelNode->pModel->pMeshes;
     u32 meshCount = pModelNode->meshIndicesCount;
     if (drawable) { 
         for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
             drawMesh(&pMeshes[pModelNode->pMeshIndices[iMesh]]);
-            ++drawed;
+            ++drawnCount;
         }
         
         u32 childCount = pModelNode->transform.childrenCount;
@@ -1188,7 +1208,12 @@ drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
             pChild->model = modelChild;
         }
     }
-    if (meshCount > 0) printf("%d\n", drawed);
+    
+    if (meshCount > 0) {
+        ++drawnCount;
+    }
+    
+    return drawable;
 }
 
 internal void
@@ -1217,6 +1242,13 @@ ENGINE_API void
 updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
     if (pBounds == NULL) { pBounds = &pModelNode->bounds; }
     
+    pModelNode->bounds.minX = FLT_MAX;
+    pModelNode->bounds.maxX = -FLT_MAX;
+    pModelNode->bounds.minY = FLT_MAX;
+    pModelNode->bounds.maxY = -FLT_MAX;
+    pModelNode->bounds.minZ = FLT_MAX;
+    pModelNode->bounds.maxZ = -FLT_MAX;
+    
     Transform* pMNTransform = &pModelNode->transform;
     u32 childrenCount = pMNTransform->childrenCount;
     for (u32 iChild = 0; iChild < childrenCount; ++iChild) {
@@ -1227,21 +1259,14 @@ updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
         pChild->model = modelChild;
     }
     
-    pModelNode->bounds.minX = FLT_MAX;
-    pModelNode->bounds.maxX = -FLT_MAX;
-    pModelNode->bounds.minY = FLT_MAX;
-    pModelNode->bounds.maxY = -FLT_MAX;
-    pModelNode->bounds.minZ = FLT_MAX;
-    pModelNode->bounds.maxZ = -FLT_MAX;
-    
     u32 meshIndicesCount = pModelNode->meshIndicesCount;
     for (u32 iMeshIndex = 0; iMeshIndex < meshIndicesCount; ++iMeshIndex) {
-        Mesh* pMesh = &pModelNode->pModel->pMeshes[iMeshIndex];
+        Mesh* pMesh = &pModelNode->pModel->pMeshes[pModelNode->pMeshIndices[iMeshIndex]];
         u32 vertexCount = pMesh->verticesCount;
         for (u32 iVertex = 0; iVertex < vertexCount; ++iVertex) {
-            checkBounds(&pModelNode->bounds, &pMesh->pVertices[iVertex].pos);
             hmm_vec4 vec4 = HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f);
             vec4 = pMNTransform->model * vec4;
+            checkBounds(&pModelNode->bounds, &vec4.XYZ);
             checkBounds(pBounds, &vec4.XYZ);
         }
     }
@@ -1287,11 +1312,11 @@ freeNode(ModelNode* pNode) {
     }
 }
 
-ENGINE_API void
+ENGINE_API b32
 drawModel(void* pModel, Renderer* pRenderer) {
     Model* pCastedModel = (Model*)pModel;
     if (pCastedModel->meshesCount <= 0) {
-        return;
+        return false;
     }
     
     materialBindID(pCastedModel->pMaterial->id);
@@ -1299,8 +1324,10 @@ drawModel(void* pModel, Renderer* pRenderer) {
     Transform* pChild = pCastedModel->pTransform->pChildren[0];
     hmm_mat4 modelChild = pChild->model;
     pChild->model = pCastedModel->pTransform->model * pChild->model;
-    drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
+    b32 drawed = drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
     pChild->model = modelChild;
+    
+    return drawed;
 }
 
 internal void

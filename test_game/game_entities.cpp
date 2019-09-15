@@ -11,10 +11,12 @@ moveFigure(Figure* pFigure, f32 x, f32 y) {
 	}
 }
 
-internal void
+internal b32
 drawFigure(void* pFigure, Renderer* pRenderer) {
     Figure* pCastedFigure = (Figure*)pFigure;
 	drawSpriteRenderer(&pCastedFigure->spriteSheet.spriteRenderer, pRenderer);
+    
+    return true;
 }
 
 inline void

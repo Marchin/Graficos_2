@@ -53,7 +53,6 @@
 #include "opengl_renderer.h"
 #endif
 
-
 #include "components.h"
 #include "physics.h"
 #include "tilemap.h"

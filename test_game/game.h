@@ -13,6 +13,7 @@ struct Game {
     Tilemap tilemap;
     Camera camera;
     Character character;
+    Character character2;
     BasicGO go;
     Transform scene;
     f32 camX, camY;

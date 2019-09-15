@@ -114,6 +114,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 #endif
     
     initCharacter(&pGame->character, "../resources/bath.obj");
+    initCharacter(&pGame->character2, "../resources/cube.obj");
     
     initTransform(&pGame->scene);
     addChild(&pGame->figure1.transform, &pGame->scene);
@@ -121,10 +122,13 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     addChild(&pGame->figure3.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
     addChild(&pGame->character.transform, &pGame->scene);
+    //addChild(&pGame->character2.transform, &pGame->scene);
+    addChild(&pGame->character2.transform, &pGame->character.transform);
     removeChild(&pGame->figure2.transform);
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
-    transformTranslate(&pGame->character.transform, 0.f, 0.f, -60.f);
+    transformTranslate(&pGame->character.transform, 0.f, 0.f, -30.f);
+    transformTranslate(&pGame->character2.transform, 30.f, 0.f, 0.f);
 }
 
 local_persist s32 counter;
