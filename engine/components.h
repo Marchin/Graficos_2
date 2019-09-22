@@ -20,6 +20,27 @@ struct Component {
     void(*update)(void* pComponent, f32 deltaTime);
 };
 
+struct ENGINE_API BoxBounds {
+    union {
+        struct {
+            f32 minX;
+            f32 minY;
+            f32 minZ;
+        };
+        hmm_vec3 min;
+    };
+    union {
+        struct {
+            f32 maxX;
+            f32 maxY;
+            f32 maxZ;
+        };
+        hmm_vec3 max;
+    };
+};
+global const BoxBounds DEFAULT_BOUNDS = {
+    FLT_MAX, FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX};
+
 struct ENGINE_API Transform {
     hmm_mat4 model;
 	hmm_mat4 positionMatrix;
@@ -29,6 +50,8 @@ struct ENGINE_API Transform {
 	hmm_vec3 position;
     hmm_vec3 eulerAngles;
     hmm_vec3 scale;
+    
+    BoxBounds bounds;
     
     Component** pComponents;
     u32 componentsCount;
@@ -114,25 +137,6 @@ struct ENGINE_API Animation {
 	f32 counter;
 };
 
-struct ENGINE_API BoxBounds {
-    union {
-        struct {
-            f32 minX;
-            f32 minY;
-            f32 minZ;
-        };
-        hmm_vec3 min;
-    };
-    union {
-        struct {
-            f32 maxX;
-            f32 maxY;
-            f32 maxZ;
-        };
-        hmm_vec3 max;
-    };
-};
-
 struct ENGINE_API Vertex {
     hmm_vec3 pos;
     hmm_vec3 normal;
@@ -202,7 +206,6 @@ struct ENGINE_API ModelNode {
     Material* pMaterial; 
     u32* pMeshIndices;
     u32 meshIndicesCount;
-    BoxBounds bounds;
 };
 
 struct ENGINE_API Model {
@@ -236,7 +239,7 @@ ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f
 ENGINE_API inline void transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis);
 ENGINE_API inline void transformScale(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformDraw(Transform* pTransform, Renderer* pRenderer);
-ENGINE_API inline void transformUpdate(Transform* pTransform, f32 deltaTime);
+ENGINE_API inline void transformUpdate(Transform* pTransform, f32 deltaTime); 
 
 //TRIANGLE
 ENGINE_API void initTriangle(Triangle* pTriangle, 

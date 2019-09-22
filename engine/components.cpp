@@ -1,6 +1,5 @@
 internal u32 drawnCount;
 
-
 ////////////////////////////////
 
 //Components
@@ -196,28 +195,28 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
 
 ENGINE_API inline void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
-    hmm_mat4 modelMatrix = pTransform->model;
-    u32 childrenCount = pTransform->childrenCount;
-    b32 drawn = false;
-    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform) {
-        Transform* pChild = pTransform->pChildren[iTransform];
-        if (pChild == 0) { continue; }
-        hmm_mat4 modelChild = pChild->model;
-        pChild->model = pTransform->model * pChild->model;
-        if (pChild->draw) {
-            drawn = pChild->draw(pChild->pEntity, pRenderer);
+    b32 drawn = true;
+    if (pTransform->draw) {
+        drawn = pTransform->draw(pTransform->pEntity, pRenderer);
+    }
+    u32 componentCount = pTransform->componentsCount;
+    for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
+        if (pTransform->pComponents[iComponent] && pTransform->pComponents[iComponent]->draw) {
+            pTransform->pComponents[iComponent]->draw(
+                pTransform->pComponents[iComponent], pRenderer);
         }
-        u32 componentCount = pChild->componentsCount;
-        for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
-            if (pChild->pComponents[iComponent] && pChild->pComponents[iComponent]->draw) {
-                pChild->pComponents[iComponent]->draw(pChild->pComponents[iComponent], pRenderer);
-            }
-        }
-        if (drawn) {
+    }
+    if (drawn) {
+        u32 childrenCount = pTransform->childrenCount;
+        for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform) {
+            Transform* pChild = pTransform->pChildren[iTransform];
+            if (pChild == 0) { continue; }
+            hmm_mat4 modelChild = pChild->model;
+            pChild->model = pTransform->model * pChild->model;
             transformDraw(pChild, pRenderer);
+            pChild->model = modelChild;
+            ++i;
         }
-        pChild->model = modelChild;
-        ++i;
     }
     if (pTransform->pParent == NULL) {
         printf("%d\n", drawnCount);
@@ -226,24 +225,51 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
 }
 
 ENGINE_API inline void
+compareBounds(BoxBounds* pCompared, BoxBounds* pReference) {
+    if (pReference->minX < pCompared->minX) {
+        pCompared->minX = pReference->minX;
+    }
+    if (pReference->maxX > pCompared->maxX) {
+        pCompared->maxX = pReference->maxX;
+    }
+    if (pReference->minY < pCompared->minY) {
+        pCompared->minY = pReference->minY;
+    }
+    if (pReference->maxY > pCompared->maxY) {
+        pCompared->maxY = pReference->maxY;
+    }
+    if (pReference->minZ < pCompared->minZ) {
+        pCompared->minZ = pReference->minZ;
+    }
+    if (pReference->maxZ > pCompared->maxZ) {
+        pCompared->maxZ = pReference->maxZ;
+    }
+}
+
+ENGINE_API inline void
 transformUpdate(Transform* pTransform, f32 deltaTime) {
+    if (pTransform->update) {
+        pTransform->update(pTransform->pEntity, deltaTime);
+    }
+    u32 componentCount = pTransform->componentsCount;
+    for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
+        if (pTransform->pComponents[iComponent] && 
+            pTransform->pComponents[iComponent]->update) {
+            
+            pTransform->pComponents[iComponent]->update(pTransform->pComponents[iComponent], 
+                                                        deltaTime);
+        }
+    }
     u32 childrenCount = pTransform->childrenCount;
     for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
+        pChild->bounds = DEFAULT_BOUNDS;
         if (pChild == 0) { continue; }
         hmm_mat4 modelChild = pChild->model;
         pChild->model = pTransform->model * pChild->model;
-        if (pChild->update) {
-            pChild->update(pChild->pEntity, deltaTime);
-        }
-        u32 componentCount = pChild->componentsCount;
-        for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
-            if (pChild->pComponents[iComponent] && pChild->pComponents[iComponent]->update) {
-                pChild->pComponents[iComponent]->update(pChild->pComponents[iComponent], deltaTime);
-            }
-        }
         transformUpdate(pChild, deltaTime);
         pChild->model = modelChild;
+        compareBounds(&pTransform->bounds, &pChild->bounds);
         ++i;
     }
 }
@@ -1144,13 +1170,23 @@ processMeshes(Model* pModel, const aiScene* pScene) {
 
 ENGINE_API b32
 isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRenderer) {
-    BoxBounds bounds = pModelNode->bounds;
+    BoxBounds bounds = pModelNode->transform.bounds;
+    
+    bounds.min = 
+        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                               HMM_Vec4v(bounds.min, 1.f)).XYZ;
+    
+    bounds.max = 
+        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                               HMM_Vec4v(bounds.max, 1.f)).XYZ;
+    
     f32 minX = bounds.minX;
     f32 minY = bounds.minY;
     f32 minZ = bounds.minZ;
     f32 maxX = bounds.maxX;
     f32 maxY = bounds.maxY;
     f32 maxZ = bounds.maxZ;
+    
     hmm_vec3 points[8] = {
         minX, minY, minZ,
         minX, minY, maxZ,
@@ -1163,14 +1199,7 @@ isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRend
     }; 
     
     for (u32 iPoint = 0; iPoint < 8; ++iPoint) {
-#if 1
-        hmm_vec4 wcVertex4 = 
-            HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
-                                   HMM_Vec4v(points[iPoint], 1.f));
-        hmm_vec3 wcVertex3 = {wcVertex4.X, wcVertex4.Y, wcVertex4.Z};
-#endif
-        if (isPointInsideFrustum(wcVertex3, pCamera)) {
-            //if (isPointInsideFrustum(points[iPoint], pCamera)) {
+        if (isPointInsideFrustum(points[iPoint], pCamera)) {
             return true;
         }
     }
@@ -1179,7 +1208,8 @@ isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRend
 }
 
 ENGINE_API b32
-drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
+drawModelNode(void* pEntity, Renderer* pRenderer) {
+    ModelNode* pModelNode = (ModelNode*)pEntity;
     hmm_mat4 modelMatrix = pModelNode->transform.model;
     pRenderer->pCamera->model = modelMatrix;
     
@@ -1195,9 +1225,9 @@ drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
     if (drawable) { 
         for (u32 iMesh = 0; iMesh < meshCount; ++iMesh) {
             drawMesh(&pMeshes[pModelNode->pMeshIndices[iMesh]]);
-            ++drawnCount;
         }
         
+#if 0
         u32 childCount = pModelNode->transform.childrenCount;
         for (u32 iModelNode = 0; iModelNode < childCount; ++iModelNode) {
             Transform* pChild = pModelNode->transform.pChildren[iModelNode];
@@ -1207,6 +1237,7 @@ drawModelNode(ModelNode* pModelNode, Renderer* pRenderer) {
                           pRenderer);
             pChild->model = modelChild;
         }
+#endif
     }
     
     if (meshCount > 0) {
@@ -1239,18 +1270,11 @@ checkBounds(BoxBounds* pBounds, hmm_vec3* pPos) {
 }
 
 ENGINE_API void 
-updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
-    if (pBounds == NULL) { pBounds = &pModelNode->bounds; }
-    
-    pModelNode->bounds.minX = FLT_MAX;
-    pModelNode->bounds.maxX = -FLT_MAX;
-    pModelNode->bounds.minY = FLT_MAX;
-    pModelNode->bounds.maxY = -FLT_MAX;
-    pModelNode->bounds.minZ = FLT_MAX;
-    pModelNode->bounds.maxZ = -FLT_MAX;
-    
+updateModelNode(void* pEntity, f32 deltaTime) {
+    ModelNode* pModelNode = (ModelNode*)pEntity;
     Transform* pMNTransform = &pModelNode->transform;
     u32 childrenCount = pMNTransform->childrenCount;
+#if 0
     for (u32 iChild = 0; iChild < childrenCount; ++iChild) {
         Transform* pChild = pModelNode->transform.pChildren[iChild];
         hmm_mat4 modelChild = pChild->model;
@@ -1258,6 +1282,7 @@ updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
         updateModelNode((ModelNode*)pMNTransform->pChildren[iChild]->pEntity, pBounds);
         pChild->model = modelChild;
     }
+#endif
     
     u32 meshIndicesCount = pModelNode->meshIndicesCount;
     for (u32 iMeshIndex = 0; iMeshIndex < meshIndicesCount; ++iMeshIndex) {
@@ -1266,14 +1291,13 @@ updateModelNode(ModelNode* pModelNode, BoxBounds* pBounds) {
         for (u32 iVertex = 0; iVertex < vertexCount; ++iVertex) {
             hmm_vec4 vec4 = HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f);
             vec4 = pMNTransform->model * vec4;
-            checkBounds(&pModelNode->bounds, &vec4.XYZ);
-            checkBounds(pBounds, &vec4.XYZ);
+            checkBounds(&pModelNode->transform.bounds, &vec4.XYZ);
         }
     }
 }
 
 internal void
-processNode(Model* pModel, aiNode* pNode, Transform* pParent, BoxBounds* pBounds) {
+processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     u32 childCount = pNode->mNumChildren;
     ModelNode* pModelNode = &pModel->pModelNodes[pModel->nodesCount++];
     initTransform(&pModelNode->transform);
@@ -1286,9 +1310,11 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent, BoxBounds* pBounds
     pModelNode->pModel = pModel;
     pModelNode->pMaterial = pModel->pMaterial;
     pModelNode->transform.pEntity = pModelNode;
+    pModelNode->transform.draw = drawModelNode;
+    pModelNode->transform.update = updateModelNode;
     
     for (u32 iChild = 0; iChild < childCount; ++iChild) {
-        processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform, pBounds);
+        processNode(pModel, pNode->mChildren[iChild], &pModelNode->transform);
     }
 }
 
@@ -1321,15 +1347,16 @@ drawModel(void* pModel, Renderer* pRenderer) {
     
     materialBindID(pCastedModel->pMaterial->id);
     
-    Transform* pChild = pCastedModel->pTransform->pChildren[0];
-    hmm_mat4 modelChild = pChild->model;
-    pChild->model = pCastedModel->pTransform->model * pChild->model;
-    b32 drawed = drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
-    pChild->model = modelChild;
+    //Transform* pChild = pCastedModel->pTransform->pChildren[0];
+    //hmm_mat4 modelChild = pChild->model;
+    //pChild->model = pCastedModel->pTransform->model * pChild->model;
+    //b32 drawed = drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
+    //pChild->model = modelChild;
     
-    return drawed;
+    return true;
 }
 
+#if 0
 internal void
 updateModel(void* pModel, f32 deltaTime) {
     Model* pCastedModel = (Model*)pModel;
@@ -1340,6 +1367,7 @@ updateModel(void* pModel, f32 deltaTime) {
     updateModelNode(&pCastedModel->pModelNodes[0], NULL);
     pChild->model = modelChild;
 }
+#endif
 
 ENGINE_API void 
 initModel(Model* pModel, const char* pPath, 
@@ -1377,11 +1405,13 @@ initModel(Model* pModel, const char* pPath,
     pModel->pModelNodes = (ModelNode*)malloc(nodesCount*sizeof(ModelNode));
     memset(pModel->pModelNodes, 0, nodesCount*sizeof(ModelNode));
     
-    pModel->pTransform->update = updateModel;
-    pModel->pTransform->draw = drawModel;
+    //pModel->pModelNodes.transform.update = updateModel;
+    //pTransform = &pModel->pModelNodes[0].transform;
     
     pModel->nodesCount = 0;
-    processNode(pModel, pScene->mRootNode, pModel->pTransform, NULL);
+    processNode(pModel, pScene->mRootNode, pTransform);
+    
+    pTransform->draw = drawModel;
     
     pModel->pLoadedTextures = 
         (ModelTexture*)realloc(pModel->pLoadedTextures, 

@@ -30,11 +30,15 @@ findCharacter(const char* pString, char toFind, FIRST_LAST from, size_t* pIndex)
     return false;
 }
 
+inline b32
+haveSameSign(f32 a, f32 b) {
+    return ((a >= 0) == (b >= 0));
+}
 
 struct ENGINE_API Plane {
     hmm_vec3 normal;
     hmm_vec3 dot;
-    f32 d;
+    f32 d; //distance to origin
 };
 
 #endif //UTILS_H

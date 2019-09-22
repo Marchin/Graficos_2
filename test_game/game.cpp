@@ -94,9 +94,9 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     moveFigure(&pGame->figure2, 1.f, 0.f);
     moveFigure(&pGame->figure3, 0.f, -7.f);
     pGame->figure2.pCollider->mass = 5.f;
-#if 1    
     
-	char* pTilesetPath = "..//resources//tileset.png";
+#if 1    
+    char* pTilesetPath = "..//resources//tileset.png";
 	initSpriteSheet(&pGame->tileset, &pGame->tilemap.transform,
                     &textureMaterial, pTilesetPath, squareVertices, squareUV);
     spriteSheetSetFrameSize(&pGame->tileset, 32);
@@ -117,10 +117,12 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initCharacter(&pGame->character2, "../resources/cube.obj");
     
     initTransform(&pGame->scene);
+#if 0
     addChild(&pGame->figure1.transform, &pGame->scene);
     addChild(&pGame->figure2.transform, &pGame->figure1.transform);
     addChild(&pGame->figure3.transform, &pGame->scene);
     addChild(&pGame->go.transform, &pGame->scene);
+#endif
     addChild(&pGame->character.transform, &pGame->scene);
     //addChild(&pGame->character2.transform, &pGame->scene);
     addChild(&pGame->character2.transform, &pGame->character.transform);
@@ -131,7 +133,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     transformTranslate(&pGame->character2.transform, 30.f, 0.f, 0.f);
 }
 
-local_persist s32 counter;
+internal s32 counter;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
@@ -146,7 +148,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     //transformRotateY(&pGame->cs.transform, 5.f);
     //transformRotate(&pGame->sprite.transform, 5.f, );
     pGame->timer += pTime->deltaTime;
-    counter++;
+    ++counter;
     
 #if 0
     float vertices[] = {
@@ -224,8 +226,8 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     transformRotate(&pGame->model2.transform, 1.f, VEC3_X);
     drawModel(&pGame->model, pRenderer);
     drawModel(&pGame->model2, pRenderer);
-#endif
     tilemapCheckCollisions(&pGame->tilemap);
+#endif
     transformUpdate(&pGame->scene, pTime->deltaTime);
     transformDraw(&pGame->scene, pRenderer);
     f64 x, y;
