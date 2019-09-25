@@ -130,7 +130,14 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     pGame->timer = {};
     pGame->camera.projectionType = ORTHOGRAPHIC;
     transformTranslate(&pGame->character.transform, 0.f, 0.f, -30.f);
-    transformTranslate(&pGame->character2.transform, 30.f, 0.f, 0.f);
+    transformTranslate(&pGame->character2.transform, 30.f, 20.f, 0.f);
+    
+    pGame->level.pBSPPlanes = (Plane*)malloc(sizeof(Plane));
+    ++pGame->level.bspPlaneCount;
+    Plane* pPlane = pGame->level.pBSPPlanes;
+    pPlane->normal = {0.f, 1.f, 0.f};
+    pPlane->dot = {0.f, 0.f, 0.f};
+    pPlane->d = -HMM_DotVec3(pPlane->normal, pPlane->dot);
 }
 
 internal s32 counter;
@@ -229,6 +236,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     tilemapCheckCollisions(&pGame->tilemap);
 #endif
     transformUpdate(&pGame->scene, pTime->deltaTime);
+    checkBSPPlanes(&pGame->scene, pRenderer, &pGame->level);
     transformDraw(&pGame->scene, pRenderer);
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);

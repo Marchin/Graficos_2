@@ -193,9 +193,12 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
     transformUpdateMC(pTransform);
 }
 
-ENGINE_API inline void
+ENGINE_API void
 transformDraw(Transform* pTransform, Renderer* pRenderer) {
     b32 drawn = true;
+    if (!pTransform->passedBSP) {
+        return;
+    }
     if (pTransform->draw) {
         drawn = pTransform->draw(pTransform->pEntity, pRenderer);
     }
@@ -225,7 +228,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
 }
 
 ENGINE_API inline void
-compareBounds(BoxBounds* pCompared, BoxBounds* pReference) {
+compareBounds(BoxBounds* pCompared, const BoxBounds* pReference) {
     if (pReference->minX < pCompared->minX) {
         pCompared->minX = pReference->minX;
     }
@@ -246,8 +249,8 @@ compareBounds(BoxBounds* pCompared, BoxBounds* pReference) {
     }
 }
 
-ENGINE_API inline void
-transformUpdate(Transform* pTransform, f32 deltaTime) {
+ENGINE_API void
+transformUpdate(Transform* pTransform, const f32 deltaTime) {
     if (pTransform->update) {
         pTransform->update(pTransform->pEntity, deltaTime);
     }
@@ -271,6 +274,74 @@ transformUpdate(Transform* pTransform, f32 deltaTime) {
         pChild->model = modelChild;
         compareBounds(&pTransform->bounds, &pChild->bounds);
         ++i;
+    }
+}
+
+ENGINE_API inline b32
+passesBSP(const BoxBounds* pBounds, const Plane* pPlane, const Renderer* pRenderer) {
+    BoxBounds bounds = *pBounds;
+    bounds.min = 
+        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                               HMM_Vec4v(bounds.min, 1.f)).XYZ;
+    
+    bounds.max = 
+        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                               HMM_Vec4v(bounds.max, 1.f)).XYZ;
+    
+    f32 minX = bounds.minX;
+    f32 minY = bounds.minY;
+    f32 minZ = bounds.minZ;
+    f32 maxX = bounds.maxX;
+    f32 maxY = bounds.maxY;
+    f32 maxZ = bounds.maxZ;
+    
+    hmm_vec3 points[8] = {
+        minX, minY, minZ,
+        minX, minY, maxZ,
+        minX, maxY, minZ,
+        minX, maxY, maxZ,
+        maxX, minY, minZ,
+        maxX, minY, maxZ,
+        maxX, maxY, minZ,
+        maxX, maxY, minZ,
+    }; 
+    
+    for (u32 iPoint = 0; iPoint < 8; ++iPoint) {
+        f32 signedDistanceToPoint = HMM_DotVec3(pPlane->normal, points[iPoint]);
+        if (haveSameSign(signedDistanceToPoint, pPlane->d)) {
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+ENGINE_API void
+transformCheckBSP(Transform* pTransform, const Plane* pPlane, const Renderer* pRenderer) {
+    pTransform->passedBSP = passesBSP(&pTransform->bounds, pPlane, pRenderer);
+    u32 childrenCount = pTransform->childrenCount;
+    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
+        Transform* pChild = pTransform->pChildren[iTransform];
+        if (pChild == 0) { continue; }
+        hmm_mat4 modelChild = pChild->model;
+        pChild->model = pTransform->model * pChild->model;
+        transformCheckBSP(pChild, pPlane, pRenderer);
+        pChild->model = modelChild;
+        ++i;
+    }
+}
+
+ENGINE_API void
+checkBSPPlanes(Transform* pScence, const Renderer* pRenderer, const Level* pLevel) {
+    const u32 planesCount = pLevel->bspPlaneCount;
+    for (u32 iPlane = 0; iPlane < planesCount; ++iPlane) {
+        Plane plane = pLevel->pBSPPlanes[iPlane];
+        hmm_vec4 normal4 = HMM_Vec4v(plane.normal, 0.f);
+        plane.normal =(getViewMatrix(pRenderer->pCamera)*normal4).XYZ;
+        hmm_vec4 dot4 = HMM_Vec4v(plane.dot, 1.f);
+        plane.dot =(getViewMatrix(pRenderer->pCamera)*dot4).XYZ;
+        plane.d = -HMM_DotVec3(plane.normal, plane.dot);
+        transformCheckBSP(pScence, &plane, pRenderer);
     }
 }
 
@@ -1347,27 +1418,8 @@ drawModel(void* pModel, Renderer* pRenderer) {
     
     materialBindID(pCastedModel->pMaterial->id);
     
-    //Transform* pChild = pCastedModel->pTransform->pChildren[0];
-    //hmm_mat4 modelChild = pChild->model;
-    //pChild->model = pCastedModel->pTransform->model * pChild->model;
-    //b32 drawed = drawModelNode(&pCastedModel->pModelNodes[0], pRenderer);
-    //pChild->model = modelChild;
-    
     return true;
 }
-
-#if 0
-internal void
-updateModel(void* pModel, f32 deltaTime) {
-    Model* pCastedModel = (Model*)pModel;
-    
-    Transform* pChild = pCastedModel->pTransform->pChildren[0];
-    hmm_mat4 modelChild = pChild->model;
-    pChild->model = pCastedModel->pTransform->model * pChild->model;
-    updateModelNode(&pCastedModel->pModelNodes[0], NULL);
-    pChild->model = modelChild;
-}
-#endif
 
 ENGINE_API void 
 initModel(Model* pModel, const char* pPath, 
@@ -1404,9 +1456,6 @@ initModel(Model* pModel, const char* pPath,
     int nodesCount = countNodes(pScene->mRootNode);
     pModel->pModelNodes = (ModelNode*)malloc(nodesCount*sizeof(ModelNode));
     memset(pModel->pModelNodes, 0, nodesCount*sizeof(ModelNode));
-    
-    //pModel->pModelNodes.transform.update = updateModel;
-    //pTransform = &pModel->pModelNodes[0].transform;
     
     pModel->nodesCount = 0;
     processNode(pModel, pScene->mRootNode, pTransform);

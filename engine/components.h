@@ -64,6 +64,8 @@ struct ENGINE_API Transform {
     void* pEntity;
     u32 childrenCount;
     u32 maxAmountOfChildren;
+    
+    b32 passedBSP;
 }; 
 
 struct ENGINE_API Triangle {
@@ -238,8 +240,11 @@ ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y,
 ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis);
 ENGINE_API inline void transformScale(Transform* pTransform, f32 x, f32 y, f32 z);
-ENGINE_API inline void transformDraw(Transform* pTransform, Renderer* pRenderer);
-ENGINE_API inline void transformUpdate(Transform* pTransform, f32 deltaTime); 
+ENGINE_API void transformDraw(Transform* pTransform, Renderer* pRenderer);
+ENGINE_API void transformUpdate(Transform* pTransform, const f32 deltaTime); 
+ENGINE_API void checkBSPPlanes(Transform* pScence, 
+                               const Renderer* pRenderer,
+                               const Level* pLevel);
 
 //TRIANGLE
 ENGINE_API void initTriangle(Triangle* pTriangle, 

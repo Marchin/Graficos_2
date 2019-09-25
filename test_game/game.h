@@ -16,6 +16,7 @@ struct Game {
     Character character2;
     BasicGO go;
     Transform scene;
+    Level level;
     f32 camX, camY;
     f32 timer;
 };

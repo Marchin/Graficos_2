@@ -52,7 +52,7 @@
 #if OPENGL
 #include "opengl_renderer.h"
 #endif
-
+struct Level;
 #include "components.h"
 #include "physics.h"
 #include "tilemap.h"
@@ -67,6 +67,11 @@ global const hmm_vec3 VEC3_Y = HMM_Vec3(0.f, 1.f, 0.f);
 global const hmm_vec3 VEC3_Z = HMM_Vec3(0.f, 0.f, 1.f);
 
 global MeshComponentsPool* gpMeshComponentsPool;
+
+struct Level {
+    Plane* pBSPPlanes;
+    u32 bspPlaneCount;
+};
 
 ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);
 ENGINE_API void enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);
