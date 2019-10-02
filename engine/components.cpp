@@ -121,6 +121,7 @@ initTransform(Transform* pTransform) {
     pTransform->position = HMM_Vec3T(0.f);
     pTransform->eulerAngles = HMM_Vec3T(0.f);
     pTransform->scale = HMM_Vec3T(1.f);
+    pTransform->passedBSP = true;
     
     transformUpdateMC(pTransform);
 }
@@ -222,7 +223,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
         }
     }
     if (pTransform->pParent == NULL) {
-        printf("%d\n", drawnCount);
+        //printf("%d\n", drawnCount);
         drawnCount = 0;
     }
 }
@@ -280,14 +281,6 @@ transformUpdate(Transform* pTransform, const f32 deltaTime) {
 ENGINE_API inline b32
 passesBSP(const BoxBounds* pBounds, const Plane* pPlane, const Renderer* pRenderer) {
     BoxBounds bounds = *pBounds;
-    bounds.min = 
-        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
-                               HMM_Vec4v(bounds.min, 1.f)).XYZ;
-    
-    bounds.max = 
-        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
-                               HMM_Vec4v(bounds.max, 1.f)).XYZ;
-    
     f32 minX = bounds.minX;
     f32 minY = bounds.minY;
     f32 minZ = bounds.minZ;
@@ -323,10 +316,7 @@ transformCheckBSP(Transform* pTransform, const Plane* pPlane, const Renderer* pR
     for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
-        hmm_mat4 modelChild = pChild->model;
-        pChild->model = pTransform->model * pChild->model;
         transformCheckBSP(pChild, pPlane, pRenderer);
-        pChild->model = modelChild;
         ++i;
     }
 }
@@ -336,11 +326,7 @@ checkBSPPlanes(Transform* pScence, const Renderer* pRenderer, const Level* pLeve
     const u32 planesCount = pLevel->bspPlaneCount;
     for (u32 iPlane = 0; iPlane < planesCount; ++iPlane) {
         Plane plane = pLevel->pBSPPlanes[iPlane];
-        hmm_vec4 normal4 = HMM_Vec4v(plane.normal, 0.f);
-        plane.normal =(getViewMatrix(pRenderer->pCamera)*normal4).XYZ;
-        hmm_vec4 dot4 = HMM_Vec4v(plane.dot, 1.f);
-        plane.dot =(getViewMatrix(pRenderer->pCamera)*dot4).XYZ;
-        plane.d = -HMM_DotVec3(plane.normal, plane.dot);
+        plane.d = -HMM_DotVec3(plane.normal, -1.f*pRenderer->pCamera->position);
         transformCheckBSP(pScence, &plane, pRenderer);
     }
 }
