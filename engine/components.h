@@ -66,6 +66,7 @@ struct ENGINE_API Transform {
     u32 maxAmountOfChildren;
     
     b32 passedBSP;
+    char name[128];
 }; 
 
 struct ENGINE_API Triangle {

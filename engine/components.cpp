@@ -301,7 +301,7 @@ passesBSP(const BoxBounds* pBounds, const Plane* pPlane,
     }; 
     
     for (u32 iPoint = 0; iPoint < 8; ++iPoint) {
-        f32 signedDistanceToPoint = HMM_DotVec3(pPlane->normal, points[iPoint]);
+        f32 signedDistanceToPoint = HMM_DotVec3(pPlane->normal, points[iPoint]) + pPlane->d;
         if (haveSameSign(signedDistanceToPoint, cameraDistance)) {
             
             return true;
@@ -312,15 +312,20 @@ passesBSP(const BoxBounds* pBounds, const Plane* pPlane,
 
 ENGINE_API void
 transformCheckBSP(Transform* pTransform, const Plane* pPlane, 
-                  const Renderer* pRenderer, const f32 cameraDistance) {
+                  const Renderer* pRenderer, const f32 cameraDistance,
+                  b32 firstRound) {
     
-    pTransform->passedBSP = passesBSP(&pTransform->bounds, pPlane, pRenderer, cameraDistance);
-    u32 childrenCount = pTransform->childrenCount;
-    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
-        Transform* pChild = pTransform->pChildren[iTransform];
-        if (pChild == 0) { continue; }
-        transformCheckBSP(pChild, pPlane, pRenderer, cameraDistance);
-        ++i;
+    if (pTransform->passedBSP || firstRound) {
+        pTransform->passedBSP = passesBSP(&pTransform->bounds, pPlane, pRenderer, cameraDistance);
+        if (!pTransform->passedBSP) { return; }
+        u32 childrenCount = pTransform->childrenCount;
+        for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
+            Transform* pChild = pTransform->pChildren[iTransform];
+            if (pChild == 0) { continue; }
+            transformCheckBSP(pChild, pPlane, pRenderer, 
+                              cameraDistance, firstRound);
+            ++i;
+        }
     }
 }
 
@@ -330,7 +335,8 @@ checkBSPPlanes(Transform* pScence, const Renderer* pRenderer, const Level* pLeve
     for (u32 iPlane = 0; iPlane < planesCount; ++iPlane) {
         Plane plane = pLevel->pBSPPlanes[iPlane];
         f32 cameraDistance = -HMM_DotVec3(plane.normal, -1.f*pRenderer->pCamera->position) + plane.d;
-        transformCheckBSP(pScence, &plane, pRenderer, cameraDistance);
+        transformCheckBSP(pScence, &plane, pRenderer, 
+                          cameraDistance, iPlane == 0);
     }
 }
 

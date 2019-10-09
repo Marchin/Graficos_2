@@ -132,12 +132,22 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     transformTranslate(&pGame->character.transform, 0.f, 0.f, -30.f);
     transformTranslate(&pGame->character2.transform, 30.f, 20.f, 0.f);
     
-    pGame->level.pBSPPlanes = (Plane*)malloc(sizeof(Plane));
-    ++pGame->level.bspPlaneCount;
+    pGame->level.bspPlaneCount = 1;
+    pGame->level.pBSPPlanes = (Plane*)malloc(sizeof(Plane)*pGame->level.bspPlaneCount);
     Plane* pPlane = pGame->level.pBSPPlanes;
+#if 0
     pPlane->normal = {0.f, 1.f, 0.f};
-    pPlane->dot = {0.f, 0.f, 0.f};
+    pPlane->dot = {0.f, -1.f, 0.f};
     pPlane->d = -HMM_DotVec3(pPlane->normal, pPlane->dot);
+    ++pPlane;
+#endif
+    pPlane->normal = {1.f, 0.f, 0.f};
+    pPlane->dot = {10.f, 0.f, 0.f};
+    pPlane->d = -HMM_DotVec3(pPlane->normal, pPlane->dot);
+    
+    strcpy(&pGame->scene.name[0], "scene");
+    strcpy(&pGame->character.transform.name[0], "banio");
+    strcpy(&pGame->character2.transform.name[0], "cubo");
 }
 
 internal s32 counter;
