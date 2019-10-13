@@ -3,18 +3,17 @@
 
 
 struct Game {
-    Triangle triangle;
-    ColorSquare cs;
-    Circle circle;
-    Animation anim;
-    SpriteSheet ss;
-    Figure figure1, figure2, figure3;
-    SpriteSheet tileset;
-    Tilemap tilemap;
     Camera camera;
-    Character character;
-    Character character2;
-    BasicGO go;
+    Character floor;
+    Character cubeA;
+    Character cubeB;
+    Character cubeC;
+    Character cubeD;
+    Character cubeE;
+    Character wall1;
+    Character wall2;
+    Character wall3;
+    Character filler;
     Transform scene;
     Level level;
     f32 camX, camY;

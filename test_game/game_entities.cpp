@@ -85,6 +85,7 @@ updateCharacter(void* pCharacter, f32 deltaTime) {
 internal void
 initCharacter(Character* pCharacter, const char* pModelPath) {
     initTransform(&pCharacter->transform);
+    strcpy(pCharacter->transform.name, pModelPath);
     pCharacter->transform.pEntity = pCharacter;
     //pCharacter->transform.draw = drawCharacter;
     //pCharacter->transform.update = updateCharacter;

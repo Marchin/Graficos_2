@@ -38,7 +38,7 @@ haveSameSign(f32 a, f32 b) {
 struct ENGINE_API Plane {
     hmm_vec3 normal;
     hmm_vec3 dot;
-    f32 d; //distance to origin
+    f32 d; // ax + by + cz + d
 };
 
 #endif //UTILS_H

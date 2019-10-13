@@ -1370,6 +1370,10 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     addChild(&pModelNode->transform, pParent);
     
     pModelNode->meshIndicesCount = pNode->mNumMeshes;
+    if (pModelNode->meshIndicesCount > 0) {
+        strcpy(pModelNode->transform.name, "mesh");
+        strcpy(&pModelNode->transform.name[4], pModel->pTransform->name);
+    }
     u32 sizeOfIndicesInBytes = pModelNode->meshIndicesCount*sizeof(u32);
     pModelNode->pMeshIndices = (u32*)malloc(sizeOfIndicesInBytes);
     memcpy(pModelNode->pMeshIndices, pNode->mMeshes, sizeOfIndicesInBytes);
