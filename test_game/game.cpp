@@ -17,11 +17,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initCharacter(&pGame->wall1, "../resources/cube.obj");
     initCharacter(&pGame->wall2, "../resources/cube.obj");
     initCharacter(&pGame->wall3, "../resources/cube.obj");
-    initCharacter(&pGame->filler, "../resources/cube.obj");
-    
     
     addChild(&pGame->floor.transform, &pGame->scene);
-#if 1
     addChild(&pGame->cubeA.transform, &pGame->scene);
     addChild(&pGame->cubeB.transform, &pGame->scene);
     addChild(&pGame->cubeC.transform, &pGame->scene);
@@ -30,13 +27,11 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     addChild(&pGame->wall1.transform, &pGame->scene);
     addChild(&pGame->wall2.transform, &pGame->scene);
     addChild(&pGame->wall3.transform, &pGame->scene);
-#endif
-    addChild(&pGame->filler.transform, pGame->floor.transform.pChildren[0]);
     transformTranslate(&pGame->floor.transform, 0.f, -1.f, -10.f);
-    transformTranslate(&pGame->cubeA.transform, -5.f, 0.f, 0.f);
-    //transformTranslate(&pGame->cubeB.transform, 0.f, 0.f, 0.f);
-    transformTranslate(&pGame->cubeC.transform, 5.f, 0.f, 0.f);
-    transformTranslate(&pGame->cubeD.transform, 0.f, 0.f, 0.f);
+    transformTranslate(&pGame->cubeA.transform, -5.f, 0.f, -5.f);
+    transformTranslate(&pGame->cubeB.transform, 0.f, 0.f, -5.f);
+    transformTranslate(&pGame->cubeC.transform, 5.f, 0.f, -5.f);
+    transformTranslate(&pGame->cubeD.transform, 0.f, 0.f, -15.f);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.f, 0.f);
     transformTranslate(&pGame->wall1.transform, 4.f, 0.f, -10.f);
     transformTranslate(&pGame->wall2.transform, -4.f, 0.f, -10.f);
@@ -45,7 +40,6 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     transformScale(&pGame->wall1.transform, 0.5f, 3.f, 10.f);
     transformScale(&pGame->wall2.transform, 0.5f, 3.f, 10.f);
     transformScale(&pGame->wall3.transform, 10.f, 3.f, 0.5f);
-    transformScale(&pGame->filler.transform, 0.5f, 0.8f, 0.5f);
     
 #if 1
     pGame->level.bspPlaneCount = 3;
@@ -103,16 +97,16 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     
     // Cube Movement
     if (isKeyPressed(pRenderer, KEY_UP)) {
-        transformTranslate(&pGame->cubeE.transform, 0.f, 0.f, -1.f*pTime->deltaTime);
+        transformTranslate(&pGame->cubeE.transform, 0.f, 0.f, -2.f*pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_DOWN)) {
-        transformTranslate(&pGame->cubeE.transform, 0.f, 0.f, 1.f*pTime->deltaTime);
+        transformTranslate(&pGame->cubeE.transform, 0.f, 0.f, 2.f*pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_LEFT)) {
-        transformTranslate(&pGame->cubeE.transform, -1.f*pTime->deltaTime, 0.f, 0.f);
+        transformTranslate(&pGame->cubeE.transform, -2.f*pTime->deltaTime, 0.f, 0.f);
     }
     if (isKeyPressed(pRenderer, KEY_RIGHT)) {
-        transformTranslate(&pGame->cubeE.transform, 1.f*pTime->deltaTime, 0.f, 0.f);
+        transformTranslate(&pGame->cubeE.transform, 2.f*pTime->deltaTime, 0.f, 0.f);
     }
     
     transformUpdate(&pGame->scene, pTime->deltaTime);

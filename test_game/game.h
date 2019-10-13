@@ -13,7 +13,6 @@ struct Game {
     Character wall1;
     Character wall2;
     Character wall3;
-    Character filler;
     Transform scene;
     Level level;
     f32 camX, camY;
