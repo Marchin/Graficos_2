@@ -223,7 +223,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
         }
     }
     if (pTransform->pParent == NULL) {
-        //printf("%d\n", drawnCount);
+        printf("%d\n", drawnCount);
         drawnCount = 0;
     }
 }
@@ -1369,6 +1369,7 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     initTransform(&pModelNode->transform);
     addChild(&pModelNode->transform, pParent);
     
+    strcpy(pModelNode->transform.name, pNode->mName.C_Str());
     pModelNode->meshIndicesCount = pNode->mNumMeshes;
     if (pModelNode->meshIndicesCount > 0) {
         strcpy(pModelNode->transform.name, "mesh");
