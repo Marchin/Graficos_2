@@ -1395,11 +1395,11 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     pModelNode->pModel = pModel;
     pModelNode->pMaterial = pModel->pMaterial;
     for (u32 row = 0, column = 0; column < 4; ++row) {
-        pModelNode->transform.model.Elements[row][column] = pNode->mTransformation[column][row];
-        if (row >= 3) {
+        if (row > 3) {
             ++column;
-            row = 0;
+            row= 0;
         }
+        pModelNode->transform.model.Elements[column][row] = pNode->mTransformation[row][column];
     }
     pModelNode->transform.pEntity = pModelNode;
     pModelNode->transform.draw = drawModelNode;
