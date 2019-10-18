@@ -56,6 +56,7 @@
 #if OPENGL
 #include "opengl_renderer.h"
 #endif
+
 struct Level;
 #include "components.h"
 #include "physics.h"

@@ -1339,16 +1339,6 @@ ENGINE_API void
 updateModelNode(void* pEntity, f32 deltaTime) {
     ModelNode* pModelNode = (ModelNode*)pEntity;
     Transform* pMNTransform = &pModelNode->transform;
-    u32 childrenCount = pMNTransform->childrenCount;
-#if 0
-    for (u32 iChild = 0; iChild < childrenCount; ++iChild) {
-        Transform* pChild = pModelNode->transform.pChildren[iChild];
-        hmm_mat4 modelChild = pChild->model;
-        pChild->model = pModelNode->transform.model * pChild->model;
-        updateModelNode((ModelNode*)pMNTransform->pChildren[iChild]->pEntity, pBounds);
-        pChild->model = modelChild;
-    }
-#endif
     
     u32 meshIndicesCount = pModelNode->meshIndicesCount;
     for (u32 iMeshIndex = 0; iMeshIndex < meshIndicesCount; ++iMeshIndex) {
@@ -1371,10 +1361,6 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     
     strcpy(pModelNode->transform.name, pNode->mName.C_Str());
     pModelNode->meshIndicesCount = pNode->mNumMeshes;
-    if (pModelNode->meshIndicesCount > 0) {
-        strcpy(pModelNode->transform.name, "mesh");
-        strcpy(&pModelNode->transform.name[4], pModel->pTransform->name);
-    }
     u32 sizeOfIndicesInBytes = pModelNode->meshIndicesCount*sizeof(u32);
     pModelNode->pMeshIndices = (u32*)malloc(sizeOfIndicesInBytes);
     memcpy(pModelNode->pMeshIndices, pNode->mMeshes, sizeOfIndicesInBytes);
