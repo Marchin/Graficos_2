@@ -340,6 +340,34 @@ checkBSPPlanes(Transform* pScence, const Renderer* pRenderer, const Level* pLeve
     }
 }
 
+void
+generateWalls(Transform* pTransform, Level* pLevel) {
+    // NOTE(Marchin): if the first transform sent has any parents, their model matrix are ignored
+    if (strncmp(pTransform->name, "wall", 4) == 0) {
+        u32 planesCount = pLevel->bspPlaneCount++;
+        if (planesCount >= pLevel->maxBSPPlanes) {
+            pLevel->maxBSPPlanes = planesCount + DEFAULT_CHILDREN_ADDED;
+            pLevel->pBSPPlanes = (Plane*)realloc(pLevel->pBSPPlanes,
+                                                 pLevel->maxBSPPlanes*sizeof(Plane));
+        }
+        Plane plane;
+        plane.normal =  HMM_NormalizeVec3((pTransform->model * HMM_Vec4v(VEC3_X, 0.f)).XYZ);
+        plane.dot = (pTransform->model * HMM_Vec4(0.f, 0.f, 0.f, 1.f)).XYZ;
+        plane.d = -HMM_DotVec3(plane.normal, plane.dot);
+        pLevel->pBSPPlanes[planesCount] = plane;
+    }
+    u32 childrenCount = pTransform->childrenCount;
+    for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
+        Transform* pChild = pTransform->pChildren[iTransform];
+        if (pChild == 0) { continue; }
+        hmm_mat4 modelChild = pChild->model;
+        pChild->model = pTransform->model * pChild->model;
+        generateWalls(pChild, pLevel);
+        pChild->model = modelChild;
+        ++i;
+    }
+}
+
 ////////////////////////////////
 
 //TRIANGLE
@@ -1366,6 +1394,13 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
     memcpy(pModelNode->pMeshIndices, pNode->mMeshes, sizeOfIndicesInBytes);
     pModelNode->pModel = pModel;
     pModelNode->pMaterial = pModel->pMaterial;
+    for (u32 row = 0, column = 0; column < 4; ++row) {
+        pModelNode->transform.model.Elements[row][column] = pNode->mTransformation[column][row];
+        if (row >= 3) {
+            ++column;
+            row = 0;
+        }
+    }
     pModelNode->transform.pEntity = pModelNode;
     pModelNode->transform.draw = drawModelNode;
     pModelNode->transform.update = updateModelNode;

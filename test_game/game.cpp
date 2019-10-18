@@ -6,13 +6,15 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initMaterial(&modelMaterial, "Model", "..//resources//shaders//vModel.glsl", 
                  "..//resources//shaders//fModel.glsl");
     
-    initCharacter(&pGame->scene, "../resources/bsp.obj");
+    initCharacter(&pGame->scene, "../resources/scene.fbx");
     initCharacter(&pGame->cubeE, "../resources/cube.obj");
     
     addChild(&pGame->cubeE.transform, &pGame->scene.transform);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.65f, 0.f);
     
-    generateWalls(TRANSFORM, LEVEL*);
+#if 1
+    generateWalls(&pGame->scene.transform, &pGame->level);
+#endif
 }
 
 internal s32 counter;

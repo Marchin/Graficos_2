@@ -76,6 +76,7 @@ global MeshComponentsPool* gpMeshComponentsPool;
 struct Level {
     Plane* pBSPPlanes;
     u32 bspPlaneCount;
+    u32 maxBSPPlanes;
 };
 
 ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);

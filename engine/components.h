@@ -246,6 +246,7 @@ ENGINE_API void transformUpdate(Transform* pTransform, const f32 deltaTime);
 ENGINE_API void checkBSPPlanes(Transform* pScence, 
                                const Renderer* pRenderer,
                                const Level* pLevel);
+ENGINE_API void generateWalls(Transform* pTransform, Level* pLevel);
 
 //TRIANGLE
 ENGINE_API void initTriangle(Triangle* pTriangle, 
