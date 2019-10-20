@@ -351,7 +351,7 @@ generateWalls(Transform* pTransform, Level* pLevel) {
                                                  pLevel->maxBSPPlanes*sizeof(Plane));
         }
         Plane plane;
-        plane.normal =  HMM_NormalizeVec3((pTransform->model * HMM_Vec4v(VEC3_X, 0.f)).XYZ);
+        plane.normal =  HMM_NormalizeVec3((pTransform->model * HMM_Vec4v(VEC3_Y, 0.f)).XYZ);
         plane.dot = (pTransform->model * HMM_Vec4(0.f, 0.f, 0.f, 1.f)).XYZ;
         plane.d = -HMM_DotVec3(plane.normal, plane.dot);
         pLevel->pBSPPlanes[planesCount] = plane;

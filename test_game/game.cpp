@@ -6,7 +6,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initMaterial(&modelMaterial, "Model", "..//resources//shaders//vModel.glsl", 
                  "..//resources//shaders//fModel.glsl");
     
-    initCharacter(&pGame->scene, "../resources/scene.fbx");
+    initCharacter(&pGame->scene, "../resources/bsp.fbx");
     initCharacter(&pGame->cubeE, "../resources/cube.obj");
     
     addChild(&pGame->cubeE.transform, &pGame->scene.transform);
