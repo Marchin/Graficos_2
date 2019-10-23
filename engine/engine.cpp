@@ -9,6 +9,8 @@
 #include "tilemap.cpp"
 #include "camera.cpp"
 
+#include "wav.cpp"
+
 ENGINE_API void
 startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
     gpMeshComponentsPool = (MeshComponentsPool*)malloc(sizeof(MeshComponentsPool));

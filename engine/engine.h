@@ -62,6 +62,8 @@ struct Level;
 #include "physics.h"
 #include "tilemap.h"
 
+#include "wav.h"
+
 struct ENGINE_API Time {
     f32 deltaTime;
     f32 lastFrame;

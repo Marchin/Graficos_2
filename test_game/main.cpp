@@ -20,6 +20,9 @@ void main() {
         updateGame(&game, &renderer, &time, &cm);
         enginePostUpdate(&window, &time, &cm);
     }
+    s32 err = Pa_Terminate();
+    if( err != paNoError )
+        printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
     stopRenderer();
     stopWindow(&window);
 }

@@ -1,3 +1,6 @@
+#define SAMPLE_RATE (44100)
+
+static paTestData data;
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     pGame->timer = {};
@@ -11,10 +14,34 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     addChild(&pGame->cubeE.transform, &pGame->scene.transform);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.65f, 0.f);
-    
-#if 1
+    readWAV(&pGame->sound);
     generateWalls(&pGame->scene.transform, &pGame->level);
-#endif
+    
+    
+    s32 err = Pa_Initialize();
+    if (err != paNoError) {
+        printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+    }
+    
+    PaStream *stream;
+    /* Open an audio I/O stream. */
+    err = Pa_OpenDefaultStream(&stream,
+                               0,/* no input channels */
+                               pGame->sound.channels,// stereo output 
+                               paFloat32,  /* 32 bit floating point output */
+                               pGame->sound.sample_rate,
+                               paFramesPerBufferUnspecified, /* frames per buffer, i.e. the number
+                               of sample frames that PortAudio will
+                               request from the callback. Many apps
+                               may want to use
+                               paFramesPerBufferUnspecified, which
+                               tells PortAudio to pick the best,
+                               possibly changing, buffer size.*/
+                               patestCallback, /* this is your callback function */
+                               &pGame->sound.pData); /*This is a pointer that will be passed to your callback*/
+    
+    err = Pa_StartStream(stream);
+    
 }
 
 internal s32 counter;
@@ -23,6 +50,8 @@ internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     pGame->timer += pTime->deltaTime;
     ++counter;
+    
+    //Pa_Sleep(1);
     
     if (isKeyPressed(pRenderer, KEY_D)) {
         moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
