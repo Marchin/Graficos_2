@@ -1,10 +1,8 @@
 #ifndef WAV_H
 #define WAV_H
 
-struct paTestData {
-    float left_phase;
-    float right_phase;
-};
+#define FRAMES_PER_BUFFER 44100
+#define TWO_CHANNELS 2
 
 // WAV file header format
 struct WAV {
@@ -24,10 +22,25 @@ struct WAV {
     void* pData;
 };
 
-ENGINE_API s32 readWAV(WAV* pWAV);
+ENGINE_API s32 readWAV(WAV* pWAV, const char* pPath);
+ENGINE_API void playMusic();
+ENGINE_API void setMusicData(u32 audioBlockAlign, u32 musicSizeInBytes);
 ENGINE_API int patestCallback(const void* inputBuffer, void* outputBuffer,
                               unsigned long framesPerBuffer,
                               const PaStreamCallbackTimeInfo* timeInfo,
                               PaStreamCallbackFlags statusFlags,
                               void *userData);
+ENGINE_API int fftCallback(const void* inputBuffer, void* outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void *userData);
+ENGINE_API int sinCallback(const void* inputBuffer, void* outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void* pUserData);
+ENGINE_API f32* getFFTModResult();
+ENGINE_API u32 getFFTModSize();
+ENGINE_API void setMusicVisualizer(MusicVisualizerConfig pMusicVisualizerConfig);
 #endif //WAV_H

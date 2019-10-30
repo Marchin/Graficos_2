@@ -18,6 +18,9 @@
 #define HANDMADE_MATH_IMPLEMENTATION
 #include "handmade_math.h"
 
+#include <kiss_fft/kiss_fft.h>
+#include <kiss_fft/kiss_fft.c>
+
 #define MAX_PATH_SIZE 260
 
 #if OPENGL
@@ -41,6 +44,7 @@
 #define KEY_RIGHT GLFW_KEY_RIGHT
 #define KEY_UP GLFW_KEY_UP
 #define KEY_DOWN GLFW_KEY_DOWN
+#define KEY_SPACE GLFW_KEY_SPACE
 #endif
 
 #if ENGINE_EXPORTS
@@ -61,7 +65,7 @@ struct Level;
 #include "components.h"
 #include "physics.h"
 #include "tilemap.h"
-
+#include "music_visualizer.h"
 #include "wav.h"
 
 struct ENGINE_API Time {

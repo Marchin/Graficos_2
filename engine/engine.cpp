@@ -1,5 +1,7 @@
 #include "engine.h"
 
+//#include "kiss_fft/kiss_fft.c"
+
 #if OPENGL
 #include "opengl_renderer.cpp"
 #endif
@@ -8,8 +10,8 @@
 #include "physics.cpp"
 #include "tilemap.cpp"
 #include "camera.cpp"
-
 #include "wav.cpp"
+#include "music_visualizer.cpp"
 
 ENGINE_API void
 startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {

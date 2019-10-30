@@ -223,7 +223,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
         }
     }
     if (pTransform->pParent == NULL) {
-        printf("%d\n", drawnCount);
+        //printf("%d\n", drawnCount);
         drawnCount = 0;
     }
 }

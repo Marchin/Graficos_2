@@ -7,7 +7,7 @@ out vec3 vColor;
 
 uniform mat4 uModelViewProjection;
 
-void main(){
+void main() {
 	vColor = aColor;
-	gl_Position =  uModelViewProjection * vec4(aPos, 1.0f);
+	gl_Position = uModelViewProjection * vec4(aPos, 1.0f);
 }

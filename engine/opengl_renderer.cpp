@@ -1,4 +1,4 @@
-ENGINE_API inline f32 
+inline f32 
 getTime() {
     return (f32)glfwGetTime();
 }
@@ -80,7 +80,7 @@ setupMaterial(const char* pMaterialPath, u32 type) {
 	return id;
 }
 
-ENGINE_API void
+void
 initMaterial(Material* pMaterial, const char* pName,
              const char* pVertexPath, const char* pFragmentPath,
              const char* pGeometryPath, 
@@ -132,12 +132,12 @@ initMaterial(Material* pMaterial, const char* pName,
     
 }
 
-ENGINE_API inline void 
+inline void 
 materialBindID(u32 materialID) {
 	glCall(glUseProgram(materialID));
 }
 
-ENGINE_API s32 
+s32 
 getUniformLocation(Material* pMaterial, const char* pName) {
     meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
@@ -170,33 +170,33 @@ getUniformLocation(Material* pMaterial, const char* pName) {
     }
 }
 
-ENGINE_API inline void 
+inline void 
 shaderSetBool(Material* pMaterial, const char* pName, b32 value) {
 	glCall(glUniform1i(getUniformLocation(pMaterial, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetInt(Material* pMaterial, const char* pName, s32 value) {
 	glCall(glUniform1i(getUniformLocation(pMaterial, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetFloat(Material* pMaterial, const char* pName, f32 value) {
 	glCall(glUniform1f(getUniformLocation(pMaterial, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetVec3(Material* pMaterial, const char* pName, hmm_vec3* pVector) {
 	glCall(glUniform3fv(getUniformLocation(pMaterial, pName), 1, &pVector->x));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetMat4(Material* pMaterial, const char* pName, hmm_mat4* pMat4) {
 	glCall(glUniformMatrix4fv(getUniformLocation(pMaterial, pName), 
                               1, GL_FALSE, (f32*)pMat4));
 }
 
-ENGINE_API void
+void
 initTexture(Texture* pTexture, u32 width, u32 height) {
     pTexture->width = width;
     pTexture->height = height;
@@ -209,7 +209,7 @@ initTexture(Texture* pTexture, u32 width, u32 height) {
     glCall(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
-ENGINE_API void
+void
 initTexture(Texture* pTexture,
             const char* pImgPath, b32 flipVertical, 
             s32 TextureWrap_S, s32 TextureWrap_T,
@@ -249,18 +249,18 @@ initTexture(Texture* pTexture,
     stbi_image_free(pData);
 }
 
-ENGINE_API inline void
+inline void
 freeTexture(u32* pTextureID) {
     glCall(glDeleteTextures(1, pTextureID));
 }
 
-ENGINE_API inline void
+inline void
 textureBindID(u32 textureID, u32 slot) {
     glCall(glActiveTexture(GL_TEXTURE0 + slot));
     glCall(glBindTexture(GL_TEXTURE_2D, textureID));
 }
 
-ENGINE_API inline void
+inline void
 initEB(u32* pEBObject,  u32* pData, u32 count) {
     glCall(glGenBuffers(1, pEBObject));
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *pEBObject));
@@ -270,22 +270,22 @@ initEB(u32* pEBObject,  u32* pData, u32 count) {
                         GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void
+inline void
 freeEB(u32* pEBObject) {
     glCall(glDeleteBuffers(1, pEBObject));
 }
 
-ENGINE_API inline void 
+inline void 
 ebBind(u32 ebObject) {
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebObject));
 }
 
-ENGINE_API inline void 
+inline void 
 ebUnbind() {
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
-ENGINE_API inline u32 
+inline u32 
 vbElementGetSizeOfType(u32 type) {
     u32 result = 0;
     switch (type) {
@@ -305,7 +305,7 @@ vbElementGetSizeOfType(u32 type) {
     return 0;
 }
 
-ENGINE_API void 
+void 
 vbLayoutPushFloat(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -317,7 +317,7 @@ vbLayoutPushFloat(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API void
+void
 vbLayoutPushUint(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -329,7 +329,7 @@ vbLayoutPushUint(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API void 
+void 
 vbLayoutPushUchar(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -341,60 +341,60 @@ vbLayoutPushUchar(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API inline void
+inline void
 initVB(u32* pVB) {
     glCall(glGenBuffers(1, pVB));
 }
 
-ENGINE_API inline void
+inline void
 initVB(u32* pVB, const void* pData, u32 size) {
     glCall(glGenBuffers(1, pVB));
     glCall(glBindBuffer(GL_ARRAY_BUFFER, *pVB));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void
+inline void
 freeVB(u32* pVB) {
     glCall(glDeleteBuffers(1, pVB));
 }
 
-ENGINE_API inline void 
+inline void 
 vbBind(u32 vb) {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
 }
 
-ENGINE_API inline void 
+inline void 
 vbUnbind() {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-ENGINE_API inline void 
+inline void 
 vbSetData(u32 vb, const void* pData, u32 size) {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void 
+inline void 
 initVA(u32* pVA) {
     glCall(glGenVertexArrays(1, pVA));
 }
 
-ENGINE_API inline void 
+inline void 
 freeVA(u32* pVA) {
     glCall(glDeleteVertexArrays(1, pVA));
 }
 
-ENGINE_API inline void
+inline void
 vaBind(u32 va) {
     glCall(glBindVertexArray(va));
 }
 
-ENGINE_API inline void 
+inline void 
 vaUnbind() {
     glCall(glBindVertexArray(0));
 }
 
-ENGINE_API void 
+void 
 vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout) {
     vaBind(va);
     vbBind(vb);
@@ -411,7 +411,7 @@ vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout) {
     }
 }
 
-ENGINE_API void 
+void 
 vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location) {
     vaBind(va);
     vbBind(vb);
@@ -436,7 +436,7 @@ framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
     glViewport(0, 0, width, height);
 }
 
-ENGINE_API b32 
+b32 
 startWindow(Window* pWindow) {
 	if (!glfwInit()) {
 		return false;
@@ -464,7 +464,7 @@ startWindow(Window* pWindow) {
 	return true;
 }
 
-ENGINE_API b32  
+b32  
 stopWindow(Window* pWindow) {
 	if (pWindow->pInstance != 0) {
 		glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
@@ -475,7 +475,7 @@ stopWindow(Window* pWindow) {
 	return true;
 }
 
-ENGINE_API inline b32 
+inline b32 
 windowShouldClose(Window* pWindow) {
 	if (pWindow->pInstance) {
 		return glfwWindowShouldClose((GLFWwindow*)pWindow->pInstance);
@@ -484,7 +484,7 @@ windowShouldClose(Window* pWindow) {
 	}
 }
 
-ENGINE_API inline void 
+inline void 
 pollEventsFromWindow(Window* pWindow) {
 	if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glCall(glfwSetWindowShouldClose((GLFWwindow*)pWindow->pInstance, true));
@@ -492,7 +492,7 @@ pollEventsFromWindow(Window* pWindow) {
     glCall(glfwPollEvents());
 }
 
-ENGINE_API inline b32
+inline b32
 isKeyPressed(Renderer* pRenderer, u32 key) {
     if (glfwGetKey((GLFWwindow*)pRenderer->pWindow->pInstance, key) == GLFW_PRESS) {
         return true;
@@ -500,7 +500,7 @@ isKeyPressed(Renderer* pRenderer, u32 key) {
     return false;
 }
 
-ENGINE_API inline void
+inline void
 getMousePos(Window* pWindow, f64* pX, f64* pY) {
     glfwGetCursorPos((GLFWwindow*)pWindow->pInstance, pX, pY);
 }
@@ -512,7 +512,7 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 
 ////////////////////////////////
 
-ENGINE_API inline b32 
+inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     assert(pCamera != 0);
     initCamera(pCamera, HMM_Vec3(0.f, 3.f, 20.f));
@@ -528,7 +528,7 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     return true;
 }
 
-ENGINE_API inline b32 
+inline b32 
 stopRenderer() {
     return true;
 }
@@ -548,57 +548,67 @@ swapBuffers(Window* pWindow) {
     glCall(glfwSwapBuffers((GLFWwindow*)pWindow->pInstance));
 }
 
-ENGINE_API inline void
+inline void
 drawBuffer(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLES, offset, count));
 }
 
-ENGINE_API inline void 
+inline void
+drawBufferInstenced(u32 offset, u32 vertexCount, u32 instances) {
+    glCall(glDrawArraysInstanced(GL_TRIANGLES, offset, vertexCount, instances));
+}
+
+inline void 
 drawBufferStrip(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLE_STRIP, offset, count));
 }
 
-ENGINE_API inline void
+inline void
 drawBufferFan(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLE_FAN, offset, count));
 }
 
-ENGINE_API inline void
+inline void
 drawElements(u32 count) {
     glCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0));
 }
 
-ENGINE_API inline void
+inline void
 resetModelMatrix(Renderer* pRenderer) {
     pRenderer->pCamera->model = HMM_Mat4d(1.f);
 }
 
-ENGINE_API inline void
+inline void
 multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation) {
     pRenderer->pCamera->model = pRenderer->pCamera->model * *pTransformation;
 }
 
-ENGINE_API inline hmm_mat4 
+inline hmm_mat4 
+getViewProj(Renderer* pRenderer) {
+    return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera));
+}
+
+inline hmm_mat4 
 getModelViewProj(Renderer* pRenderer) {
     return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
 }
 
-ENGINE_API inline hmm_mat4 
+inline hmm_mat4 
 getModelView(Renderer* pRenderer) {
     return (getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
 }
 
-ENGINE_API inline hmm_vec3
+inline hmm_vec3
 getCameraPosition(Renderer* pRenderer) {
     return pRenderer->pCamera->position;
 }
 
-ENGINE_API inline f32 
+inline f32 
 getCameraWidth(Renderer* pRenderer) {
     return pRenderer->pCamera->halfCamWidth * 2.f;
 }
 
-ENGINE_API inline f32 
+inline f32 
 getCameraHeight(Renderer* pRenderer) {
     return pRenderer->pCamera->halfCamHeight * 2.f;
 }

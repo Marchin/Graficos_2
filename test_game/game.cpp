@@ -1,6 +1,3 @@
-#define SAMPLE_RATE (44100)
-
-static paTestData data;
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     pGame->timer = {};
@@ -12,47 +9,116 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initCharacter(&pGame->scene, "../resources/bsp.fbx");
     initCharacter(&pGame->cubeE, "../resources/cube.obj");
     
-    addChild(&pGame->cubeE.transform, &pGame->scene.transform);
+    initMaterial(&pGame->musicVisualizerMaterial, "MusicVisualizer",
+                 "..//resources//shaders//vMusicVisualizer.glsl", 
+                 "..//resources//shaders//fMusicVisualizer.glsl");
+    
+    //addChild(&pGame->cubeE.transform, &pGame->scene.transform);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.65f, 0.f);
-    readWAV(&pGame->sound);
+    readWAV(&pGame->sound,"../resources/test.wav");
+    //readWAV(&pGame->sound,"../resources/moonglow.wav");
+    //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     generateWalls(&pGame->scene.transform, &pGame->level);
     
+    pGame->musicVisualizerConfig = {};
+    initMusicVisualizer(&pGame->musicVisualizerConfig, &pGame->musicVisualizerMaterial);
+    setMusicVisualizer(&pGame->musicVisualizerConfig);
     
     s32 err = Pa_Initialize();
     if (err != paNoError) {
         printf("PortAudio error: %s\n", Pa_GetErrorText(err));
     }
     
+    setMusicData(pGame->sound.block_align, pGame->sound.data_size);
+    
+    
     PaStream *stream;
     /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream(&stream,
                                0,/* no input channels */
                                pGame->sound.channels,// stereo output 
-                               paFloat32,  /* 32 bit floating point output */
+                               paInt16,  /* 32 bit floating point output */
                                pGame->sound.sample_rate,
-                               paFramesPerBufferUnspecified, /* frames per buffer, i.e. the number
+                               FRAMES_PER_BUFFER, /* frames per buffer, i.e. the number
                                of sample frames that PortAudio will
                                request from the callback. Many apps
                                may want to use
                                paFramesPerBufferUnspecified, which
                                tells PortAudio to pick the best,
                                possibly changing, buffer size.*/
-                               patestCallback, /* this is your callback function */
-                               &pGame->sound.pData); /*This is a pointer that will be passed to your callback*/
+                               fftCallback, /* this is your callback function */
+                               pGame->sound.pData); /*This is a pointer that will be passed to your callback*/
+    
+#if 0
+    err = Pa_OpenDefaultStream(&stream,
+                               0,/* no input channels */
+                               1,// stereo output 
+                               paFloat32,  /* 32 bit floating point output */
+                               pGame->sound.sample_rate,
+                               FRAMES_PER_BUFFER, /* frames per buffer, i.e. the number
+                               of sample frames that PortAudio will
+                               request from the callback. Many apps
+                               may want to use
+                               paFramesPerBufferUnspecified, which
+                               tells PortAudio to pick the best,
+                               possibly changing, buffer size.*/
+                               sinCallback, /* this is your callback function */
+                               0); /*This is a pointer that will be passed to your callback*/
+#endif
     
     err = Pa_StartStream(stream);
     
+    f32 value = {};
+#if 0
+    f32 wave_period = 512.f/44100.f;
+    for (u32 i = 0; i < NUM; ++i) {
+        out->r= sinf(2*PI32*value);
+        out++;
+        value += wave_period;
+        if (value >= 1.f) {
+            value = 1.f;
+            wave_period = -wave_period;
+        }
+    }
+    for (u32 i = 0; i < NUM; ++i) {
+        out->r = sinf(value*PI32);
+        out++;
+        value += 0.005;
+        if (value > 2.f) {
+            value = 0;
+        }
+    }
+    
+    pGame->mycfg = kiss_fft_alloc(NUM, 0, NULL, NULL);
+    kiss_fft_cpx buffer[NUM] = {};
+    kiss_fft_cpx* out = buffer;
+    
+    kiss_fft_cpx output[NUM];
+    kiss_fft(pGame->mycfg, buffer, output);
+    f32 mod[NUM] = {};
+    for (u32 i = 0; i < NUM; ++i) {
+        mod[i] = sqrt(output[i].r*output[i].r + output[i].i*output[i].i);
+        
+    }
+#endif
 }
 
 internal s32 counter;
+global b32 paused = true;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     pGame->timer += pTime->deltaTime;
     ++counter;
     
-    //Pa_Sleep(1);
+    if (!paused) {
+        drawMusicVisualizer(&pGame->musicVisualizerConfig, pRenderer);
+    }
     
+    if (isKeyPressed(pRenderer, KEY_SPACE)) {
+        playMusic();
+        paused = false;
+    }
     if (isKeyPressed(pRenderer, KEY_D)) {
         moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
     }
@@ -95,11 +161,14 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         transformTranslate(&pGame->cubeE.transform, 2.f*pTime->deltaTime, 0.f, 0.f);
     }
     
-    transformUpdate(&pGame->scene.transform, pTime->deltaTime);
+    transformUpdate(&pGame->empty, pTime->deltaTime);
+#if 0
     checkBSPPlanes(&pGame->scene.transform, pRenderer, &pGame->level);
-    transformDraw(&pGame->scene.transform, pRenderer);
+#endif
+    transformDraw(&pGame->empty, pRenderer);
     
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);
 }
+
