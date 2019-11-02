@@ -67,9 +67,8 @@ void playMusic() {
     gPaused = false;
 }
 
-global f32 value;
 global f32 gVolume = 0.5f;
-global f32 gFFTMod[FRAMES_PER_BUFFER];
+global f32* gpFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
 
 int
 patestCallback(const void* inputBuffer, void* outputBuffer,
@@ -101,8 +100,63 @@ patestCallback(const void* inputBuffer, void* outputBuffer,
     }
 }
 
-kiss_fft_cfg gMycfg = kiss_fft_alloc(FRAMES_PER_BUFFER * TWO_CHANNELS, 0, NULL, NULL);
+kiss_fftr_cfg gMycfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
+s16* inbuf = (s16*)malloc(sizeof(s16)*2*SAMPLE_RATE);
+kiss_fft_scalar* pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
+kiss_fft_cpx* pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
 
+int
+fftCallback(const void* inputBuffer, void* outputBuffer,
+            unsigned long framesPerBuffer,
+            const PaStreamCallbackTimeInfo* timeInfo,
+            PaStreamCallbackFlags statusFlags,
+            void* pUserData) {
+    /* Cast data passed through stream to our structure. */
+    if (gPaused) { return paContinue; }
+    
+    if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
+    s16* pOut = (s16*)outputBuffer;
+    (void) inputBuffer; /* Prevent unused variable warning. */
+    
+    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
+    
+    if (byteCountToSend > gMusicBytesLeft) {
+        byteCountToSend = gMusicBytesLeft;
+    }
+    gMusicBytesLeft -= byteCountToSend;
+    
+    memcpy(outputBuffer, gpPlaying, byteCountToSend);
+    
+    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
+        pTBuffer[i] = (f32)(pOut[2*i] + pOut[2*i + 1]);
+    }
+    
+#if 1
+    // remove_dc
+    float avg = 0;
+    for (u32 i = 0; i < SAMPLE_RATE; ++i)  avg += pTBuffer[i];
+    avg /= SAMPLE_RATE;
+    kiss_fft_scalar scalarAVG = (kiss_fft_scalar)avg;
+    for (u32 i = 0; i < SAMPLE_RATE; ++i)  pTBuffer[i] -= scalarAVG;
+#endif
+    
+    s32 a = HALF_SAMPLE_RATE;
+    
+    kiss_fftr(gMycfg, pTBuffer, pFBuffer);
+    
+    for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {
+        gpFFTMod[i] = sqrt(pFBuffer[i].r*pFBuffer[i].r + pFBuffer[i].i*pFBuffer[i].i);
+    }
+    
+    if (byteCountToSend < gMusicBytesLeft) {
+        gpPlaying += byteCountToSend;
+        return paContinue;
+    } else {
+        return paComplete;
+    }
+}
+
+#if 0
 int
 fftCallback(const void* inputBuffer, void* outputBuffer,
             unsigned long framesPerBuffer,
@@ -116,30 +170,46 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     s16* out = (s16*)outputBuffer;
     (void) inputBuffer; /* Prevent unused variable warning. */
     
-    u32 byteCountToSend = gAudioBlockAlign*FRAMES_PER_BUFFER;
+    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
     
+    u32 freqCountOutput = HALF_SAMPLE_RATE;
+    u32 inputCount = SAMPLE_RATE;
     if (byteCountToSend > gMusicBytesLeft) {
         byteCountToSend = gMusicBytesLeft;
+        inputCount = gMusicBytesLeft;
+        freqCountOutput = gMusicBytesLeft/2;
+#if 0
+        free(pINBuffer);
+        free(pTBuffer);
+        free(pFBuffer);
+        gMycfg = kiss_fftr_alloc(gMusicBytesLeft/2, 0, NULL, NULL);
+        pINBuffer = (s16*)malloc(sizeof(s16)*gMusicBytesLeft/2);
+        pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
+        pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
+#endif
     }
     gMusicBytesLeft -= byteCountToSend;
     
-    memcpy(outputBuffer, gpPlaying, byteCountToSend);
+    memcpy(outputBuffer, gpPlaying, byteCountToSend/4);
     
-    kiss_fft_cpx buffer[FRAMES_PER_BUFFER] = {};
-    s32* pHelper = (s32*)outputBuffer;
-    for (u32 i = 0; i < FRAMES_PER_BUFFER * TWO_CHANNELS; ++i) {
-        s16* pLR = (s16*)pHelper++;
-        buffer[i].r = (f32)(pLR[0]);
-        //buffer[i].r = (f32)((s32)pLR[0] + (s32)pLR[1])*0.5f;
+    for (u32 i = 0; i < freqCountOutput; ++i) {
+        pTBuffer[i] = (f32)(gpPlaying[2*i] + gpPlaying[2*i + 1]);
     }
     
-    kiss_fft_cpx output[FRAMES_PER_BUFFER];
+#if 1
+    // remove_dc
+    float avg = 0;
+    for (u32 i = 0; i < inputBuffer; ++i)  avg += pTBuffer[i];
+    avg /= SAMPLE_RATE;
+    for (u32 i = 0; i < inputBuffer; ++i)  pTBuffer[i] -= (kiss_fft_scalar)avg;
+#endif
     
-    kiss_fft(gMycfg, buffer, output);
-    for (u32 i = 0; i < FRAMES_PER_BUFFER * TWO_CHANNELS; ++i) {
-        gFFTMod[i] = sqrt(output[i].r*output[i].r + output[i].i*output[i].i);
+    kiss_fftr(gMycfg, pTBuffer, pFBuffer);
+    
+    for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {
+        gpFFTMod[i] = pFBuffer[i].r*pFBuffer[i].r + pFBuffer[i].i*pFBuffer[i].i;
     }
-    printf("NO");
+    
     if (byteCountToSend < gMusicBytesLeft) {
         gpPlaying += byteCountToSend;
         return paContinue;
@@ -148,6 +218,8 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     }
 }
 
+#endif
+#if 0
 int
 sinCallback(const void* inputBuffer, void* outputBuffer,
             unsigned long framesPerBuffer,
@@ -159,8 +231,8 @@ sinCallback(const void* inputBuffer, void* outputBuffer,
     (void) inputBuffer; /* Prevent unused variable warning. */
     local_persist f32 wave_period = 440.f/44100.f;
     
-    kiss_fft_cpx buffer[FRAMES_PER_BUFFER] = {};
-    for (u32 i = 0; i < FRAMES_PER_BUFFER; ++i) {
+    kiss_fft_cpx buffer[SAMPLE_RATE] = {};
+    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
         buffer[i].r = sinf(2*PI32*value)*gVolume;
         *out++ = buffer[i].r;
         value += wave_period;
@@ -170,25 +242,26 @@ sinCallback(const void* inputBuffer, void* outputBuffer,
         }
     }
     
-    kiss_fft_cpx output[FRAMES_PER_BUFFER];
+    kiss_fft_cpx output[SAMPLE_RATE];
     
-    kiss_fft(gMycfg, buffer, output);
-    f32 mod[FRAMES_PER_BUFFER] = {};
-    for (u32 i = 0; i < FRAMES_PER_BUFFER; ++i) {
+    kiss_fftr(gMycfg, buffer, output);
+    f32 mod[SAMPLE_RATE] = {};
+    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
         mod[i] = output[i].r*output[i].r + output[i].i*output[i].i;
     }
     
     return paContinue;
 }
+#endif
 
 f32*
 getFFTModResult() {
-    return gFFTMod;
+    return gpFFTMod;
 }
 
 u32
 getFFTModSize() {
-    return arrayCount(gFFTMod);
+    return HALF_SAMPLE_RATE;
 }
 
 void

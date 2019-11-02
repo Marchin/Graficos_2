@@ -12,6 +12,8 @@
 #include "camera.cpp"
 #include "wav.cpp"
 #include "music_visualizer.cpp"
+#include <kiss_fft/kiss_fft.c>
+#include <kiss_fft/kiss_fftr.c>
 
 ENGINE_API void
 startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {

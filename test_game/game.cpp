@@ -15,9 +15,10 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     
     //addChild(&pGame->cubeE.transform, &pGame->scene.transform);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.65f, 0.f);
-    readWAV(&pGame->sound,"../resources/test.wav");
+    //readWAV(&pGame->sound,"../resources/test.wav");
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
     //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
     generateWalls(&pGame->scene.transform, &pGame->level);
     
     pGame->musicVisualizerConfig = {};
@@ -39,7 +40,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                pGame->sound.channels,// stereo output 
                                paInt16,  /* 32 bit floating point output */
                                pGame->sound.sample_rate,
-                               FRAMES_PER_BUFFER, /* frames per buffer, i.e. the number
+                               SAMPLE_RATE, /* frames per buffer, i.e. the number
                                of sample frames that PortAudio will
                                request from the callback. Many apps
                                may want to use

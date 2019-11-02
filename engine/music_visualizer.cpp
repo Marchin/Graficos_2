@@ -1,22 +1,52 @@
+global const f32 gCubeVertexData[] = {
+    -0.5f,-0.5f,-0.5f, // triangle 1 : begin
+    -0.5f,-0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f, // triangle 1 : end
+    0.5f, 0.5f,-0.5f, // triangle 2 : begin
+    -0.5f,-0.5f,-0.5f,
+    -0.5f, 0.5f,-0.5f, // triangle 2 : end
+    0.5f,-0.5f, 0.5f,
+    -0.5f,-0.5f,-0.5f,
+    0.5f,-0.5f,-0.5f,
+    0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f,-0.5f,
+    -0.5f,-0.5f,-0.5f,
+    -0.5f,-0.5f,-0.5f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f, 0.5f,
+    -0.5f,-0.5f, 0.5f,
+    -0.5f,-0.5f,-0.5f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f,-0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    0.5f,-0.5f,-0.5f,
+    0.5f, 0.5f,-0.5f,
+    0.5f,-0.5f,-0.5f,
+    0.5f, 0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f,-0.5f,
+    -0.5f, 0.5f,-0.5f,
+    0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f,-0.5f,
+    -0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
+    0.5f,-0.5f, 0.5f
+};
+
 void
 initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMaterial) {
     pMusicVisualizerConfig->pMaterial = pMaterial;
     pMusicVisualizerConfig->pBandValues = getFFTModResult();
-    pMusicVisualizerConfig->bandCount = 8;
+    pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
+    //skip less low, more high freq
     pMusicVisualizerConfig->bandsToSkip = (getFFTModSize()/2)/pMusicVisualizerConfig->bandCount;
-    f32 squareVertices[] = {
-        // first triangle
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f,  0.5f, 0.0f,  // top left 
-        // second triangle
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left
-    };
     initVA(&pMusicVisualizerConfig->va);
     vaBind(pMusicVisualizerConfig->va);
-    initVB(&pMusicVisualizerConfig->vb, squareVertices, 18 * sizeof(f32));
+    initVB(&pMusicVisualizerConfig->vb, gCubeVertexData, arrayCount(gCubeVertexData) * sizeof(f32));
     
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
@@ -42,14 +72,42 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     u32 bandCount = pMusicVisualizerConfig->bandCount;
     char closedBraket[2] = "]";
     char num[5];
-    u32 bandIndex = FRAMES_PER_BUFFER/2;
+    u32 bandIndex = 1;
+    u32 bandsToSkip = pMusicVisualizerConfig->bandsToSkip;
+    u32 bands[VISUALIZER_BANDS + 1] = { 1, 16, 32, 64, 96, 128, 160, 192 };
+    //u32 bands[VISUALIZER_BANDS + 1] = { 1, 64, 128, 192, 256, 512, 768 , 1024};
+    u32 halfBands = VISUALIZER_BANDS/2;
+    u32 lastPos = bands[0];
     for (u32 iBand = 0; iBand < bandCount; ++iBand) {
         _itoa(iBand, num, 10);
         strcat(uniformParamaterName, num);
         strcat(uniformParamaterName, closedBraket);
+#if 0
+        f32 accum = {};
+        u32 newPos;
+        newPos = bands[iBand + 1];
+#if 0
+        if (iBand < bandCount - 1) {
+            newPos = bands[iBand + 1];
+        } else {
+            newPos = bands[iBand];
+        }
+#endif
+        u32 diff = (newPos - lastPos)/2;
+        for (u32 i = lastPos; i <= diff; ++i) {
+            accum += (pMusicVisualizerConfig->pBandValues[i]/diff);
+        }
+        lastPos += diff;
+#endif
+        f32 value = pMusicVisualizerConfig->pBandValues[bands[iBand]];
+        if (iBand < halfBands) { value *= 0.25f; }
         shaderSetFloat(pMusicVisualizerConfig->pMaterial,
                        uniformParamaterName,
-                       pMusicVisualizerConfig->pBandValues[bandIndex]);
+                       value);
+        //pMusicVisualizerConfig->pBandValues[bands[iBand]]);
+        //pMusicVisualizerConfig->pBandValues[bandIndex]);
+        //pMusicVisualizerConfig->pBandValues[0]));
+        //accum);
         uniformParamaterName[5] = 0;
         bandIndex += pMusicVisualizerConfig->bandsToSkip;
     }
@@ -58,6 +116,5 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
                   "viewProj",
                   &viewProj);
     vaBind(pMusicVisualizerConfig->va);
-    drawBufferInstenced(0, 6, bandCount);
-    printf("HEY");
+    drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, bandCount);
 }

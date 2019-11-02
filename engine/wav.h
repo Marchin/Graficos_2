@@ -1,8 +1,9 @@
 #ifndef WAV_H
 #define WAV_H
 
-#define FRAMES_PER_BUFFER 44100
-#define TWO_CHANNELS 2
+#define SAMPLE_RATE 2048
+#define VISUALIZER_BANDS 8
+#define HALF_SAMPLE_RATE (SAMPLE_RATE/2 + 1)
 
 // WAV file header format
 struct WAV {
