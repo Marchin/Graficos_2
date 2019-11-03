@@ -4,7 +4,7 @@
 #define glCall(x) glClearError();\
 x;\
 assert(glLogCall(#x, __FILE__, __LINE__));
-#define UNIFORMS_MAX 64
+#define UNIFORMS_MAX 96
 
 global const char* gpDiffuse = "texture_diffuse";
 global const char* gpSpecular = "texture_specular";
@@ -66,6 +66,7 @@ ENGINE_API inline void shaderSetBool(Material* pMaterial, const char* pName, b32
 ENGINE_API inline void shaderSetInt(Material* pMaterial, const char* pName, s32 value);
 ENGINE_API inline void shaderSetFloat(Material* pMaterial, const char* pName, f32 value);
 ENGINE_API inline void shaderSetVec3(Material* pMaterial, const char* pName, hmm_vec3* pVector);
+ENGINE_API inline void shaderSetVec4(Material* pMaterial, const char* pName, hmm_vec4* pVector); 
 ENGINE_API inline void shaderSetMat4(Material* pMaterial, const char* pName, hmm_mat4* pMat4);
 ENGINE_API void initTexture(Texture* pTexture, u32 width, u32 height);
 ENGINE_API void initTexture(Texture* pTexture,

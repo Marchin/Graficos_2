@@ -1,16 +1,21 @@
 #version 330 core
 #define BAND_AMOUNT 8
 #define BAND_AMOUNT_FLOAT 8.f
-#define DELAY_AMOUNT 7
+#define DELAY_AMOUNT 8
 #define TOTAL BAND_AMOUNT*DELAY_AMOUNT
 
 layout (location = 0) in vec3 aPos;
 
 out vec4 vColor;
 
+uniform vec4 colorLFN;
+uniform vec4 colorHFN;
+uniform vec4 colorLFP;
+uniform vec4 colorHFP;
+uniform vec4 borderColor;
 uniform float scale;
 uniform float band[TOTAL];
-uniform int isWhite;
+uniform bool isBorder;
 uniform mat4 viewProj;
 
 void main() {
@@ -23,14 +28,17 @@ void main() {
     int id = TOTAL - gl_InstanceID - 1;
     int mod = id%BAND_AMOUNT;
     int div = id/BAND_AMOUNT;
+    float modNorm = mod/(BAND_AMOUNT_FLOAT - 1.f);
+    float divNorm = div/(BAND_AMOUNT_FLOAT - 1.f);
     model[3] = vec4(mod - 3.5f, value, -div, 1.f);
     gl_Position = viewProj * model * vec4(aPos, 1.f);
-    if (isWhite > 0) {
-        vColor = vec4(1.f, 1.f, 1.f, 1.f);
+    vec4 colorN = (1.f-modNorm)*colorLFN + modNorm*colorHFN;
+    vec4 colorP = (1.f-modNorm)*colorLFP + modNorm*colorHFP;
+    vec4 finalColor = (1.f-divNorm)*colorN + divNorm*colorP;
+    if (isBorder) {
+        vColor = borderColor;
     } else {
-        float color = (div)/BAND_AMOUNT_FLOAT;
-        vec4 diff = vec4(color, color, color, 0.f)/1.5f;
-        vColor = vec4(1.f - color, (mod + 1)/BAND_AMOUNT_FLOAT, color, 1.f) - diff;
-        
+        vec4 fakeTransparency = vec4(vec3(divNorm), 0.f)/1.5f;
+        vColor = finalColor - fakeTransparency;
     }
 }

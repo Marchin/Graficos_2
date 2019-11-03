@@ -1,42 +1,3 @@
-global const f32 gCubeVertexData[] = {
-    -0.5f,-0.5f,-0.5f, // triangle 1 : begin
-    -0.5f,-0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, // triangle 1 : end
-    0.5f, 0.5f,-0.5f, // triangle 2 : begin
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f, // triangle 2 : end
-    0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f,-0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f
-};
-
 void
 initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMaterial) {
     pMusicVisualizerConfig->pMaterial = pMaterial;
@@ -60,7 +21,18 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
                           pMusicVisualizerConfig->vb, 
                           &layout, 0);
     free(layout.pElements);
-    pMusicVisualizerConfig->counter = 0;
+    
+    materialBindID(pMusicVisualizerConfig->pMaterial->id);
+    hmm_vec4 colorLFN = { 1.f, 0.f, 0.f, 1.f };
+    hmm_vec4 colorHFN = { 1.f, 1.f, 0.f, 1.f };
+    hmm_vec4 colorLFP = { 0.f, 0.f, 1.f, 1.f };
+    hmm_vec4 colorHFP = { 0.f, 1.f, 1.f, 1.f };
+    hmm_vec4 borderColor = { 1.f, 1.f, 1.f, 1.f };
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorLFN", &colorLFN); 
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorHFN", &colorHFN);
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorLFP", &colorLFP); 
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorHFP", &colorHFP);
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "borderColor", &borderColor); 
 }
 
 void
@@ -98,16 +70,17 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
                        pMusicVisualizerConfig->eqBands[VISUALIZER_BAND_BUFFER - iBand - 1]);
         uniformParamaterName[5] = 0;
     }
+    
     hmm_mat4 viewProj = getViewProj(pRenderer);
     shaderSetMat4(pMusicVisualizerConfig->pMaterial,
                   "viewProj",
                   &viewProj);
     vaBind(pMusicVisualizerConfig->va);
     glCall(glDisable(GL_DEPTH_TEST));
-    shaderSetInt(pMusicVisualizerConfig->pMaterial, "isWhite", 1);
+    shaderSetBool(pMusicVisualizerConfig->pMaterial, "isBorder", true);
     shaderSetFloat(pMusicVisualizerConfig->pMaterial, "scale", 1.1f);
     drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
-    shaderSetInt(pMusicVisualizerConfig->pMaterial, "isWhite", 0);
+    shaderSetBool(pMusicVisualizerConfig->pMaterial, "isBorder", false);
     shaderSetFloat(pMusicVisualizerConfig->pMaterial, "scale", 1.f);
     drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
     glCall(glEnable(GL_DEPTH_TEST));

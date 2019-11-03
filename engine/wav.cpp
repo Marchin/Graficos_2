@@ -134,10 +134,14 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     
     // remove_dc
     float avg = 0;
-    for (u32 i = 0; i < SAMPLE_RATE; ++i)  avg += pTBuffer[i];
+    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
+        avg += pTBuffer[i];
+    } 
     avg /= SAMPLE_RATE;
     kiss_fft_scalar scalarAVG = (kiss_fft_scalar)avg;
-    for (u32 i = 0; i < SAMPLE_RATE; ++i)  pTBuffer[i] -= scalarAVG;
+    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
+        pTBuffer[i] -= scalarAVG;
+    }
     
     s32 a = HALF_SAMPLE_RATE;
     

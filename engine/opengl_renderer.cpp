@@ -191,6 +191,11 @@ shaderSetVec3(Material* pMaterial, const char* pName, hmm_vec3* pVector) {
 }
 
 inline void
+shaderSetVec4(Material* pMaterial, const char* pName, hmm_vec4* pVector) {
+	glCall(glUniform4fv(getUniformLocation(pMaterial, pName), 1, &pVector->X));
+}
+
+inline void
 shaderSetMat4(Material* pMaterial, const char* pName, hmm_mat4* pMat4) {
 	glCall(glUniformMatrix4fv(getUniformLocation(pMaterial, pName), 
                               1, GL_FALSE, (f32*)pMat4));
