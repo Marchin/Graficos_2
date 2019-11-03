@@ -16,6 +16,7 @@ uniform vec4 borderColor;
 uniform float scale;
 uniform float band[TOTAL];
 uniform bool isBorder;
+uniform bool hasFakeTransparency;
 uniform mat4 viewProj;
 
 void main() {
@@ -37,8 +38,10 @@ void main() {
     vec4 finalColor = (1.f-divNorm)*colorN + divNorm*colorP;
     if (isBorder) {
         vColor = borderColor;
-    } else {
-        vec4 fakeTransparency = vec4(vec3(divNorm), 0.f)/1.5f;
+    } else if (hasFakeTransparency) {
+        vec4 fakeTransparency = vec4(divNorm/2.f,divNorm/1.5f,divNorm, 0.f)/1.5f;
         vColor = finalColor - fakeTransparency;
+    } else {
+        vColor = finalColor;
     }
 }

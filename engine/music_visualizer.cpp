@@ -23,11 +23,32 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
     free(layout.pElements);
     
     materialBindID(pMusicVisualizerConfig->pMaterial->id);
-    hmm_vec4 colorLFN = { 1.f, 0.f, 0.f, 1.f };
-    hmm_vec4 colorHFN = { 1.f, 1.f, 0.f, 1.f };
-    hmm_vec4 colorLFP = { 0.f, 0.f, 1.f, 1.f };
-    hmm_vec4 colorHFP = { 0.f, 1.f, 1.f, 1.f };
-    hmm_vec4 borderColor = { 1.f, 1.f, 1.f, 1.f };
+    
+    b32 vaporWave = true;
+    
+    hmm_vec4 colorLFN;
+    hmm_vec4 colorHFN;
+    hmm_vec4 colorLFP;
+    hmm_vec4 colorHFP;
+    hmm_vec4 borderColor;
+    if (vaporWave) {
+        //fillColor(.075f, 0.f, .15f);
+        borderColor = { 1.f, 1.f, 1.f, 1.f };
+        fillColor(.8f, .9f, 1.f);
+        colorLFN = { 1.f, .7f, 1.f, 1.f };
+        colorHFN = { .6f, 1.f, 1.f, 1.f };
+        colorLFP = { .5f, .2f, .5f, 1.f };
+        colorHFP = { .1f, .5f, .5f, 1.f };
+        shaderSetBool(pMusicVisualizerConfig->pMaterial, "hasFakeTransparency", false);
+    } else {
+        fillColor(0.f, 0.f, 0.f);
+        borderColor = { 1.f, 1.f, 1.f, 1.f };
+        colorLFN = { 1.f, 0.f, 0.f, 1.f };
+        colorHFN = { 1.f, 1.f, 0.f, 1.f };
+        colorLFP = { 0.f, 0.f, 1.f, 1.f };
+        colorHFP = { 0.f, 1.f, 0.f, 1.f };
+        shaderSetBool(pMusicVisualizerConfig->pMaterial, "hasFakeTransparency", true);
+    }
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorLFN", &colorLFN); 
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorHFN", &colorHFN);
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorLFP", &colorLFP); 

@@ -29,7 +29,6 @@ ENGINE_API void
 enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM) {
     //swapBuffers(pWindow);
     //pollEventsFromWindow(pWindow);
-    fillColor(.0f, .0f, .0f);
     clearRenderer();
     f32 currentFrame = getTime();
     pTime->deltaTime = currentFrame - pTime->lastFrame;
