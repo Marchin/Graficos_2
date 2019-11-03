@@ -23,7 +23,7 @@ struct WAV {
 };
 
 ENGINE_API s32 readWAV(WAV* pWAV, const char* pPath);
-ENGINE_API void playMusic();
+ENGINE_API void playPauseMusic();
 ENGINE_API void setMusicData(u32 audioBlockAlign, u32 musicSizeInBytes);
 ENGINE_API int patestCallback(const void* inputBuffer, void* outputBuffer,
                               unsigned long framesPerBuffer,

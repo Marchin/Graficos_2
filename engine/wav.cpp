@@ -63,43 +63,12 @@ setMusicData(u32 audioBlockAlign, u32 musicSizeInBytes) {
     gMusicBytesLeft = musicSizeInBytes;
 }
 
-void playMusic() {
-    gPaused = false;
+void playPauseMusic() {
+    gPaused = !gPaused;
 }
 
 global f32 gVolume = 0.5f;
 global f32* gpFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
-
-int
-patestCallback(const void* inputBuffer, void* outputBuffer,
-               unsigned long framesPerBuffer,
-               const PaStreamCallbackTimeInfo* timeInfo,
-               PaStreamCallbackFlags statusFlags,
-               void* pUserData) {
-    /* Cast data passed through stream to our structure. */
-    if (gPaused) { return paContinue; }
-    
-    if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
-    s16* out = (s16*)outputBuffer;
-    (void) inputBuffer; /* Prevent unused variable warning. */
-    
-    u32 byteCountToSend = gAudioBlockAlign*framesPerBuffer;
-    
-    if (byteCountToSend > gMusicBytesLeft) {
-        byteCountToSend = gMusicBytesLeft;
-    }
-    gMusicBytesLeft -= byteCountToSend;
-    
-    memcpy(outputBuffer, gpPlaying, byteCountToSend);
-    
-    if (byteCountToSend < gMusicBytesLeft) {
-        gpPlaying += byteCountToSend;
-        return paContinue;
-    } else {
-        return paComplete;
-    }
-}
-
 kiss_fftr_cfg gMycfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
 s16* inbuf = (s16*)malloc(sizeof(s16)*2*SAMPLE_RATE);
 kiss_fft_scalar* pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
@@ -111,15 +80,19 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags,
             void* pUserData) {
-    /* Cast data passed through stream to our structure. */
-    if (gPaused) { return paContinue; }
+    
+    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
+    if (gPaused) {
+        memset(outputBuffer, 0, byteCountToSend);
+        memset(gpFFTMod, 0, HALF_SAMPLE_RATE*sizeof(f32));
+        return paContinue;
+    }
     gChanged = true;
     
     if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
     s16* pOut = (s16*)outputBuffer;
     (void) inputBuffer; /* Prevent unused variable warning. */
     
-    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
     
     if (byteCountToSend > gMusicBytesLeft) {
         byteCountToSend = gMusicBytesLeft;

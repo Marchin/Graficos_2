@@ -16,8 +16,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     //addChild(&pGame->cubeE.transform, &pGame->scene.transform);
     transformTranslate(&pGame->cubeE.transform, 0.f, 0.65f, 0.f);
     //readWAV(&pGame->sound,"../resources/test.wav");
-    readWAV(&pGame->sound,"../resources/moonglow.wav");
-    //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    //readWAV(&pGame->sound,"../resources/moonglow.wav");
+    readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
     generateWalls(&pGame->scene.transform, &pGame->level);
     
@@ -104,7 +104,10 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 }
 
 internal s32 counter;
-global b32 gPaused = true;
+global b32 gPaused;
+global b32 gPrevPaused;
+global u32 gPauseCounter;
+global u32 gBlock = true;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
@@ -113,9 +116,22 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     
     drawMusicVisualizer(&pGame->musicVisualizerConfig, pRenderer);
     
+    gPrevPaused = gPrevPaused;
     if (isKeyPressed(pRenderer, KEY_SPACE)) {
-        playMusic();
+        if (!gBlock) {
+            ++gPauseCounter;
+            if (gPauseCounter == 4){
+                gPaused = true;
+                gBlock = true;
+            }
+            if (gPaused && !gPrevPaused) {
+                playPauseMusic();
+            }
+        }
+    } else {
+        gPauseCounter = 0;
         gPaused = false;
+        gBlock = false;
     }
     if (isKeyPressed(pRenderer, KEY_D)) {
         moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
