@@ -24,7 +24,7 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
     
     materialBindID(pMusicVisualizerConfig->pMaterial->id);
     
-    b32 vaporWave = true;
+    b32 vaporWave = false;
     
     hmm_vec4 colorLFN;
     hmm_vec4 colorHFN;
@@ -65,8 +65,7 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     u32 bandCount = pMusicVisualizerConfig->bandCount;
     char closedBraket[2] = "]";
     char num[5];
-    u32 bands[VISUALIZER_BANDS + 1] = { 1, 16, 32, 64, 96, 128, 160, 192 };
-    u32 halfBands = VISUALIZER_BANDS/2;
+    u32 bands[VISUALIZER_BANDS + 1] = { 1, 16, 32, 48, 64, 96, 128, 160 };
     
     if (hasMusicBufferChanged()) {
         u32 count = VISUALIZER_BAND_BUFFER - bandCount;
@@ -75,7 +74,7 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
         }
         for (u32 iBand = 0; iBand < bandCount; ++iBand) {
             f32 value = pMusicVisualizerConfig->pBandValues[bands[iBand]];
-            if (iBand < halfBands) { value *= 0.25f; }
+            if (iBand < 2) { value *= 0.25f; }
             pMusicVisualizerConfig->eqBands[iBand] = value;
         }
         
