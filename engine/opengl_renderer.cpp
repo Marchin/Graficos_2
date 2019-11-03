@@ -515,7 +515,7 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     assert(pCamera != 0);
-    initCamera(pCamera, HMM_Vec3(0.f, 3.f, 20.f));
+    initCamera(pCamera, HMM_Vec3(0.f, 5.f, 20.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
     //glCall(glEnable(GL_BLEND));

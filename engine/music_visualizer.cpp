@@ -60,6 +60,7 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
                           pMusicVisualizerConfig->vb, 
                           &layout, 0);
     free(layout.pElements);
+    pMusicVisualizerConfig->counter = 0;
 }
 
 void
@@ -68,53 +69,46 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     
     char uniformParamaterName[11] = "band[";
     u32 nameSize = arrayCount(uniformParamaterName);
-    
     u32 bandCount = pMusicVisualizerConfig->bandCount;
     char closedBraket[2] = "]";
     char num[5];
-    u32 bandIndex = 1;
-    u32 bandsToSkip = pMusicVisualizerConfig->bandsToSkip;
     u32 bands[VISUALIZER_BANDS + 1] = { 1, 16, 32, 64, 96, 128, 160, 192 };
-    //u32 bands[VISUALIZER_BANDS + 1] = { 1, 64, 128, 192, 256, 512, 768 , 1024};
     u32 halfBands = VISUALIZER_BANDS/2;
-    u32 lastPos = bands[0];
-    for (u32 iBand = 0; iBand < bandCount; ++iBand) {
+    
+    if (hasMusicBufferChanged()) {
+        u32 count = VISUALIZER_BAND_BUFFER - bandCount;
+        for (s32 iBand = count - 1; iBand >= 0; --iBand) {
+            pMusicVisualizerConfig->eqBands[iBand + bandCount] = pMusicVisualizerConfig->eqBands[iBand];
+        }
+        for (u32 iBand = 0; iBand < bandCount; ++iBand) {
+            f32 value = pMusicVisualizerConfig->pBandValues[bands[iBand]];
+            if (iBand < halfBands) { value *= 0.25f; }
+            pMusicVisualizerConfig->eqBands[iBand] = value;
+        }
+        
+        clearMusicBufferChanged();
+    }
+    
+    for (u32 iBand = 0; iBand < VISUALIZER_BAND_BUFFER; ++iBand) {
         _itoa(iBand, num, 10);
         strcat(uniformParamaterName, num);
         strcat(uniformParamaterName, closedBraket);
-#if 0
-        f32 accum = {};
-        u32 newPos;
-        newPos = bands[iBand + 1];
-#if 0
-        if (iBand < bandCount - 1) {
-            newPos = bands[iBand + 1];
-        } else {
-            newPos = bands[iBand];
-        }
-#endif
-        u32 diff = (newPos - lastPos)/2;
-        for (u32 i = lastPos; i <= diff; ++i) {
-            accum += (pMusicVisualizerConfig->pBandValues[i]/diff);
-        }
-        lastPos += diff;
-#endif
-        f32 value = pMusicVisualizerConfig->pBandValues[bands[iBand]];
-        if (iBand < halfBands) { value *= 0.25f; }
         shaderSetFloat(pMusicVisualizerConfig->pMaterial,
                        uniformParamaterName,
-                       value);
-        //pMusicVisualizerConfig->pBandValues[bands[iBand]]);
-        //pMusicVisualizerConfig->pBandValues[bandIndex]);
-        //pMusicVisualizerConfig->pBandValues[0]));
-        //accum);
+                       pMusicVisualizerConfig->eqBands[VISUALIZER_BAND_BUFFER - iBand - 1]);
         uniformParamaterName[5] = 0;
-        bandIndex += pMusicVisualizerConfig->bandsToSkip;
     }
     hmm_mat4 viewProj = getViewProj(pRenderer);
     shaderSetMat4(pMusicVisualizerConfig->pMaterial,
                   "viewProj",
                   &viewProj);
     vaBind(pMusicVisualizerConfig->va);
-    drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, bandCount);
+    glCall(glDisable(GL_DEPTH_TEST));
+    shaderSetInt(pMusicVisualizerConfig->pMaterial, "isWhite", 1);
+    shaderSetFloat(pMusicVisualizerConfig->pMaterial, "scale", 1.1f);
+    drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
+    shaderSetInt(pMusicVisualizerConfig->pMaterial, "isWhite", 0);
+    shaderSetFloat(pMusicVisualizerConfig->pMaterial, "scale", 1.f);
+    drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
+    glCall(glEnable(GL_DEPTH_TEST));
 }

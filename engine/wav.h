@@ -2,7 +2,6 @@
 #define WAV_H
 
 #define SAMPLE_RATE 2048
-#define VISUALIZER_BANDS 8
 #define HALF_SAMPLE_RATE (SAMPLE_RATE/2 + 1)
 
 // WAV file header format
@@ -43,5 +42,6 @@ ENGINE_API int sinCallback(const void* inputBuffer, void* outputBuffer,
                            void* pUserData);
 ENGINE_API f32* getFFTModResult();
 ENGINE_API u32 getFFTModSize();
-ENGINE_API void setMusicVisualizer(MusicVisualizerConfig pMusicVisualizerConfig);
+ENGINE_API b32 hasMusicBufferChanged();
+ENGINE_API void clearMusicBufferChanged();
 #endif //WAV_H

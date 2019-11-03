@@ -1,4 +1,4 @@
-MusicVisualizerConfig* gpMusicVisualizerConfig;
+global b32 gChanged = true;
 
 s32
 readWAV(WAV* pWAV, const char* pPath) {
@@ -113,6 +113,7 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
             void* pUserData) {
     /* Cast data passed through stream to our structure. */
     if (gPaused) { return paContinue; }
+    gChanged = true;
     
     if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
     s16* pOut = (s16*)outputBuffer;
@@ -131,14 +132,12 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
         pTBuffer[i] = (f32)(pOut[2*i] + pOut[2*i + 1]);
     }
     
-#if 1
     // remove_dc
     float avg = 0;
     for (u32 i = 0; i < SAMPLE_RATE; ++i)  avg += pTBuffer[i];
     avg /= SAMPLE_RATE;
     kiss_fft_scalar scalarAVG = (kiss_fft_scalar)avg;
     for (u32 i = 0; i < SAMPLE_RATE; ++i)  pTBuffer[i] -= scalarAVG;
-#endif
     
     s32 a = HALF_SAMPLE_RATE;
     
@@ -156,104 +155,6 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     }
 }
 
-#if 0
-int
-fftCallback(const void* inputBuffer, void* outputBuffer,
-            unsigned long framesPerBuffer,
-            const PaStreamCallbackTimeInfo* timeInfo,
-            PaStreamCallbackFlags statusFlags,
-            void* pUserData) {
-    /* Cast data passed through stream to our structure. */
-    if (gPaused) { return paContinue; }
-    
-    if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
-    s16* out = (s16*)outputBuffer;
-    (void) inputBuffer; /* Prevent unused variable warning. */
-    
-    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
-    
-    u32 freqCountOutput = HALF_SAMPLE_RATE;
-    u32 inputCount = SAMPLE_RATE;
-    if (byteCountToSend > gMusicBytesLeft) {
-        byteCountToSend = gMusicBytesLeft;
-        inputCount = gMusicBytesLeft;
-        freqCountOutput = gMusicBytesLeft/2;
-#if 0
-        free(pINBuffer);
-        free(pTBuffer);
-        free(pFBuffer);
-        gMycfg = kiss_fftr_alloc(gMusicBytesLeft/2, 0, NULL, NULL);
-        pINBuffer = (s16*)malloc(sizeof(s16)*gMusicBytesLeft/2);
-        pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
-        pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
-#endif
-    }
-    gMusicBytesLeft -= byteCountToSend;
-    
-    memcpy(outputBuffer, gpPlaying, byteCountToSend/4);
-    
-    for (u32 i = 0; i < freqCountOutput; ++i) {
-        pTBuffer[i] = (f32)(gpPlaying[2*i] + gpPlaying[2*i + 1]);
-    }
-    
-#if 1
-    // remove_dc
-    float avg = 0;
-    for (u32 i = 0; i < inputBuffer; ++i)  avg += pTBuffer[i];
-    avg /= SAMPLE_RATE;
-    for (u32 i = 0; i < inputBuffer; ++i)  pTBuffer[i] -= (kiss_fft_scalar)avg;
-#endif
-    
-    kiss_fftr(gMycfg, pTBuffer, pFBuffer);
-    
-    for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {
-        gpFFTMod[i] = pFBuffer[i].r*pFBuffer[i].r + pFBuffer[i].i*pFBuffer[i].i;
-    }
-    
-    if (byteCountToSend < gMusicBytesLeft) {
-        gpPlaying += byteCountToSend;
-        return paContinue;
-    } else {
-        return paComplete;
-    }
-}
-
-#endif
-#if 0
-int
-sinCallback(const void* inputBuffer, void* outputBuffer,
-            unsigned long framesPerBuffer,
-            const PaStreamCallbackTimeInfo* timeInfo,
-            PaStreamCallbackFlags statusFlags,
-            void* pUserData) {
-    (u8*)pUserData;
-    f32* out = (f32*)outputBuffer;
-    (void) inputBuffer; /* Prevent unused variable warning. */
-    local_persist f32 wave_period = 440.f/44100.f;
-    
-    kiss_fft_cpx buffer[SAMPLE_RATE] = {};
-    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        buffer[i].r = sinf(2*PI32*value)*gVolume;
-        *out++ = buffer[i].r;
-        value += wave_period;
-        if (value >= 1.f) {
-            value = 1.f;
-            wave_period = -wave_period;
-        }
-    }
-    
-    kiss_fft_cpx output[SAMPLE_RATE];
-    
-    kiss_fftr(gMycfg, buffer, output);
-    f32 mod[SAMPLE_RATE] = {};
-    for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        mod[i] = output[i].r*output[i].r + output[i].i*output[i].i;
-    }
-    
-    return paContinue;
-}
-#endif
-
 f32*
 getFFTModResult() {
     return gpFFTMod;
@@ -264,7 +165,12 @@ getFFTModSize() {
     return HALF_SAMPLE_RATE;
 }
 
+b32
+hasMusicBufferChanged() {
+    return gChanged;
+}
+
 void
-setMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig) {
-    gpMusicVisualizerConfig = pMusicVisualizerConfig;
+clearMusicBufferChanged() {
+    gChanged = false;
 }
