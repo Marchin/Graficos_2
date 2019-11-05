@@ -3,8 +3,6 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
     pMusicVisualizerConfig->pMaterial = pMaterial;
     pMusicVisualizerConfig->pBandValues = getFFTModResult();
     pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
-    //skip less low, more high freq
-    pMusicVisualizerConfig->bandsToSkip = (getFFTModSize()/2)/pMusicVisualizerConfig->bandCount;
     initVA(&pMusicVisualizerConfig->va);
     vaBind(pMusicVisualizerConfig->va);
     initVB(&pMusicVisualizerConfig->vb, gCubeVertexData, arrayCount(gCubeVertexData) * sizeof(f32));
@@ -69,7 +67,7 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     u32 bandCount = pMusicVisualizerConfig->bandCount;
     char closedBraket[2] = "]";
     char num[5];
-    u32 bands[VISUALIZER_BANDS + 1] = { 1, 16, 32, 48, 64, 96, 128, 160 };
+    u32 bands[] = { 1, 16, 24, 32, 40, 48, 64, 96, 128, 160 };
     
     if (hasMusicBufferChanged()) {
         u32 count = VISUALIZER_BAND_BUFFER - bandCount;
@@ -78,7 +76,6 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
         }
         for (u32 iBand = 0; iBand < bandCount; ++iBand) {
             f32 value = pMusicVisualizerConfig->pBandValues[bands[iBand]];
-            if (iBand < 2) { value *= 0.25f; }
             pMusicVisualizerConfig->eqBands[iBand] = value;
         }
         
@@ -106,6 +103,8 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
     shaderSetBool(pMusicVisualizerConfig->pMaterial, "isBorder", false);
     shaderSetFloat(pMusicVisualizerConfig->pMaterial, "scale", 1.f);
+    if (!isKeyPressed(pRenderer, KEY_UP)) {
+        glCall(glEnable(GL_DEPTH_TEST));
+    }
     drawBufferInstenced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
-    glCall(glEnable(GL_DEPTH_TEST));
 }

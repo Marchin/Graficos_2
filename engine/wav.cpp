@@ -116,8 +116,6 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
         pTBuffer[i] -= scalarAVG;
     }
     
-    s32 a = HALF_SAMPLE_RATE;
-    
     kiss_fftr(gMycfg, pTBuffer, pFBuffer);
     
     for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {

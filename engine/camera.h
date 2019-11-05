@@ -3,7 +3,7 @@
 
 const f64 YAW = -90.0f;
 const f64 PITCH = 0.0f;
-const f32 SPEED = 3.f;
+const f32 SPEED = 4.f;
 const f32 SENSITIVITY = 0.1f;
 const f32 ZOOM = 45.0f;
 

@@ -40,7 +40,7 @@ void main() {
         vColor = borderColor;
     } else if (hasFakeTransparency) {
         vec4 fakeTransparency = vec4(divNorm/2.f,divNorm/1.5f,divNorm, 0.f)/1.5f;
-        vColor = finalColor - fakeTransparency;
+        vColor = finalColor/(1.f + divNorm);
     } else {
         vColor = finalColor;
     }

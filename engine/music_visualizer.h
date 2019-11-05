@@ -8,7 +8,6 @@ struct MusicVisualizerConfig {
     Material* pMaterial;
     f32* pBandValues;
     u32 bandCount;
-    u32 bandsToSkip;
     u32 va;
     u32 vb;
     f32 eqBands[VISUALIZER_BAND_BUFFER];
