@@ -87,17 +87,17 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
             pMusicVisualizerConfig->eqBands[iBand] = value;
         }
         
+        for (u32 iBand = 0; iBand < VISUALIZER_BAND_BUFFER; ++iBand) {
+            _itoa(iBand, num, 10);
+            strcat(uniformParamaterName, num);
+            strcat(uniformParamaterName, closedBraket);
+            shaderSetFloat(pMusicVisualizerConfig->pMaterial,
+                           uniformParamaterName,
+                           pMusicVisualizerConfig->eqBands[VISUALIZER_BAND_BUFFER - iBand - 1]);
+            uniformParamaterName[5] = 0;
+        }
+        
         pMusicData->changed = false;
-    }
-    
-    for (u32 iBand = 0; iBand < VISUALIZER_BAND_BUFFER; ++iBand) {
-        _itoa(iBand, num, 10);
-        strcat(uniformParamaterName, num);
-        strcat(uniformParamaterName, closedBraket);
-        shaderSetFloat(pMusicVisualizerConfig->pMaterial,
-                       uniformParamaterName,
-                       pMusicVisualizerConfig->eqBands[VISUALIZER_BAND_BUFFER - iBand - 1]);
-        uniformParamaterName[5] = 0;
     }
     
     hmm_mat4 viewProj = getViewProj(pRenderer);
