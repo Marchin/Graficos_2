@@ -65,8 +65,11 @@ struct Level;
 #include "components.h"
 #include "physics.h"
 #include "tilemap.h"
-#include "music_visualizer.h"
 #include "wav.h"
+#include "music_visualizer.h"
+#include <kiss_fft/kiss_fft.c>
+#include <kiss_fft/kiss_fftr.c>
+
 
 struct ENGINE_API Time {
     f32 deltaTime;

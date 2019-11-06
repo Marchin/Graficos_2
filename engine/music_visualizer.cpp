@@ -1,7 +1,9 @@
 void
-initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMaterial) {
+initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
+                    MusicData* pMusicData,
+                    Material* pMaterial) {
     pMusicVisualizerConfig->pMaterial = pMaterial;
-    pMusicVisualizerConfig->pBandValues = getFFTModResult();
+    pMusicVisualizerConfig->pBandValues = pMusicData->pFFTMod;
     pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
     initVA(&pMusicVisualizerConfig->va);
     vaBind(pMusicVisualizerConfig->va);
@@ -59,7 +61,10 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMa
 }
 
 void
-drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRenderer) {
+drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
+                    MusicData* pMusicData,
+                    Renderer* pRenderer) {
+    
     materialBindID(pMusicVisualizerConfig->pMaterial->id);
     
     char uniformParamaterName[11] = "band[";
@@ -69,7 +74,7 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
     char num[5];
     u32 bands[] = { 1, 16, 24, 32, 40, 48, 64, 96, 128, 160 };
     
-    if (hasMusicBufferChanged()) {
+    if (pMusicData->changed) {
         u32 count = VISUALIZER_BAND_BUFFER - bandCount;
         for (s32 iBand = count - 1; iBand >= 0; --iBand) {
             pMusicVisualizerConfig->eqBands[iBand + bandCount] = pMusicVisualizerConfig->eqBands[iBand];
@@ -79,7 +84,7 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRe
             pMusicVisualizerConfig->eqBands[iBand] = value;
         }
         
-        clearMusicBufferChanged();
+        pMusicData->changed = false;
     }
     
     for (u32 iBand = 0; iBand < VISUALIZER_BAND_BUFFER; ++iBand) {

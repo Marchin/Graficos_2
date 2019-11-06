@@ -7,6 +7,7 @@ struct Game {
     WAV sound;
     MusicVisualizerConfig musicVisualizerConfig;
     Material musicVisualizerMaterial;
+    MusicData musicData;
     f32 camX, camY;
 };
 

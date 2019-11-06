@@ -1,5 +1,3 @@
-global b32 gChanged = true;
-
 s32
 readWAV(WAV* pWAV, const char* pPath) {
     FILE* pFile = fopen(pPath, "rb");
@@ -14,34 +12,34 @@ readWAV(WAV* pWAV, const char* pPath) {
         if (strncmp(buffer, "RIFF", 4) != 0) { return -1; }
         strncpy(wav.riff, buffer, 4);
         fread(buffer, sizeof(u8), 4, pFile);
-        memcpy(&wav.overall_size, buffer, 4);
+        memcpy(&wav.overallSize, buffer, 4);
         fread(buffer, sizeof(u8), 4, pFile);
         if (strncmp(buffer, "WAVE", 4) != 0) { return -1; }
         strncpy(wav.wave, buffer, 4);
         fread(buffer, sizeof(u8), 4, pFile);
-        strncpy(wav.fmt_chunk_marker, buffer, 4);
+        strncpy(wav.fmtChunkMarker, buffer, 4);
         fread(buffer, sizeof(u8), 4, pFile);
-        memcpy(&wav.length_of_fmt, buffer, 4);
+        memcpy(&wav.lengthOfFmt, buffer, 4);
         fread(buffer, sizeof(u8), 2, pFile);
-        memcpy(&wav.format_type, buffer, 2);
+        memcpy(&wav.formatType, buffer, 2);
         fread(buffer, sizeof(u8), 2, pFile);
         memcpy(&wav.channels, buffer, 2);
         fread(buffer, sizeof(u8), 4, pFile);
-        memcpy(&wav.sample_rate, buffer, 4);
+        memcpy(&wav.sampleRate, buffer, 4);
         fread(buffer, sizeof(u8), 4, pFile);
         memcpy(&wav.byterate, buffer, 4);
         fread(buffer, sizeof(u8), 2, pFile);
-        memcpy(&wav.block_align, buffer, 2);
+        memcpy(&wav.blockAlign, buffer, 2);
         fread(buffer, sizeof(u8), 2, pFile);
-        memcpy(&wav.bits_per_sample, buffer, 2);
+        memcpy(&wav.bitsPerSample, buffer, 2);
         fread(buffer, sizeof(u8), 4, pFile);
-        memcpy(&wav.data_chunk_header, buffer, 4);
+        memcpy(&wav.dataChunkHeader, buffer, 4);
         size_t err = fread(buffer, sizeof(u8), 4, pFile);
-        memcpy(&wav.data_size, buffer, 4);
+        memcpy(&wav.dataSize, buffer, 4);
         if (pWAV != 0) {
             *pWAV = wav;
-            pWAV->pData = malloc(pWAV->data_size);
-            err = fread(pWAV->pData, sizeof(u8), pWAV->data_size , pFile);
+            pWAV->pData = malloc(pWAV->dataSize);
+            err = fread(pWAV->pData, sizeof(u8), pWAV->dataSize , pFile);
             fclose(pFile);
         }
     } else {
@@ -52,28 +50,6 @@ readWAV(WAV* pWAV, const char* pPath) {
     return 0;
 }
 
-global b32 gPaused = true;
-global u8* gpPlaying;
-global u32 gAudioBlockAlign;
-global u32 gMusicBytesLeft;
-
-void
-setMusicData(u32 audioBlockAlign, u32 musicSizeInBytes) {
-    gAudioBlockAlign = audioBlockAlign;
-    gMusicBytesLeft = musicSizeInBytes;
-}
-
-void playPauseMusic() {
-    gPaused = !gPaused;
-}
-
-global f32 gVolume = 0.5f;
-global f32* gpFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
-kiss_fftr_cfg gMycfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
-s16* inbuf = (s16*)malloc(sizeof(s16)*2*SAMPLE_RATE);
-kiss_fft_scalar* pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
-kiss_fft_cpx* pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
-
 int
 fftCallback(const void* inputBuffer, void* outputBuffer,
             unsigned long framesPerBuffer,
@@ -81,71 +57,63 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
             PaStreamCallbackFlags statusFlags,
             void* pUserData) {
     
-    u32 byteCountToSend = gAudioBlockAlign*SAMPLE_RATE;
-    if (gPaused) {
+    MusicData* pMusicData = (MusicData*)pUserData; 
+    u32 byteCountToSend = pMusicData->audioBlockAlign*SAMPLE_RATE;
+    if (pMusicData->paused) {
         memset(outputBuffer, 0, byteCountToSend);
-        memset(gpFFTMod, 0, HALF_SAMPLE_RATE*sizeof(f32));
+        memset(pMusicData->pFFTMod, 0, HALF_SAMPLE_RATE*sizeof(f32));
         return paContinue;
     }
-    gChanged = true;
+    pMusicData->changed = true;
     
-    if (gpPlaying == 0) { gpPlaying = (u8*)pUserData; }
     s16* pOut = (s16*)outputBuffer;
     (void) inputBuffer; /* Prevent unused variable warning. */
     
     
-    if (byteCountToSend > gMusicBytesLeft) {
-        byteCountToSend = gMusicBytesLeft;
+    if (byteCountToSend > pMusicData->musicBytesLeft) {
+        byteCountToSend = pMusicData->musicBytesLeft;
     }
-    gMusicBytesLeft -= byteCountToSend;
+    pMusicData->musicBytesLeft -= byteCountToSend;
     
-    memcpy(outputBuffer, gpPlaying, byteCountToSend);
+    memcpy(outputBuffer, pMusicData->pPlaying, byteCountToSend);
     
     for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        pTBuffer[i] = (f32)(pOut[2*i] + pOut[2*i + 1]);
+        pMusicData->pTBuffer[i] = (f32)(pOut[2*i] + pOut[2*i + 1]);
     }
     
     // remove_dc
     float avg = 0;
     for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        avg += pTBuffer[i];
+        avg += pMusicData->pTBuffer[i];
     } 
     avg /= SAMPLE_RATE;
     kiss_fft_scalar scalarAVG = (kiss_fft_scalar)avg;
     for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        pTBuffer[i] -= scalarAVG;
+        pMusicData->pTBuffer[i] -= scalarAVG;
     }
     
-    kiss_fftr(gMycfg, pTBuffer, pFBuffer);
+    kiss_fftr(pMusicData->cfg, pMusicData->pTBuffer, pMusicData->pFBuffer);
     
     for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {
-        gpFFTMod[i] = sqrt(pFBuffer[i].r*pFBuffer[i].r + pFBuffer[i].i*pFBuffer[i].i);
+        pMusicData->pFFTMod[i] = sqrt(pMusicData->pFBuffer[i].r*pMusicData->pFBuffer[i].r + pMusicData->pFBuffer[i].i*pMusicData->pFBuffer[i].i);
     }
     
-    if (byteCountToSend < gMusicBytesLeft) {
-        gpPlaying += byteCountToSend;
+    if (byteCountToSend < pMusicData->musicBytesLeft) {
+        pMusicData->pPlaying += byteCountToSend;
         return paContinue;
     } else {
         return paComplete;
     }
 }
 
+#if 0
 f32*
 getFFTModResult() {
     return gpFFTMod;
 }
+#endif
 
 u32
 getFFTModSize() {
     return HALF_SAMPLE_RATE;
-}
-
-b32
-hasMusicBufferChanged() {
-    return gChanged;
-}
-
-void
-clearMusicBufferChanged() {
-    gChanged = false;
 }

@@ -8,17 +8,26 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
     readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
+    MusicData musicData = {};
+    musicData.pFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
+    musicData.cfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
+    musicData.pPlaying = (u8*)pGame->sound.pData;
+    musicData.pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
+    musicData.pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
+    musicData.audioBlockAlign = pGame->sound.blockAlign;
+    musicData.musicBytesLeft = pGame->sound.dataSize;
+    musicData.paused = true;
+    pGame->musicData = musicData;
     
     pGame->musicVisualizerConfig = {};
-    initMusicVisualizer(&pGame->musicVisualizerConfig, &pGame->musicVisualizerMaterial);
+    initMusicVisualizer(&pGame->musicVisualizerConfig,
+                        &pGame->musicData,
+                        &pGame->musicVisualizerMaterial);
     
     s32 err = Pa_Initialize();
     if (err != paNoError) {
         printf("PortAudio error: %s\n", Pa_GetErrorText(err));
     }
-    
-    setMusicData(pGame->sound.block_align, pGame->sound.data_size);
-    
     
     PaStream *stream;
     /* Open an audio I/O stream. */
@@ -26,7 +35,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                0,/* no input channels */
                                pGame->sound.channels,// stereo output 
                                paInt16,  /* 32 bit floating point output */
-                               pGame->sound.sample_rate,
+                               pGame->sound.sampleRate,
                                SAMPLE_RATE, /* frames per buffer, i.e. the number
                                of sample frames that PortAudio will
                                request from the callback. Many apps
@@ -35,7 +44,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                tells PortAudio to pick the best,
                                possibly changing, buffer size.*/
                                fftCallback, /* this is your callback function */
-                               pGame->sound.pData); /*This is a pointer that will be passed to your callback*/
+                               &pGame->musicData); /*This is a pointer that will be passed to your callback*/
     
     err = Pa_StartStream(stream);
 }
@@ -47,7 +56,7 @@ global u32 gBlock = true;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
-    drawMusicVisualizer(&pGame->musicVisualizerConfig, pRenderer);
+    drawMusicVisualizer(&pGame->musicVisualizerConfig, &pGame->musicData, pRenderer);
     
     gPrevPaused = gPaused;
     if (isKeyPressed(pRenderer, KEY_SPACE)) {
@@ -58,7 +67,7 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
                 gBlock = true;
             }
             if (gPaused && !gPrevPaused) {
-                playPauseMusic();
+                pGame->musicData.paused = !pGame->musicData.paused;
             }
         }
     } else {

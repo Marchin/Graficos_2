@@ -13,8 +13,10 @@ struct MusicVisualizerConfig {
     f32 eqBands[VISUALIZER_BAND_BUFFER];
 };
 
-ENGINE_API void initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Material* pMaterial);
-ENGINE_API void drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig, Renderer* pRenderer);
+ENGINE_API void initMusicVisualizer(
+MusicVisualizerConfig* pMusicVisualizerConfig, MusicData* pMusicData, Material* pMaterial);
+ENGINE_API void drawMusicVisualizer(
+MusicVisualizerConfig* pMusicVisualizerConfig, MusicData* pMusicData, Renderer* pRenderer);
 ENGINE_API void setMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig);
 
 global const f32 gCubeVertexData[] = {
