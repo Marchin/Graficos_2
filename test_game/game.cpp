@@ -8,16 +8,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
     readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
-    MusicData musicData = {};
-    musicData.pFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
-    musicData.cfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
-    musicData.pPlaying = (u8*)pGame->sound.pData;
-    musicData.pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
-    musicData.pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
-    musicData.audioBlockAlign = pGame->sound.blockAlign;
-    musicData.musicBytesLeft = pGame->sound.dataSize;
-    musicData.paused = true;
-    pGame->musicData = musicData;
+    
+    initMusicData(&pGame->musicData, &pGame->sound);
     
     pGame->musicVisualizerConfig = {};
     initMusicVisualizer(&pGame->musicVisualizerConfig,

@@ -106,14 +106,14 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     }
 }
 
-#if 0
-f32*
-getFFTModResult() {
-    return gpFFTMod;
-}
-#endif
-
-u32
-getFFTModSize() {
-    return HALF_SAMPLE_RATE;
+void
+initMusicData(MusicData* pMusicData, WAV* pWAV) {
+    pMusicData->pFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
+    pMusicData->cfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
+    pMusicData->pPlaying = (u8*)pWAV->pData;
+    pMusicData->pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
+    pMusicData->pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
+    pMusicData->audioBlockAlign = pWAV->blockAlign;
+    pMusicData->musicBytesLeft = pWAV->dataSize;
+    pMusicData->paused = true;
 }

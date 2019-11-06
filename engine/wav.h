@@ -41,4 +41,5 @@ ENGINE_API int fftCallback(const void* inputBuffer, void* outputBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags,
                            void *userData);
+ENGINE_API void initMusicData(MusicData* pMusicData, WAV* pWAV);
 #endif //WAV_H
