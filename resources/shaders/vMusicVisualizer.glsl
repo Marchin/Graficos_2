@@ -14,6 +14,7 @@ uniform vec4 colorLFP;
 uniform vec4 colorHFP;
 uniform vec4 borderColor;
 uniform float scale;
+uniform float height;
 uniform float band[TOTAL];
 uniform bool isBorder;
 uniform bool hasFakeTransparency;
@@ -24,8 +25,8 @@ void main() {
     model[0][0] = scale;
     model[1][1] = scale;
     model[2][2] = scale;
-    float mul = 0.00003f;
-    float value = min(15.f, band[gl_InstanceID]*mul);
+    float mul = 0.00003f/(15.f/height);
+    float value = min(height, band[gl_InstanceID]*mul);
     int id = TOTAL - gl_InstanceID - 1;
     int mod = id%BAND_AMOUNT;
     int div = id/BAND_AMOUNT;

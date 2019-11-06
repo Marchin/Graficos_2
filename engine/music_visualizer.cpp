@@ -2,6 +2,7 @@ void
 initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
                     MusicData* pMusicData,
                     Material* pMaterial) {
+    
     pMusicVisualizerConfig->pMaterial = pMaterial;
     pMusicVisualizerConfig->pBandValues = pMusicData->pFFTMod;
     pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
@@ -57,7 +58,9 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorHFN", &colorHFN);
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorLFP", &colorLFP); 
     shaderSetVec4(pMusicVisualizerConfig->pMaterial, "colorHFP", &colorHFP);
-    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "borderColor", &borderColor); 
+    shaderSetVec4(pMusicVisualizerConfig->pMaterial, "borderColor", &borderColor);
+    
+    shaderSetFloat(pMusicVisualizerConfig->pMaterial, "height", 15.f);
 }
 
 void

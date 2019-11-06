@@ -25,8 +25,6 @@ startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera) {
 
 ENGINE_API void
 enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM) {
-    //swapBuffers(pWindow);
-    //pollEventsFromWindow(pWindow);
     clearRenderer();
     f32 currentFrame = getTime();
     pTime->deltaTime = currentFrame - pTime->lastFrame;

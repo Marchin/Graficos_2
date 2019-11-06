@@ -30,21 +30,14 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     }
     
     PaStream *stream;
-    /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream(&stream,
-                               0,/* no input channels */
-                               pGame->sound.channels,// stereo output 
-                               paInt16,  /* 32 bit floating point output */
+                               0,
+                               pGame->sound.channels,
+                               paInt16,
                                pGame->sound.sampleRate,
-                               SAMPLE_RATE, /* frames per buffer, i.e. the number
-                               of sample frames that PortAudio will
-                               request from the callback. Many apps
-                               may want to use
-                               paFramesPerBufferUnspecified, which
-                               tells PortAudio to pick the best,
-                               possibly changing, buffer size.*/
-                               fftCallback, /* this is your callback function */
-                               &pGame->musicData); /*This is a pointer that will be passed to your callback*/
+                               SAMPLE_RATE,
+                               fftCallback,
+                               &pGame->musicData);
     
     err = Pa_StartStream(stream);
 }
