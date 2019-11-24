@@ -6,7 +6,7 @@ struct Game {
     Transform empty;
     WAV sound;
     MusicVisualizerConfig musicVisualizerConfig;
-    Material musicVisualizerMaterial;
+    Shader musicVisualizerShader;
     MusicData musicData;
     f32 camX, camY;
 };

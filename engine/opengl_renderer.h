@@ -11,9 +11,10 @@ global const char* gpSpecular = "texture_specular";
 global const char* gpNormal = "texture_normal";
 global const char* gpReflection = "texture_reflection";
 
-struct ENGINE_API Material {
-    meow_hash hashLocationCache[UNIFORMS_MAX];
-    s32 uniformLocationCache[UNIFORMS_MAX];
+struct ENGINE_API Shader {
+    meow_hash* pHashLocationCache;
+    s32* pUniformLocationCache;
+    u32 size;
     char name[64];
     u32 id;
 };
@@ -55,19 +56,21 @@ struct ENGINE_API Renderer {
 };
 
 ENGINE_API inline f32 getTime();
-ENGINE_API void initMaterial(Material* pMaterial, const char* pName,
-                             const char* pVertexPath, const char* pFragmentPath,
-                             const char* pGeometryPath = 0, 
-                             const char* pTessControlPath = 0, 
-                             const char* pTessEvaluationPath = 0);
-ENGINE_API inline void materialBindID(u32 materialID);
-ENGINE_API s32 getUniformLocation(Material* pMaterial, const char* pName);
-ENGINE_API inline void shaderSetBool(Material* pMaterial, const char* pName, b32 value);
-ENGINE_API inline void shaderSetInt(Material* pMaterial, const char* pName, s32 value);
-ENGINE_API inline void shaderSetFloat(Material* pMaterial, const char* pName, f32 value);
-ENGINE_API inline void shaderSetVec3(Material* pMaterial, const char* pName, hmm_vec3* pVector);
-ENGINE_API inline void shaderSetVec4(Material* pMaterial, const char* pName, hmm_vec4* pVector); 
-ENGINE_API inline void shaderSetMat4(Material* pMaterial, const char* pName, hmm_mat4* pMat4);
+ENGINE_API void setShaderUniformSize(Shader* pShader, u32 size);
+ENGINE_API void initComputeShader(Shader* pShader, const char* pComputePath, u32 dataSize);
+ENGINE_API void initShader(Shader* pShader, const char* pName,
+                           const char* pVertexPath, const char* pFragmentPath,
+                           const char* pGeometryPath = 0, 
+                           const char* pTessControlPath = 0, 
+                           const char* pTessEvaluationPath = 0);
+ENGINE_API inline void shaderBindID(u32 shaderID);
+ENGINE_API s32 getUniformLocation(Shader* pShader, const char* pName);
+ENGINE_API inline void shaderSetBool(Shader* pShader, const char* pName, b32 value);
+ENGINE_API inline void shaderSetInt(Shader* pShader, const char* pName, s32 value);
+ENGINE_API inline void shaderSetFloat(Shader* pShader, const char* pName, f32 value);
+ENGINE_API inline void shaderSetVec3(Shader* pShader, const char* pName, hmm_vec3* pVector);
+ENGINE_API inline void shaderSetVec4(Shader* pShader, const char* pName, hmm_vec4* pVector); 
+ENGINE_API inline void shaderSetMat4(Shader* pShader, const char* pName, hmm_mat4* pMat4);
 ENGINE_API void initTexture(Texture* pTexture, u32 width, u32 height);
 ENGINE_API void initTexture(Texture* pTexture,
                             const char* pImgPath, 
@@ -82,6 +85,9 @@ ENGINE_API inline void initEB(u32* pEBObject,  u32* pData, u32 count);
 ENGINE_API inline void freeEB(u32* pEBObject);
 ENGINE_API inline void ebBind(u32 ebObject);
 ENGINE_API inline void ebUnbind();
+ENGINE_API inline void bindBuffer(u32 id, u32 type);
+ENGINE_API inline void bindBufferBase(u32 ssbo, u32 position);
+ENGINE_API inline u32 initBuffer(u32 type, u32 size);
 ENGINE_API inline u32 vbElementGetSizeOfType(u32 type);
 ENGINE_API void vbLayoutPushFloat(VertexBufferLayout* pVBLayout, u32 count);
 ENGINE_API void vbLayoutPushUint(VertexBufferLayout* pVBLayout, u32 count);

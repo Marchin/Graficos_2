@@ -286,7 +286,7 @@ tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer) {
 
 ENGINE_API void
 initTilemap(Tilemap* pTilemap, const char* pTilemapDir, SpriteSheet* pTileset, 
-            Material* pMaterial, Renderer* pRenderer) {
+            Shader* pShader, Renderer* pRenderer) {
     *pTilemap = {};
     pTilemap->tileSize = 1.f;
     
@@ -296,7 +296,7 @@ initTilemap(Tilemap* pTilemap, const char* pTilemapDir, SpriteSheet* pTileset,
     initVB(&pTilemap->vbPosition);
     initVB(&pTilemap->vbUV);
     
-    pTilemap->material = *pMaterial;
+    pTilemap->shader = *pShader;
     pTilemap->tileset = *pTileset;
     if (!loadTilemap(pTilemap, pTilemapDir)) {
         assert(0);
@@ -363,11 +363,11 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
         pTilemap->cacheCamPosY = camPosY;
         tilemapCalculateVisibleTiles(pTilemap, pRenderer);
     }
-    materialBindID(pTilemap->material.id);
+    shaderBindID(pTilemap->shader.id);
     textureBindID(pTilemap->tileset.spriteRenderer.texture.id, 0);
     pRenderer->pCamera->model = pTilemap->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pTilemap->material, "uModelViewProjection", &mvp);
+    shaderSetMat4(&pTilemap->shader, "uModelViewProjection", &mvp);
     vaBind(pTilemap->va);
     for (s32 i = 0; i < pTilemap->visibleHeight; ++i) {
         for (s32 j = 0; j < pTilemap->visibleWidth; ++j) {

@@ -1,8 +1,7 @@
 #ifndef WAV_H
 #define WAV_H
 
-#define SAMPLE_RATE 2048
-#define HALF_SAMPLE_RATE (SAMPLE_RATE/2 + 1)
+#define SAMPLE_RATE 512
 
 // WAV file header format
 struct WAV {
@@ -22,13 +21,13 @@ struct WAV {
     void* pData;
 };
 
+struct FourierData;
+
 struct MusicData {
-    f32* pFFTMod;
-    kiss_fftr_cfg cfg;
-    kiss_fft_scalar* pTBuffer;
-    kiss_fft_cpx* pFBuffer;
+    f32* pTBuffer;
     void* musicData;
     u8* pPlaying;
+    FourierData* pFourierData;
     u32 audioBlockAlign;
     u32 musicBytesLeft;
     b32 paused;

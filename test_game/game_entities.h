@@ -3,7 +3,7 @@
 
 struct BasicGO {
     Transform transform;
-    Material material;
+    Shader shader;
 };
 
 struct Figure {
@@ -11,14 +11,14 @@ struct Figure {
     SpriteSheet spriteSheet;
 	Animation animation;
     Transform transform;
-    Material material;
+    Shader shader;
     f32 speed;
 };
 
 struct Character {
     Model model;
     Transform transform;
-    Material material;
+    Shader shader;
 };
 
 #endif //GAME_ENTITIES_H

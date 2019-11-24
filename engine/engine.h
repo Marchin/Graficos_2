@@ -18,9 +18,6 @@
 #define HANDMADE_MATH_IMPLEMENTATION
 #include "handmade_math.h"
 
-#include <kiss_fft/kiss_fft.h>
-#include <kiss_fft/kiss_fftr.h>
-
 #define MAX_PATH_SIZE 260
 
 #if OPENGL
@@ -67,8 +64,6 @@ struct Level;
 #include "tilemap.h"
 #include "wav.h"
 #include "music_visualizer.h"
-#include <kiss_fft/kiss_fft.c>
-#include <kiss_fft/kiss_fftr.c>
 
 
 struct ENGINE_API Time {

@@ -28,8 +28,8 @@ updateFigure(void* pFigure, f32 deltaTime) {
 internal void
 initFigure(Figure* pFigure, CollisionManager* pCM) {
 	initTransform(&pFigure->transform);
-    initMaterial(&pFigure->material, "Texture", "..//resources//shaders//vTexture.glsl", 
-                 "..//resources//shaders//fTexture.glsl");
+    initShader(&pFigure->shader, "Texture", "..//resources//shaders//vTexture.glsl", 
+               "..//resources//shaders//fTexture.glsl");
     
     char* pSSPath = "..//resources//spriteSheet.png";
 	f32 squareVertices[] = {
@@ -40,7 +40,7 @@ initFigure(Figure* pFigure, CollisionManager* pCM) {
 	};
 	u32 frames[] = { 0, 2, 5 };
     initSpriteSheet(&pFigure->spriteSheet, 
-                    &pFigure->transform, &pFigure->material, 
+                    &pFigure->transform, &pFigure->shader, 
                     pSSPath, squareVertices);
 	spriteSheetSetFrameSize(&pFigure->spriteSheet, 64);
 	BoxCollider* boxCollider = getNewBoxCollider(pCM);
@@ -90,10 +90,10 @@ initCharacter(Character* pCharacter, const char* pModelPath) {
     //pCharacter->transform.draw = drawCharacter;
     //pCharacter->transform.update = updateCharacter;
     
-    initMaterial(&pCharacter->material, "Model", "..//resources//shaders//vModel.glsl", 
-                 "..//resources//shaders//fModel.glsl");
+    initShader(&pCharacter->shader, "Model", "..//resources//shaders//vModel.glsl", 
+               "..//resources//shaders//fModel.glsl");
     
-    initModel(&pCharacter->model, pModelPath, &pCharacter->material, &pCharacter->transform);
+    initModel(&pCharacter->model, pModelPath, &pCharacter->shader, &pCharacter->transform);
 }
 
 internal void

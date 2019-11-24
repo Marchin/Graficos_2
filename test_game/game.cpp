@@ -1,20 +1,22 @@
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
-    initMaterial(&pGame->musicVisualizerMaterial, "MusicVisualizer",
-                 "..//resources//shaders//vMusicVisualizer.glsl", 
-                 "..//resources//shaders//fMusicVisualizer.glsl");
+    initShader(&pGame->musicVisualizerShader, "MusicVisualizer",
+               "..//resources//shaders//vMusicVisualizer.glsl", 
+               "..//resources//shaders//fMusicVisualizer.glsl");
     
+    //readWAV(&pGame->sound,"../resources/bass.wav");
     //readWAV(&pGame->sound,"../resources/test.wav");
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
-    readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
+    readWAV(&pGame->sound,"../resources/Enter Sandman.wav");
     
     initMusicData(&pGame->musicData, &pGame->sound);
     
     pGame->musicVisualizerConfig = {};
     initMusicVisualizer(&pGame->musicVisualizerConfig,
                         &pGame->musicData,
-                        &pGame->musicVisualizerMaterial);
+                        &pGame->musicVisualizerShader);
     
     s32 err = Pa_Initialize();
     if (err != paNoError) {

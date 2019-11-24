@@ -42,7 +42,7 @@ checkShaderCompileErrors(u32 shader, const char* pType) {
 }
 
 internal u32 
-setupMaterial(const char* pMaterialPath, u32 type) {
+setupShader(const char* pMaterialPath, u32 type) {
 	FILE* pFile = fopen(pMaterialPath, "r");
     char* pShaderCode;
 	u32 id;
@@ -68,136 +68,172 @@ setupMaterial(const char* pMaterialPath, u32 type) {
 	glCall(glShaderSource(id, 1, &pShaderCode, NULL));
 	glCall(glCompileShader(id));
     
-    char* pVertexMsg = "VERTEX";
-    char* pFragmentMsg = "FRAGMENT";
-    char* pGeometryMsg = "GEOMETRY";
-    char* msg = 0;
-	if (type == GL_VERTEX_SHADER) msg = pVertexMsg;
-	else if (type == GL_FRAGMENT_SHADER) msg = pFragmentMsg;
-	else if (type == GL_GEOMETRY_SHADER) msg = pGeometryMsg;
-	checkShaderCompileErrors(id, msg);
+    char vertexMsg[] = "VERTEX";
+    char fragmentMsg[] = "FRAGMENT";
+    char geometryMsg[] = "GEOMETRY";
+    char tessEvaluationMsg[] = "TESS_EVALUATION";
+    char tessControlMsg[] = "TESS_CONTROL";
+    char computeMsg[] = "COMPUTE";
+    char* pMsg = 0;
+	if (type == GL_VERTEX_SHADER) pMsg = vertexMsg;
+	else if (type == GL_FRAGMENT_SHADER) pMsg = fragmentMsg;
+	else if (type == GL_GEOMETRY_SHADER) pMsg = geometryMsg;
+	else if (type == GL_TESS_CONTROL_SHADER) pMsg = tessEvaluationMsg;
+	else if (type == GL_TESS_EVALUATION_SHADER) pMsg = tessControlMsg;
+	else if (type == GL_COMPUTE_SHADER) pMsg = computeMsg;
+	checkShaderCompileErrors(id, pMsg);
     
 	return id;
 }
 
 void
-initMaterial(Material* pMaterial, const char* pName,
-             const char* pVertexPath, const char* pFragmentPath,
-             const char* pGeometryPath, 
-             const char* pTessControlPath, const char* pTessEvaluationPath) {
+setShaderUniformSize(Shader* pShader, u32 size) {
+    pShader->size = size;
+    pShader->pHashLocationCache = (meow_hash*)malloc(sizeof(meow_hash)*size);
+    pShader->pUniformLocationCache = (s32*)malloc(sizeof(s32)*size);
+    for (u32 iUniform = 0; iUniform < size; ++iUniform) {
+        pShader->pUniformLocationCache[iUniform] = -1;
+    }
+}
+
+void
+initComputeShader(Shader* pShader, const char* pComputePath, u32 dataSize) {
+    u32 compute = setupShader(pComputePath, GL_COMPUTE_SHADER);
+    glCall(pShader->id = glCreateProgram());
+	glCall(glAttachShader(pShader->id, compute));
     
-	u32 vertex = 0;
-	u32 fragment = 0;
-	u32 geometry = 0;
-	u32 tessellationControl = 0;
-	u32 tessellationEvaluation = 0;
+	glCall(glLinkProgram(pShader->id));
+	checkShaderCompileErrors(pShader->id, "PROGRAM");
     
-    strcpy(pMaterial->name, pName);
+    setShaderUniformSize(pShader, dataSize);
     
-	vertex = setupMaterial(pVertexPath, GL_VERTEX_SHADER);
-	fragment = setupMaterial(pFragmentPath, GL_FRAGMENT_SHADER);
-	if (pGeometryPath != nullptr) {
-		geometry = setupMaterial(pGeometryPath, GL_GEOMETRY_SHADER);
-	}
-	if (pTessControlPath != nullptr) {
-		tessellationControl = setupMaterial(pTessControlPath, GL_TESS_CONTROL_SHADER);
-	}if (pTessEvaluationPath != nullptr) {
-		tessellationEvaluation = setupMaterial(pTessEvaluationPath, 
-                                               GL_TESS_EVALUATION_SHADER);
-	}
+    glCall(glDeleteShader(compute));
+}
+
+void
+initShader(Shader* pShader, const char* pName,
+           const char* pVertexPath, const char* pFragmentPath,
+           const char* pGeometryPath, 
+           const char* pTessControlPath, const char* pTessEvaluationPath) {
     
-	glCall(pMaterial->id = glCreateProgram());
-	glCall(glAttachShader(pMaterial->id, vertex));
-	glCall(glAttachShader(pMaterial->id, fragment));
-	if (pGeometryPath != 0) {
-		glCall(glAttachShader(pMaterial->id, geometry));
-	}
-	if (pTessControlPath != 0) {
-		glCall(glAttachShader(pMaterial->id, tessellationControl));
-	}if (pTessEvaluationPath != 0) {
-		glCall(glAttachShader(pMaterial->id, tessellationEvaluation));
-	}
-	glCall(glLinkProgram(pMaterial->id));
-	checkShaderCompileErrors(pMaterial->id, "PROGRAM");
+    u32 vertex = 0;
+    u32 fragment = 0;
+    u32 geometry = 0;
+    u32 tessellationControl = 0;
+    u32 tessellationEvaluation = 0;
     
-	glCall(glDeleteShader(vertex));
-	glCall(glDeleteShader(fragment));
-	if (pGeometryPath != 0) {
-		glCall(glDeleteShader(geometry));
-	}
+    strcpy(pShader->name, pName);
     
-    for (int iUniform = 0; iUniform < UNIFORMS_MAX; ++iUniform) {
-        pMaterial->uniformLocationCache[iUniform] = -1;
+    vertex = setupShader(pVertexPath, GL_VERTEX_SHADER);
+    fragment = setupShader(pFragmentPath, GL_FRAGMENT_SHADER);
+    if (pGeometryPath != NULL) {
+        geometry = setupShader(pGeometryPath, GL_GEOMETRY_SHADER);
+    }
+    if (pTessControlPath != NULL) {
+        tessellationControl = setupShader(pTessControlPath, GL_TESS_CONTROL_SHADER);
+    }
+    if (pTessEvaluationPath != NULL) {
+        tessellationEvaluation = setupShader(pTessEvaluationPath, GL_TESS_EVALUATION_SHADER);
     }
     
+    glCall(pShader->id = glCreateProgram());
+    glCall(glAttachShader(pShader->id, vertex));
+    glCall(glAttachShader(pShader->id, fragment));
+    if (pGeometryPath != 0) {
+        glCall(glAttachShader(pShader->id, geometry));
+    }
+    if (pTessControlPath != 0) {
+        glCall(glAttachShader(pShader->id, tessellationControl));
+    }
+    if (pTessEvaluationPath != 0) {
+        glCall(glAttachShader(pShader->id, tessellationEvaluation));
+    }
+    glCall(glLinkProgram(pShader->id));
+    checkShaderCompileErrors(pShader->id, "PROGRAM");
+    
+    glCall(glDeleteShader(vertex));
+    glCall(glDeleteShader(fragment));
+    if (pGeometryPath != 0) {
+        glCall(glDeleteShader(geometry));
+    }
+    if (pTessControlPath != 0) {
+        glCall(glDeleteShader(tessellationControl));
+    }
+    if (pTessEvaluationPath != 0) {
+        glCall(glDeleteShader(tessellationEvaluation));
+    }
+    
+    pShader->size = UNIFORMS_MAX;
+    setShaderUniformSize(pShader, UNIFORMS_MAX);
 }
 
 inline void 
-materialBindID(u32 materialID) {
-	glCall(glUseProgram(materialID));
+shaderBindID(u32 shaderID) {
+    glCall(glUseProgram(shaderID));
 }
 
 s32 
-getUniformLocation(Material* pMaterial, const char* pName) {
+getUniformLocation(Shader* pShader, const char* pName) {
     meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
     s32 iHash;
     s32 firstFreeSlotIndex = -1;
-    for (iHash = 0; iHash < UNIFORMS_MAX; ++iHash) {
-        if (MeowHashesAreEqual(pMaterial->hashLocationCache[iHash], hash)) {
+    s32 size = pShader->size;
+    for (iHash = 0; iHash < size; ++iHash) {
+        if (MeowHashesAreEqual(pShader->pHashLocationCache[iHash], hash)) {
             found = true;
             break;
         } else {
-            if (firstFreeSlotIndex == -1 && pMaterial->uniformLocationCache[iHash] == -1) {
+            if (firstFreeSlotIndex == -1 && pShader->pUniformLocationCache[iHash] == -1) {
                 firstFreeSlotIndex = iHash;
             }
         }
     }
     if (found) {
-        return pMaterial->uniformLocationCache[iHash];
+        return pShader->pUniformLocationCache[iHash];
     } else {
-        glCall(s32 location = glGetUniformLocation(pMaterial->id, pName));
-		if (location == -1) {
+        glCall(s32 location = glGetUniformLocation(pShader->id, pName));
+        if (location == -1) {
             printf("Warning: uniform '%s' doesn't exist\n", pName);
         }
         if (firstFreeSlotIndex == -1) {
             printf("Error: You exceeded the max number of uniforms in a shader allowed\n");
         } else {
-            pMaterial->hashLocationCache[firstFreeSlotIndex] = hash;
-            pMaterial->uniformLocationCache[firstFreeSlotIndex] = location;
+            pShader->pHashLocationCache[firstFreeSlotIndex] = hash;
+            pShader->pUniformLocationCache[firstFreeSlotIndex] = location;
         }
         return location;
     }
 }
 
 inline void 
-shaderSetBool(Material* pMaterial, const char* pName, b32 value) {
-	glCall(glUniform1i(getUniformLocation(pMaterial, pName), value));
+shaderSetBool(Shader* pShader, const char* pName, b32 value) {
+    glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
 inline void
-shaderSetInt(Material* pMaterial, const char* pName, s32 value) {
-	glCall(glUniform1i(getUniformLocation(pMaterial, pName), value));
+shaderSetInt(Shader* pShader, const char* pName, s32 value) {
+    glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
 inline void
-shaderSetFloat(Material* pMaterial, const char* pName, f32 value) {
-	glCall(glUniform1f(getUniformLocation(pMaterial, pName), value));
+shaderSetFloat(Shader* pShader, const char* pName, f32 value) {
+    glCall(glUniform1f(getUniformLocation(pShader, pName), value));
 }
 
 inline void
-shaderSetVec3(Material* pMaterial, const char* pName, hmm_vec3* pVector) {
-	glCall(glUniform3fv(getUniformLocation(pMaterial, pName), 1, &pVector->x));
+shaderSetVec3(Shader* pShader, const char* pName, hmm_vec3* pVector) {
+    glCall(glUniform3fv(getUniformLocation(pShader, pName), 1, &pVector->x));
 }
 
 inline void
-shaderSetVec4(Material* pMaterial, const char* pName, hmm_vec4* pVector) {
-	glCall(glUniform4fv(getUniformLocation(pMaterial, pName), 1, &pVector->X));
+shaderSetVec4(Shader* pShader, const char* pName, hmm_vec4* pVector) {
+    glCall(glUniform4fv(getUniformLocation(pShader, pName), 1, &pVector->X));
 }
 
 inline void
-shaderSetMat4(Material* pMaterial, const char* pName, hmm_mat4* pMat4) {
-	glCall(glUniformMatrix4fv(getUniformLocation(pMaterial, pName), 
+shaderSetMat4(Shader* pShader, const char* pName, hmm_mat4* pMat4) {
+    glCall(glUniformMatrix4fv(getUniformLocation(pShader, pName), 
                               1, GL_FALSE, (f32*)pMat4));
 }
 
@@ -288,6 +324,26 @@ ebBind(u32 ebObject) {
 inline void 
 ebUnbind() {
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+}
+
+inline void
+bindBuffer(u32 id, u32 type) {
+    glCall(glBindBuffer(type, id));
+}
+
+inline void
+bindBufferBase(u32 ssbo, u32 position) {
+    glCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, position, ssbo));
+}
+
+inline u32
+initBuffer(u32 type, u32 size) {
+    u32 id;
+    glCall(glGenBuffers(1, &id));
+    glCall(glBindBuffer(type, id));
+    glCall(glBufferData(type, size, NULL, GL_STATIC_DRAW));
+    
+    return id;
 }
 
 inline u32 
@@ -443,57 +499,57 @@ framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
 
 b32 
 startWindow(Window* pWindow) {
-	if (!glfwInit()) {
-		return false;
-	}
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	pWindow->pInstance = glfwCreateWindow(pWindow->width, pWindow->height, 
+    if (!glfwInit()) {
+        return false;
+    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    pWindow->pInstance = glfwCreateWindow(pWindow->width, pWindow->height, 
                                           pWindow->pName, NULL, NULL);
-	if (pWindow->pInstance == 0) {
+    if (pWindow->pInstance == 0) {
         printf("Failed to create GLFW window\n");
-		glfwTerminate();
-		return false;
-	}
-	glfwMakeContextCurrent((GLFWwindow*)pWindow->pInstance);
+        glfwTerminate();
+        return false;
+    }
+    glfwMakeContextCurrent((GLFWwindow*)pWindow->pInstance);
     glfwSetFramebufferSizeCallback((GLFWwindow*)pWindow->pInstance, 
                                    framebufferSizeCallback);
     glfwSetInputMode((GLFWwindow*)pWindow->pInstance, 
                      GLFW_CURSOR, 
                      GLFW_CURSOR_DISABLED);  
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		printf("Failed to initialize GLAD\n");
-		return false;
-	}
-	return true;
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        printf("Failed to initialize GLAD\n");
+        return false;
+    }
+    return true;
 }
 
 b32  
 stopWindow(Window* pWindow) {
-	if (pWindow->pInstance != 0) {
-		glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
-	}
+    if (pWindow->pInstance != 0) {
+        glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
+    }
     pWindow->pInstance = 0;
     
-	glfwTerminate();
-	return true;
+    glfwTerminate();
+    return true;
 }
 
 inline b32 
 windowShouldClose(Window* pWindow) {
-	if (pWindow->pInstance) {
-		return glfwWindowShouldClose((GLFWwindow*)pWindow->pInstance);
-	} else {
-		return true;
-	}
+    if (pWindow->pInstance) {
+        return glfwWindowShouldClose((GLFWwindow*)pWindow->pInstance);
+    } else {
+        return true;
+    }
 }
 
 inline void 
 pollEventsFromWindow(Window* pWindow) {
-	if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glCall(glfwSetWindowShouldClose((GLFWwindow*)pWindow->pInstance, true));
-	}
+    }
     glCall(glfwPollEvents());
 }
 
@@ -559,7 +615,7 @@ drawBuffer(u32 offset, u32 count) {
 }
 
 inline void
-drawBufferInstenced(u32 offset, u32 vertexCount, u32 instances) {
+drawBufferInstanced(u32 offset, u32 vertexCount, u32 instances) {
     glCall(glDrawArraysInstanced(GL_TRIANGLES, offset, vertexCount, instances));
 }
 
@@ -595,7 +651,9 @@ getViewProj(Renderer* pRenderer) {
 
 inline hmm_mat4 
 getModelViewProj(Renderer* pRenderer) {
-    return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
+    return (pRenderer->pCamera->projection *
+            getViewMatrix(pRenderer->pCamera) *
+            pRenderer->pCamera->model);
 }
 
 inline hmm_mat4 

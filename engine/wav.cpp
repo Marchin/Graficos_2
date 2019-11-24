@@ -61,7 +61,7 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     u32 byteCountToSend = pMusicData->audioBlockAlign*SAMPLE_RATE;
     if (pMusicData->paused) {
         memset(outputBuffer, 0, byteCountToSend);
-        memset(pMusicData->pFFTMod, 0, HALF_SAMPLE_RATE*sizeof(f32));
+        memset(pMusicData->pTBuffer, 0, SAMPLE_RATE*sizeof(f32));
         return paContinue;
     }
     pMusicData->changed = true;
@@ -82,21 +82,16 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
     }
     
     // remove_dc
-    float avg = 0;
+    f32 avg = 0;
     for (u32 i = 0; i < SAMPLE_RATE; ++i) {
         avg += pMusicData->pTBuffer[i];
     } 
     avg /= SAMPLE_RATE;
-    kiss_fft_scalar scalarAVG = (kiss_fft_scalar)avg;
     for (u32 i = 0; i < SAMPLE_RATE; ++i) {
-        pMusicData->pTBuffer[i] -= scalarAVG;
+        pMusicData->pTBuffer[i] -= avg;
     }
     
-    kiss_fftr(pMusicData->cfg, pMusicData->pTBuffer, pMusicData->pFBuffer);
-    
-    for (u32 i = 0; i < HALF_SAMPLE_RATE; ++i) {
-        pMusicData->pFFTMod[i] = sqrt(pMusicData->pFBuffer[i].r*pMusicData->pFBuffer[i].r + pMusicData->pFBuffer[i].i*pMusicData->pFBuffer[i].i);
-    }
+    pMusicData->changed = true;
     
     if (byteCountToSend < pMusicData->musicBytesLeft) {
         pMusicData->pPlaying += byteCountToSend;
@@ -108,12 +103,10 @@ fftCallback(const void* inputBuffer, void* outputBuffer,
 
 void
 initMusicData(MusicData* pMusicData, WAV* pWAV) {
-    pMusicData->pFFTMod = (f32*)calloc(HALF_SAMPLE_RATE, sizeof(f32));
-    pMusicData->cfg = kiss_fftr_alloc(SAMPLE_RATE, 0, NULL, NULL);
     pMusicData->pPlaying = (u8*)pWAV->pData;
-    pMusicData->pTBuffer = (kiss_fft_scalar*)malloc(sizeof(kiss_fft_scalar)*SAMPLE_RATE);
-    pMusicData->pFBuffer = (kiss_fft_cpx*)malloc(HALF_SAMPLE_RATE*sizeof(kiss_fft_cpx));
+    pMusicData->pTBuffer = (f32*)malloc(sizeof(f32)*SAMPLE_RATE);
     pMusicData->audioBlockAlign = pWAV->blockAlign;
     pMusicData->musicBytesLeft = pWAV->dataSize;
     pMusicData->paused = true;
+    pMusicData->changed = false;
 }

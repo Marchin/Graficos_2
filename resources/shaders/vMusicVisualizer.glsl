@@ -1,4 +1,4 @@
-#version 330 core
+#version 430
 #define BAND_AMOUNT 8
 #define BAND_AMOUNT_FLOAT 8.f
 #define DELAY_AMOUNT 8
@@ -21,17 +21,19 @@ uniform bool hasFakeTransparency;
 uniform mat4 viewProj;
 
 void main() {
-    mat4 model;
-    model[0][0] = scale;
-    model[1][1] = scale;
-    model[2][2] = scale;
-    float mul = 0.00003f/(15.f/height);
+    float mul = 0.00008f/(15.f/height);
     float value = min(height, band[gl_InstanceID]*mul);
     int id = TOTAL - gl_InstanceID - 1;
     int mod = id%BAND_AMOUNT;
     int div = id/BAND_AMOUNT;
     float modNorm = mod/(BAND_AMOUNT_FLOAT - 1.f);
     float divNorm = div/(BAND_AMOUNT_FLOAT - 1.f);
+    
+    mat4 model;
+    model[0][0] = scale;
+    model[1][1] = scale;
+    model[2][2] = scale;
+    
     model[3] = vec4(mod - 3.5f, value, -div, 1.f);
     gl_Position = viewProj * model * vec4(aPos, 1.f);
     vec4 colorN = (1.f-modNorm)*colorLFN + modNorm*colorHFN;
