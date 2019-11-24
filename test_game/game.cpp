@@ -1,15 +1,47 @@
+internal char*
+readSongPath() {
+    FILE* pFile = fopen("..//build//Song.txt", "r");
+    char* pMusicPath = 0;
+    
+    if (pFile) {
+        fseek(pFile, 0, SEEK_END);
+        u32 size = ftell(pFile);
+        fseek(pFile, 0, SEEK_SET);
+        pMusicPath = (char*)malloc(size + 1);
+        if (pMusicPath && size) {
+            fread(pMusicPath, sizeof(char), size, pFile);
+        }
+        while (pMusicPath[size - 1] < '\0' && size > 0) {
+            --size; // NOTE(Marchin): for some reason some text files have 
+            //non-valid characters at EOF, so we get rid of them
+        }
+        pMusicPath[size] = '\0'; 
+        fclose(pFile);
+    } else {
+        perror("Error opening file\n");
+        pFile = fopen("..//build//Song.txt", "w");
+        if (pFile) {
+            fprintf(pFile, "../resources/Enter Sandman.wav");
+        }
+        pMusicPath = "../resources/Enter Sandman.wav";
+    }
+    
+    return pMusicPath;
+}
+
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     initShader(&pGame->musicVisualizerShader, "MusicVisualizer",
                "..//resources//shaders//vMusicVisualizer.glsl", 
                "..//resources//shaders//fMusicVisualizer.glsl");
     
+    char* wavPath = readSongPath();
     //readWAV(&pGame->sound,"../resources/bass.wav");
     //readWAV(&pGame->sound,"../resources/test.wav");
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
     //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
-    readWAV(&pGame->sound,"../resources/Enter Sandman.wav");
+    readWAV(&pGame->sound, wavPath);
     
     initMusicData(&pGame->musicData, &pGame->sound);
     
@@ -97,4 +129,3 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);
 }
-
