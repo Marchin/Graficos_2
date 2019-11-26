@@ -1,6 +1,8 @@
 #version 430
 
 #define SIZE 512
+#define DELAY_AMOUNT 8
+#define STRIDE 16
 #define BITCOUNT 9
 
 struct Complex {
@@ -13,6 +15,10 @@ layout(std140, binding = 4) buffer ComI {
 
 layout(std140, binding = 5) buffer ComT {
     Complex t[ ]; //Twiddle buff
+};
+
+layout(std430, binding = 6) buffer ComB {
+    float b[ ]; //Frequency buff
 };
 
 layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
@@ -49,5 +55,27 @@ void main() {
         stride *= 2;
         halfStride *= 2;
         halfPow2 *= 2;
+    }
+    
+    float mul = 1.f/float(STRIDE);
+    int singleRowBandCount = halfSize/STRIDE;
+    int bandCount = singleRowBandCount*DELAY_AMOUNT;
+    int oldBandCount = bandCount - singleRowBandCount;
+    
+    for (int iBand = oldBandCount - 1; iBand >= 0; --iBand) {
+        b[iBand + singleRowBandCount] = b[iBand];
+    }
+    
+    for (int iBand = 0, count = 0; iBand < halfSize; iBand += STRIDE, ++count) {
+        b[count] = 0.f;
+        for (int i = 0; i < STRIDE; ++i) {
+            b[count] += float(sqrt(f[iBand+i].r*f[iBand+i].r +
+                                   f[iBand+i].i*f[iBand+i].i))*mul;
+        }
+    }
+    
+    b[0] *= 0.5f;
+    for (int i = 0; i < 4; ++i) {
+        b[i] *= 0.5f;
     }
 }

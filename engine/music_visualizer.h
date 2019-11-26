@@ -1,8 +1,9 @@
 #ifndef MUSIC_VISUALIZER_H
 #define MUSIC_VISUALIZER_H
 
-#define VISUALIZER_BANDS 8
-#define VISUALIZER_BAND_BUFFER VISUALIZER_BANDS*8
+#define STRIDE 16
+#define VISUALIZER_BANDS (256/STRIDE)
+#define VISUALIZER_BAND_BUFFER (VISUALIZER_BANDS*8)
 
 const global u32 log2SR = (u32)(log(SAMPLE_RATE)/log(2));
 
@@ -22,7 +23,6 @@ struct MusicVisualizerConfig {
     u32 bandCount;
     u32 va;
     u32 vb;
-    f32 eqBands[VISUALIZER_BAND_BUFFER];
 };
 
 ENGINE_API void setFourierInputAndCalculate(FourierData* pFourierData, f32* pData);
@@ -33,41 +33,41 @@ MusicVisualizerConfig* pMusicVisualizerConfig, MusicData* pMusicData, Renderer* 
 ENGINE_API void setMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig);
 
 global const f32 gCubeVertexData[] = {
-    -0.5f,-0.5f,-0.5f, // triangle 1 : begin
-    -0.5f,-0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, // triangle 1 : end
-    0.5f, 0.5f,-0.5f, // triangle 2 : begin
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f, // triangle 2 : end
-    0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f, 0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f,-0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f,-0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f,-0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
-    0.5f,-0.5f, 0.5f
+    -0.1f,-0.1f,-0.1f, // triangle 1 : begin
+    -0.1f,-0.1f, 0.1f,
+    -0.1f, 0.1f, 0.1f, // triangle 1 : end
+    0.1f, 0.1f,-0.1f, // triangle 2 : begin
+    -0.1f,-0.1f,-0.1f,
+    -0.1f, 0.1f,-0.1f, // triangle 2 : end
+    0.1f,-0.1f, 0.1f,
+    -0.1f,-0.1f,-0.1f,
+    0.1f,-0.1f,-0.1f,
+    0.1f, 0.1f,-0.1f,
+    0.1f,-0.1f,-0.1f,
+    -0.1f,-0.1f,-0.1f,
+    -0.1f,-0.1f,-0.1f,
+    -0.1f, 0.1f, 0.1f,
+    -0.1f, 0.1f,-0.1f,
+    0.1f,-0.1f, 0.1f,
+    -0.1f,-0.1f, 0.1f,
+    -0.1f,-0.1f,-0.1f,
+    -0.1f, 0.1f, 0.1f,
+    -0.1f,-0.1f, 0.1f,
+    0.1f,-0.1f, 0.1f,
+    0.1f, 0.1f, 0.1f,
+    0.1f,-0.1f,-0.1f,
+    0.1f, 0.1f,-0.1f,
+    0.1f,-0.1f,-0.1f,
+    0.1f, 0.1f, 0.1f,
+    0.1f,-0.1f, 0.1f,
+    0.1f, 0.1f, 0.1f,
+    0.1f, 0.1f,-0.1f,
+    -0.1f, 0.1f,-0.1f,
+    0.1f, 0.1f, 0.1f,
+    -0.1f, 0.1f,-0.1f,
+    -0.1f, 0.1f, 0.1f,
+    0.1f, 0.1f, 0.1f,
+    -0.1f, 0.1f, 0.1f,
+    0.1f,-0.1f, 0.1f
 };
 #endif //MUSIC_VISUALIZER_H
