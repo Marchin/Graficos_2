@@ -33,7 +33,8 @@ internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
     initShader(&pGame->musicVisualizerShader, "MusicVisualizer",
                "..//resources//shaders//vMusicVisualizer.glsl", 
-               "..//resources//shaders//fMusicVisualizer.glsl");
+               "..//resources//shaders//fMusicVisualizer.glsl", 
+               "..//resources//shaders//gMusicVisualizer.glsl");
     
     char* wavPath = readSongPath();
     //readWAV(&pGame->sound,"../resources/bass.wav");

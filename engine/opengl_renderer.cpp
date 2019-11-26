@@ -619,6 +619,11 @@ drawBufferInstanced(u32 offset, u32 vertexCount, u32 instances) {
     glCall(glDrawArraysInstanced(GL_TRIANGLES, offset, vertexCount, instances));
 }
 
+inline void
+drawPointsInstanced(u32 offset, u32 vertexCount, u32 instances) {
+    glCall(glDrawArraysInstanced(GL_POINTS, offset, vertexCount, instances));
+}
+
 inline void 
 drawBufferStrip(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLE_STRIP, offset, count));

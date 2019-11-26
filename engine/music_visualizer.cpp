@@ -92,22 +92,8 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
     initVA(&pMusicVisualizerConfig->va);
     vaBind(pMusicVisualizerConfig->va);
-    initVB(&pMusicVisualizerConfig->vb, gCubeVertexData, arrayCount(gCubeVertexData) * sizeof(f32));
     
     pMusicData->pFourierData = &pMusicVisualizerConfig->fourierData;
-    
-    VertexBufferLayout layout = {};
-    u32 layoutsAmount = 1;
-    layout.pElements = 
-        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
-    memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
-    layout.elementsMaxSize = layoutsAmount;
-    vbLayoutPushFloat(&layout, 3);
-    
-    vaAddBufferByLocation(pMusicVisualizerConfig->va, 
-                          pMusicVisualizerConfig->vb, 
-                          &layout, 0);
-    free(layout.pElements);
     
     initFourierData(&pMusicVisualizerConfig->fourierData);
     
@@ -170,11 +156,11 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     glCall(glDisable(GL_DEPTH_TEST));
     shaderSetBool(pMusicVisualizerConfig->pShader, "isBorder", true);
     shaderSetFloat(pMusicVisualizerConfig->pShader, "scale", 1.1f);
-    drawBufferInstanced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
+    drawPointsInstanced(0, 1, VISUALIZER_BAND_BUFFER);
     shaderSetBool(pMusicVisualizerConfig->pShader, "isBorder", false);
     shaderSetFloat(pMusicVisualizerConfig->pShader, "scale", 1.f);
     if (!isKeyPressed(pRenderer, KEY_UP)) {
         glCall(glEnable(GL_DEPTH_TEST));
     }
-    drawBufferInstanced(0, arrayCount(gCubeVertexData)/3, VISUALIZER_BAND_BUFFER);
+    drawPointsInstanced(0, 1, VISUALIZER_BAND_BUFFER);
 }

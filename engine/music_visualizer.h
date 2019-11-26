@@ -22,7 +22,6 @@ struct MusicVisualizerConfig {
     f32* pBandValues;
     u32 bandCount;
     u32 va;
-    u32 vb;
 };
 
 ENGINE_API void setFourierInputAndCalculate(FourierData* pFourierData, f32* pData);
@@ -32,42 +31,4 @@ ENGINE_API void drawMusicVisualizer(
 MusicVisualizerConfig* pMusicVisualizerConfig, MusicData* pMusicData, Renderer* pRenderer);
 ENGINE_API void setMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig);
 
-global const f32 gCubeVertexData[] = {
-    -0.1f,-0.1f,-0.1f, // triangle 1 : begin
-    -0.1f,-0.1f, 0.1f,
-    -0.1f, 0.1f, 0.1f, // triangle 1 : end
-    0.1f, 0.1f,-0.1f, // triangle 2 : begin
-    -0.1f,-0.1f,-0.1f,
-    -0.1f, 0.1f,-0.1f, // triangle 2 : end
-    0.1f,-0.1f, 0.1f,
-    -0.1f,-0.1f,-0.1f,
-    0.1f,-0.1f,-0.1f,
-    0.1f, 0.1f,-0.1f,
-    0.1f,-0.1f,-0.1f,
-    -0.1f,-0.1f,-0.1f,
-    -0.1f,-0.1f,-0.1f,
-    -0.1f, 0.1f, 0.1f,
-    -0.1f, 0.1f,-0.1f,
-    0.1f,-0.1f, 0.1f,
-    -0.1f,-0.1f, 0.1f,
-    -0.1f,-0.1f,-0.1f,
-    -0.1f, 0.1f, 0.1f,
-    -0.1f,-0.1f, 0.1f,
-    0.1f,-0.1f, 0.1f,
-    0.1f, 0.1f, 0.1f,
-    0.1f,-0.1f,-0.1f,
-    0.1f, 0.1f,-0.1f,
-    0.1f,-0.1f,-0.1f,
-    0.1f, 0.1f, 0.1f,
-    0.1f,-0.1f, 0.1f,
-    0.1f, 0.1f, 0.1f,
-    0.1f, 0.1f,-0.1f,
-    -0.1f, 0.1f,-0.1f,
-    0.1f, 0.1f, 0.1f,
-    -0.1f, 0.1f,-0.1f,
-    -0.1f, 0.1f, 0.1f,
-    0.1f, 0.1f, 0.1f,
-    -0.1f, 0.1f, 0.1f,
-    0.1f,-0.1f, 0.1f
-};
 #endif //MUSIC_VISUALIZER_H
