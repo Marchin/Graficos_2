@@ -9,7 +9,7 @@ getTwiddle(u32 x, u32 size) {
 
 void
 computeSetTwiddle(FourierData* pFourierData) {
-	bindBuffer(pFourierData->twiddleSSBO, GL_SHADER_STORAGE_BUFFER);
+	bindBuffer(pFourierData->twiddleSSBO, SHADER_STORAGE_BUFFER);
     
     u32 halfSize = SAMPLE_RATE/2;
     
@@ -23,8 +23,8 @@ computeSetTwiddle(FourierData* pFourierData) {
 
 void
 initFourierData(FourierData* pFourierData) {
-    pFourierData->inputSSBO = initBuffer(GL_SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
-    pFourierData->twiddleSSBO = initBuffer(GL_SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
+    pFourierData->inputSSBO = initBuffer(SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
+    pFourierData->twiddleSSBO = initBuffer(SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
     s32 dataBuffer = initBuffer(SHADER_STORAGE_BUFFER, VISUALIZER_BAND_BUFFER * sizeof(f32));
     initComputeShader(&pFourierData->computeShader,
                       "..//resources//shaders//cMusicVisualizer.glsl", 
@@ -43,20 +43,19 @@ initFourierData(FourierData* pFourierData) {
     }
     
     computeSetTwiddle(pFourierData);
-    glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
+    memoryBarrier();
     
     shaderBindID(pFourierData->computeShader.id);
     shaderSetInt(&pFourierData->computeShader, "stride", STRIDE);
     shaderSetInt(&pFourierData->computeShader, "timeSize", TIME_SIZE);
     shaderSetInt(&pFourierData->computeShader, "size", SAMPLE_RATE);
     u32 size = sizeof(Complex)*(SAMPLE_RATE);
-    bindBuffer(pFourierData->twiddleSSBO, GL_SHADER_STORAGE_BUFFER);
-    glCall(glBufferData(GL_SHADER_STORAGE_BUFFER, size, NULL, GL_STREAM_DRAW));
-    glCall(Complex* pFInput = (Complex*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 
-                                                         0, size, 
-                                                         GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+    bindBuffer(pFourierData->twiddleSSBO, SHADER_STORAGE_BUFFER);
+    bufferDataDraw(SHADER_STORAGE_BUFFER, size);
+    Complex* pFInput = (Complex*)mapBufferRangeWrite(SHADER_STORAGE_BUFFER, 
+                                                     0, size);
     memcpy(pFInput, pFourierData->pTwiddle, size);
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    unmapBuffer(SHADER_STORAGE_BUFFER);
     bindBufferBase(pFourierData->inputSSBO, 4);
     bindBufferBase(pFourierData->twiddleSSBO, 5);
     bindBufferBase(dataBuffer, 6);
@@ -64,12 +63,11 @@ initFourierData(FourierData* pFourierData) {
 
 void
 setFourierInputAndCalculate(FourierData* pFourierData, f32* pData) {
-    bindBuffer(pFourierData->inputSSBO, GL_SHADER_STORAGE_BUFFER);
-    glCall(glBufferData(GL_SHADER_STORAGE_BUFFER, SAMPLE_RATE*sizeof(Complex), NULL, GL_STREAM_DRAW));
+    bindBuffer(pFourierData->inputSSBO, SHADER_STORAGE_BUFFER);
+    bufferDataDraw(SHADER_STORAGE_BUFFER, SAMPLE_RATE*sizeof(Complex));
     
-    Complex* pFInput = (Complex*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 
-                                                  0, SAMPLE_RATE * sizeof(Complex), 
-                                                  GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+    Complex* pFInput = (Complex*)mapBufferRangeWrite(SHADER_STORAGE_BUFFER, 
+                                                     0, SAMPLE_RATE * sizeof(Complex));
     for (u32 iData = 0; iData < SAMPLE_RATE; ++iData) {
         pData[iData] *= pFourierData->pWindow[iData];
     }
@@ -78,11 +76,11 @@ setFourierInputAndCalculate(FourierData* pFourierData, f32* pData) {
         pFInput[iData].i = 0.f;
     }
     
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    unmapBuffer(SHADER_STORAGE_BUFFER);
     shaderBindID(pFourierData->computeShader.id);
-    glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
-    glCall(glDispatchCompute(SAMPLE_RATE/32, 1, 1));
-    glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
+    memoryBarrier();
+    dispatch(SAMPLE_RATE/32, 1, 1);
+    memoryBarrier();
 }
 
 void
@@ -161,14 +159,14 @@ drawMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
                   "viewProj",
                   &viewProj);
     vaBind(pMusicVisualizerConfig->va);
-    glCall(glDisable(GL_DEPTH_TEST));
+    setDepthTestState(false);
     shaderSetBool(pMusicVisualizerConfig->pShader, "isBorder", true);
     shaderSetFloat(pMusicVisualizerConfig->pShader, "scale", 1.1f);
     drawPointsInstanced(0, 1, VISUALIZER_BAND_BUFFER);
     shaderSetBool(pMusicVisualizerConfig->pShader, "isBorder", false);
     shaderSetFloat(pMusicVisualizerConfig->pShader, "scale", 1.f);
     if (!isKeyPressed(pRenderer, KEY_UP)) {
-        glCall(glEnable(GL_DEPTH_TEST));
+        setDepthTestState(true);
     }
     drawPointsInstanced(0, 1, VISUALIZER_BAND_BUFFER);
 }

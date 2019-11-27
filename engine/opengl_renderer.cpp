@@ -346,6 +346,36 @@ initBuffer(u32 type, u32 size) {
     return id;
 }
 
+inline void
+bufferDataDraw(u32 bufferType, u32 length) {
+    glCall(glBufferData(bufferType, length, NULL, GL_STREAM_DRAW));
+}
+
+inline void*
+mapBufferRangeWrite(u32 bufferType, u32 offset, u32 length) {
+    return glMapBufferRange(bufferType, offset, length, 
+                            GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+}
+
+inline void
+memoryBarrier() {
+    glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
+}
+
+inline void
+unmapBuffer(u32 bufferType) {
+    glCall(glUnmapBuffer(bufferType));
+}
+
+inline void
+setDepthTestState(b32 state) {
+    if (state) {
+        glCall(glEnable(GL_DEPTH_TEST));
+    } else {
+        glCall(glDisable(GL_DEPTH_TEST));
+    }
+}
+
 inline u32 
 vbElementGetSizeOfType(u32 type) {
     u32 result = 0;
@@ -485,6 +515,10 @@ vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location)
     glCall(glEnableVertexAttribArray(location));
 }
 
+inline void
+dispatch(u32 x, u32 y, u32 z) {
+    glCall(glDispatchCompute(x, y, z));
+}
 
 ////////////////////////////////
 
