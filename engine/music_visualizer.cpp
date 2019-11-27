@@ -89,7 +89,6 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
                     Shader* pShader) {
     
     pMusicVisualizerConfig->pShader = pShader;
-    pMusicVisualizerConfig->pBandValues = pMusicData->pTBuffer;
     pMusicVisualizerConfig->bandAmount = (SAMPLE_RATE/2)/STRIDE;
     pMusicVisualizerConfig->stride = STRIDE;
     pMusicVisualizerConfig->timeSize = TIME_SIZE;

@@ -50,6 +50,13 @@ readWAV(WAV* pWAV, const char* pPath) {
     return 0;
 }
 
+void
+freeWAV(MusicData* pMusicData) {
+    free(pMusicData->pTBuffer);
+    free(pMusicData->musicData);
+    free(pMusicData->pFourierData);
+}
+
 int
 fftCallback(const void* inputBuffer, void* outputBuffer,
             unsigned long framesPerBuffer,

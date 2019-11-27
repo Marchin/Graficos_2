@@ -20,7 +20,6 @@ struct FourierData {
 struct MusicVisualizerConfig {
     FourierData fourierData;
     Shader* pShader;
-    f32* pBandValues;
     u32 bandAmount;
     u32 stride;
     u32 timeSize;

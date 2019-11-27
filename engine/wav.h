@@ -35,6 +35,7 @@ struct MusicData {
 };
 
 ENGINE_API s32 readWAV(WAV* pWAV, const char* pPath);
+ENGINE_API void freeWAV(MusicData* pMusicData);
 ENGINE_API int fftCallback(const void* inputBuffer, void* outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
