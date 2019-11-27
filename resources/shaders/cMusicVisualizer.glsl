@@ -58,7 +58,6 @@ void main() {
         halfPow2 *= 2;
     }
     
-    float mul = 1.f/float(stride);
     int singleRowBandCount = halfSize/stride;
     int bandCount = singleRowBandCount*timeSize;
     int oldBandCount = bandCount - singleRowBandCount;
@@ -68,11 +67,8 @@ void main() {
     }
     
     for (int iBand = 0, count = 0; iBand < halfSize; iBand += stride, ++count) {
-        b[count] = 0.f;
-        for (int i = 0; i < stride; ++i) {
-            b[count] += float(sqrt(f[iBand+i].r*f[iBand+i].r +
-                                   f[iBand+i].i*f[iBand+i].i))*mul;
-        }
+        b[count] = float(sqrt(f[iBand].r*f[iBand].r +
+                              f[iBand].i*f[iBand].i));
     }
     
     b[0] *= 0.5f;
