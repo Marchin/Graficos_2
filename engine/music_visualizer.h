@@ -3,7 +3,8 @@
 
 #define STRIDE 16
 #define VISUALIZER_BANDS (256/STRIDE)
-#define VISUALIZER_BAND_BUFFER (VISUALIZER_BANDS*8)
+#define TIME_SIZE 8
+#define VISUALIZER_BAND_BUFFER (VISUALIZER_BANDS*TIME_SIZE)
 
 const global u32 log2SR = (u32)(log(SAMPLE_RATE)/log(2));
 
@@ -20,7 +21,9 @@ struct MusicVisualizerConfig {
     FourierData fourierData;
     Shader* pShader;
     f32* pBandValues;
-    u32 bandCount;
+    u32 bandAmount;
+    u32 stride;
+    u32 timeSize;
     u32 va;
 };
 

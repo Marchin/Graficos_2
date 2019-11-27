@@ -25,7 +25,7 @@ void
 initFourierData(FourierData* pFourierData) {
     pFourierData->inputSSBO = initBuffer(GL_SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
     pFourierData->twiddleSSBO = initBuffer(GL_SHADER_STORAGE_BUFFER, SAMPLE_RATE * sizeof(Complex));
-    s32 dataBuffer = initBuffer(GL_SHADER_STORAGE_BUFFER, VISUALIZER_BAND_BUFFER * sizeof(f32));
+    s32 dataBuffer = initBuffer(SHADER_STORAGE_BUFFER, VISUALIZER_BAND_BUFFER * sizeof(f32));
     initComputeShader(&pFourierData->computeShader,
                       "..//resources//shaders//cMusicVisualizer.glsl", 
                       1096);
@@ -46,6 +46,9 @@ initFourierData(FourierData* pFourierData) {
     glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
     
     shaderBindID(pFourierData->computeShader.id);
+    shaderSetInt(&pFourierData->computeShader, "stride", STRIDE);
+    shaderSetInt(&pFourierData->computeShader, "timeSize", TIME_SIZE);
+    shaderSetInt(&pFourierData->computeShader, "size", SAMPLE_RATE);
     u32 size = sizeof(Complex)*(SAMPLE_RATE);
     bindBuffer(pFourierData->twiddleSSBO, GL_SHADER_STORAGE_BUFFER);
     glCall(glBufferData(GL_SHADER_STORAGE_BUFFER, size, NULL, GL_STREAM_DRAW));
@@ -89,7 +92,9 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     
     pMusicVisualizerConfig->pShader = pShader;
     pMusicVisualizerConfig->pBandValues = pMusicData->pTBuffer;
-    pMusicVisualizerConfig->bandCount = VISUALIZER_BANDS;
+    pMusicVisualizerConfig->bandAmount = (SAMPLE_RATE/2)/STRIDE;
+    pMusicVisualizerConfig->stride = STRIDE;
+    pMusicVisualizerConfig->timeSize = TIME_SIZE;
     initVA(&pMusicVisualizerConfig->va);
     vaBind(pMusicVisualizerConfig->va);
     
@@ -99,8 +104,8 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     
     shaderBindID(pMusicVisualizerConfig->pShader->id);
     
-    b32 vaporWave = true;
-    b32 blackBorder = true;
+    b32 vaporWave = false;
+    b32 blackBorder = false;
     
     hmm_vec4 colorLFN;
     hmm_vec4 colorHFN;
@@ -135,6 +140,9 @@ initMusicVisualizer(MusicVisualizerConfig* pMusicVisualizerConfig,
     shaderSetVec4(pMusicVisualizerConfig->pShader, "borderColor", &borderColor);
     
     shaderSetFloat(pMusicVisualizerConfig->pShader, "height", 15.f);
+    shaderSetInt(pMusicVisualizerConfig->pShader, "stride", pMusicVisualizerConfig->stride);
+    shaderSetInt(pMusicVisualizerConfig->pShader, "bandAmount", pMusicVisualizerConfig->bandAmount);
+    shaderSetInt(pMusicVisualizerConfig->pShader, "timeSize", pMusicVisualizerConfig->timeSize);
 }
 
 void

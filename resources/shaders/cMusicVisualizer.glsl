@@ -1,10 +1,5 @@
 #version 430
 
-#define SIZE 512
-#define DELAY_AMOUNT 8
-#define STRIDE 16
-#define BITCOUNT 9
-
 struct Complex {
     double r, i;
 };
@@ -31,14 +26,20 @@ Complex sum(Complex a, Complex b) {
     return Complex(a.r + b.r, a.i + b.i);
 }
 
+uniform int stride;
+uniform int size;
+uniform int timeSize;
+
 void main() {
     int halfPow2 = 1;
-    int stride = 2;
-    int halfStride = stride/2;
-    int halfSize = SIZE/2;
-    for (int i = 0; i < BITCOUNT; ++i) {
-        int offset = SIZE/stride;
-        for (int j = 0; j < SIZE; j += stride) {
+    int fftStride = 2;
+    int halfStride = fftStride/2;
+    int halfSize = size/2;
+    int bitCount = int(log2(size));
+    
+    for (int i = 0; i < bitCount; ++i) {
+        int offset = size/fftStride;
+        for (int j = 0; j < size; j += fftStride) {
             int twiddleSelector = 0;
             for (int k = 0; k < halfStride; ++k) {
                 int iF = j + k;
@@ -52,23 +53,23 @@ void main() {
                 twiddleSelector += offset;
             }
         }
-        stride *= 2;
+        fftStride *= 2;
         halfStride *= 2;
         halfPow2 *= 2;
     }
     
-    float mul = 1.f/float(STRIDE);
-    int singleRowBandCount = halfSize/STRIDE;
-    int bandCount = singleRowBandCount*DELAY_AMOUNT;
+    float mul = 1.f/float(stride);
+    int singleRowBandCount = halfSize/stride;
+    int bandCount = singleRowBandCount*timeSize;
     int oldBandCount = bandCount - singleRowBandCount;
     
     for (int iBand = oldBandCount - 1; iBand >= 0; --iBand) {
         b[iBand + singleRowBandCount] = b[iBand];
     }
     
-    for (int iBand = 0, count = 0; iBand < halfSize; iBand += STRIDE, ++count) {
+    for (int iBand = 0, count = 0; iBand < halfSize; iBand += stride, ++count) {
         b[count] = 0.f;
-        for (int i = 0; i < STRIDE; ++i) {
+        for (int i = 0; i < stride; ++i) {
             b[count] += float(sqrt(f[iBand+i].r*f[iBand+i].r +
                                    f[iBand+i].i*f[iBand+i].i))*mul;
         }
