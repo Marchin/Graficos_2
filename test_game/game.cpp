@@ -42,7 +42,14 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     //readWAV(&pGame->sound,"../resources/moonglow.wav");
     //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
     //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
-    readWAV(&pGame->sound, wavPath);
+    if (readWAV(&pGame->sound, wavPath) != 0) {
+        FILE* pFile = fopen("..//build//Song.txt", "w");
+        if (pFile) {
+            fprintf(pFile, "../resources/Enter Sandman.wav");
+        }
+        fclose(pFile);
+        readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    }
     
     initMusicData(&pGame->musicData, &pGame->sound);
     
