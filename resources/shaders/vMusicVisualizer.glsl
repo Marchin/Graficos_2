@@ -33,7 +33,7 @@ void main() {
     int div = id/bandAmount;
     float fBandAmount = float(bandAmount);
     float modNorm = mod/(fBandAmount - 1.f);
-    float divNorm = div/(fBandAmount - 1.f);
+    float divNorm = div/(float(timeSize) - 1.f);
     float xOffset = fBandAmount/2 - 1.f;
     
     gl_Position = vec4(mod - xOffset, value, -div, 1.f);
