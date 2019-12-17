@@ -1,9 +1,13 @@
 #ifndef ENGINE_RENDER_H
 #define ENGINE_RENDER_H
 
+#ifdef LOG
 #define glCall(x) glClearError();\
 x;\
 assert(glLogCall(#x, __FILE__, __LINE__));
+#else
+#define glCall(x) x
+#endif
 #define UNIFORMS_MAX 96
 
 global const char* gpDiffuse = "texture_diffuse";
