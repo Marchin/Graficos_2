@@ -433,7 +433,6 @@ framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
 
 ENGINE_API b32 
 startWindow(Window* pWindow) {
-    printf("Window::Start()\n");
 	if (!glfwInit()) {
 		return false;
 	}
@@ -462,7 +461,6 @@ startWindow(Window* pWindow) {
 
 ENGINE_API b32  
 stopWindow(Window* pWindow) {
-    printf("Window::Stop()\n");
 	if (pWindow->pInstance != 0) {
 		glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
 	}
@@ -508,7 +506,6 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 
 ENGINE_API inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
-    printf("Start()\n");
     Assert(pCamera != 0);
     initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
     pRenderer->pCamera = pCamera;
@@ -523,7 +520,6 @@ startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
 
 ENGINE_API inline b32 
 stopRenderer() {
-    printf("Stop()\n");
     
     return true;
 }

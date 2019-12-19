@@ -1,4 +1,4 @@
-ENGINE_API inline Bivec3
+inline Bivec3
 wedge(const hmm_vec3 vec3A, const hmm_vec3 vec3B) {
     Bivec3 result = {
         vec3A.y*vec3B.z - vec3A.z*vec3B.y,
@@ -8,7 +8,7 @@ wedge(const hmm_vec3 vec3A, const hmm_vec3 vec3B) {
 	return result;
 }
 
-ENGINE_API Rotor3
+Rotor3
 rotorFromVecAToVecB(const hmm_vec3 from, const hmm_vec3 to) {
     Rotor3 result;
     
@@ -18,7 +18,15 @@ rotorFromVecAToVecB(const hmm_vec3 from, const hmm_vec3 to) {
     return result;
 }
 
-ENGINE_API Rotor3
+#if 0
+// TODO(Marchin): 
+Rotor3
+rotorFromEuler(hmm_vec3 vec) {
+    f32 sine = 
+}
+#endif
+
+Rotor3
 rotorFromAngleAndBivec(f32 angleRadian, Bivec3 bivec) {
 	Rotor3 result;
     
@@ -32,7 +40,7 @@ rotorFromAngleAndBivec(f32 angleRadian, Bivec3 bivec) {
     return result;
 }
 
-ENGINE_API inline Rotor3 
+inline Rotor3 
 operator*(Rotor3 a, Rotor3 b) {
 	Rotor3 result;
 	
@@ -44,13 +52,15 @@ operator*(Rotor3 a, Rotor3 b) {
 	return result;
 }
 
-ENGINE_API inline Rotor3 
+inline Rotor3 
 &operator*=(Rotor3& rotA, Rotor3 rotB) {
     rotA = rotA * rotB;
 	return rotA;
 }
 
-ENGINE_API hmm_vec3
+
+
+hmm_vec3
 getRotatedVector(hmm_vec3 vec, Rotor3 rot) {
     //p = rot*vec
     hmm_vec3 p;
@@ -71,35 +81,35 @@ getRotatedVector(hmm_vec3 vec, Rotor3 rot) {
 	return q;
 }
 
-ENGINE_API inline Rotor3 
+inline Rotor3 
 getRotatedRotor(Rotor3 rotated, Rotor3 rotor) {
 	// should unwrap this for efficiency
 	return rotor * rotated * rotorGetReverse(rotor);
 }
 
 // Equivalent to conjugate
-ENGINE_API inline Rotor3 
+inline Rotor3 
 rotorGetReverse(Rotor3 rot) {
 	return Rotor3{rot.a, -rot.yz, -rot.zx, -rot.xy};
 }
 
-ENGINE_API inline f32 
+inline f32 
 rotorLengthSqrd(Rotor3* pRot) {
 	return 1.f;
 }
 
-ENGINE_API inline f32 
+inline f32 
 rotorLength(Rotor3* pRot) {
 	return sqrtf(rotorLengthSqrd(pRot));
 }
 
-ENGINE_API inline void 
+inline void 
 rotorNormalize(Rotor3* pRot) {
 	f32 length = rotorLength(pRot);
 	pRot->a /= length; pRot->yz /= length; pRot->zx /= length; pRot->xy /= length;
 }
 
-ENGINE_API inline hmm_mat4
+inline hmm_mat4
 getRotorMat4(Rotor3 rot) {
     hmm_vec3 vecX = getRotatedVector(VEC3_X, rot);
     hmm_vec3 vecY = getRotatedVector(VEC3_Y, rot);

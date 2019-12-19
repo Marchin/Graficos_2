@@ -5,7 +5,7 @@
 const f64 YAW = -90.0f;
 const f64 PITCH = 0.0f;
 const f32 SPEED = 2.5f;
-const f32 SENSITIVITY = 0.1f;
+const f32 SENSITIVITY = 0.002f;
 const f32 ZOOM = 45.0f;
 
 enum Projection {
@@ -21,9 +21,7 @@ struct ENGINE_API Camera {
 	hmm_vec3 worldUp;
     hmm_mat4 model;
     hmm_mat4 projection;
-    Rotor3 rotorYZ;
-    Rotor3 rotorZX;
-    Rotor3 rotorXY;
+    Rotor3 rotor;
 	
     f32 movementSpeed;
 	f32 mouseSensitivity;
