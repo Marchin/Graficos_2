@@ -8,14 +8,24 @@ patterns = {
 	"*.bat",
 };
 
-patterns = {
-	".*"
+blacklist_patterns = {
+".*",
+};
+
+load_paths_only = {
+ {"."},
+};
+
+load_paths = {
+ { load_paths_only, .os = "win"  },
+ { load_paths_only, .os = "linux"},
+ { load_paths_only, .os = "mac"  },
 };
 
 load_paths = {
 	{{
-		{"..\\test_game\\.", .relative = true, .recursive = true,},
-		{"..\\engine\\.", .relative = true, .recursive = true,}
+		{"..\\test_game", .relative = true, .recursive = true,},
+		{"..\\engine", .relative = true, .recursive = true,}
 	}, .os ="win"},
 };
 
