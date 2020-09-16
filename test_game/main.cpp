@@ -16,8 +16,13 @@ void main() {
     startEngine(&window, &renderer, &game.camera);
     initGame(&game, &renderer, &time, &cm);
     while (!windowShouldClose(&window)) {
+        enginePreUpdate(&window, &time, &cm);
         updateGame(&game, &renderer, &time, &cm);
-        updateEngine(&window, &time, &cm);
+        enginePostUpdate(&window, &time, &cm);
+    }
+    s32 err = Pa_Terminate();
+    if (err != paNoError){
+        printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
     }
     stopRenderer();
     stopWindow(&window);

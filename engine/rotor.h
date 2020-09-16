@@ -4,9 +4,19 @@
 //http://marctenbosch.com/quaternions/
 
 struct Bivec3 {
-    float yz;
-    float zx;
-    float xy;
+    union {
+        struct {
+            float yz;
+            float zx;
+            float xy;
+        };
+        struct {
+            float dx;
+            float dy;
+            float dz;
+        };
+        hmm_vec3 vec;
+    };
 };
 
 struct Rotor3 {
@@ -17,6 +27,11 @@ struct Rotor3 {
             float yz;
             float zx;
             float xy;
+        };
+        struct {
+            float dx;
+            float dy;
+            float dz;
         };
         Bivec3 bivec;
         hmm_vec3 vec;
@@ -33,14 +48,14 @@ global const Rotor3 RotorXY = Rotor3{0, 0, 0, 1};
 
 ENGINE_API inline Bivec3 wedge(const hmm_vec3 vec3A, const hmm_vec3 vec3B);
 ENGINE_API Rotor3 rotorFromVecAToVecB(const hmm_vec3 from, const hmm_vec3 to);
-ENGINE_API Rotor3 rotorFromAngleAndBivec(float angleRadian, Bivec3 bivec);
+ENGINE_API Rotor3 rotorFromAngleAndBivec(Bivec3 bivec, float angleRadian);
 ENGINE_API inline Rotor3 operator*(Rotor3 rotA, Rotor3 rotB);
 ENGINE_API hmm_vec3 getRotatedVector(hmm_vec3 vec, Rotor3 rot);
 ENGINE_API inline Rotor3 &operator*=(Rotor3& rotA, Rotor3 rotB);
 ENGINE_API inline Rotor3 getRotatedRotor(Rotor3 rotated, Rotor3 rotor);
 ENGINE_API inline Rotor3 rotorGetReverse(Rotor3 rot);
-ENGINE_API inline f32 rotorLengthSqrd(Rotor3* pRot);
-ENGINE_API inline f32 rotorLength(Rotor3* pRot);
-ENGINE_API inline void rotorNormalize(Rotor3* pRot);
+ENGINE_API inline f32 rotorLengthSqrd(Rotor3 rot);
+ENGINE_API inline f32 rotorLength(Rotor3 rot);
+//ENGINE_API inline void rotorNormalize(Rotor3 rot);
 
 #endif //ROTOR_H

@@ -1,169 +1,148 @@
+internal char* readSongPath();
+
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
-    pGame->camX = {};
-    pGame->camY = {};
+    initShader(&pGame->musicVisualizerShader, "MusicVisualizer",
+               "..//resources//shaders//vMusicVisualizer.glsl", 
+               "..//resources//shaders//fMusicVisualizer.glsl", 
+               "..//resources//shaders//gMusicVisualizer.glsl");
     
-    Shader basicMaterial;
-    initShader(&basicMaterial, "..//resources//shaders//vShader.glsl", 
-               "..//resources//shaders//fShader.glsl");
+    char* wavPath = readSongPath();
+    //readWAV(&pGame->sound,"../resources/bass.wav");
+    //readWAV(&pGame->sound,"../resources/test.wav");
+    //readWAV(&pGame->sound,"../resources/moonglow.wav");
+    //readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    //readWAV(&pGame->sound,"../resources/A Horse With No Name.wav");
+    if (readWAV(&pGame->sound, wavPath) != 0) {
+        FILE* pFile = fopen("..//build//Song.txt", "w");
+        if (pFile) {
+            fprintf(pFile, "../resources/Enter Sandman.wav");
+        }
+        fclose(pFile);
+        readWAV(&pGame->sound,"../resources/Hold The Line.wav");
+    }
     
-    Shader colorMaterial;
-    initShader(&colorMaterial, "..//resources//shaders//vColor.glsl", 
-               "..//resources//shaders//fColor.glsl");
+    initMusicData(&pGame->musicData, &pGame->sound);
     
-    Shader textureMaterial;
-    initShader(&textureMaterial, "..//resources//shaders//vTexture.glsl", 
-               "..//resources//shaders//fTexture.glsl");
+    pGame->musicVisualizerConfig = {};
+    initMusicVisualizer(&pGame->musicVisualizerConfig,
+                        &pGame->musicData,
+                        &pGame->musicVisualizerShader);
     
-    const char* pSpritePath = "..//resources//container.jpg";
-    const char* pSpriteSheetPath = "..//resources//spriteSheet.png";
+    s32 err = Pa_Initialize();
+    if (err != paNoError) {
+        printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+    }
     
-    float vertices[] = {
-		-0.5f, -0.5f, 0.f,
-		-0.5f,  0.5f, 0.f,
-		0.5f,  0.f, 0.f
-	};
-    float squareVertices[] = {
-		-0.5f, -0.5f, 0.f,
-		-0.5f,  0.5f, 0.f,
-        0.5f, -0.5f, 0.f,
-        0.5f,  0.5f, 0.f
-	};
-	float squareColors[] = {
-		1.f, 0.f, 0.f,
-		0.f, 1.f, 0.f,
-		0.f, 0.f, 1.f,
-		1.f, 1.f, 0.f
-	};
-	float squareUV[] = {
-		0.f, 0.f,
-		0.f, 1.f,
-		1.f, 0.f,
-		1.f, 1.f
-	};
-    u32 frames[] = {
-        0, 7, 2, 5, 4,
-    };
+    PaStream *stream;
+    err = Pa_OpenDefaultStream(&stream,
+                               0,
+                               pGame->sound.channels,
+                               paInt16,
+                               pGame->sound.sampleRate,
+                               SAMPLE_RATE,
+                               fftCallback,
+                               &pGame->musicData);
     
+    err = Pa_StartStream(stream);
     
-#if 0
-    initTriangle(&pGame->triangle, &basicMaterial, &vertices, sizeof(vertices));
-    transformScale(&pGame->triangle.transform, 9.f, 3.f, 3.f);
-    initColorSquare(&pGame->cs, &colorMaterial, & squareVertices, squareColors);
-    transformScale(&pGame->cs.transform, 5.f, 5.f, 5.f);
+    Shader modelShader;
+    initShader(&modelShader, "Model", "..//resources//shaders//vModel.glsl", 
+               "..//resources//shaders//fModel.glsl");
     
-    initCircle(&pGame->circle, &basicMaterial, 16, 5.f);
-    transformTranslate(&pGame->circle.transform, 6.f, 2.f, 0.f);
+    initCharacter(&pGame->character, "..//resources//bath.obj");
+    addChild(&pGame->character.transform, &pGame->empty);
     
-    initSprite(&pGame->sprite, &textureMaterial, pSpritePath, squareVertices, squareUV);
-    transformTranslate(&pGame->sprite.transform, -6.f, 0.f, 0.f);
-    transformScale(&pGame->sprite.transform, 6.f, 6.f, 6.f);
-    
-    initAnimation(&pGame->anim, &ss, frames, ArrayCount(frames));
-#endif
-    
-    initSpriteSheet(&pGame->ss, &textureMaterial, pSpriteSheetPath, 
-                    squareVertices, squareUV);
-    spriteSheetSetFrameSize(&pGame->ss, 64);
-    
-    initCharacter(&pGame->character1, pCM);
-    initCharacter(&pGame->character2, pCM);
-    initCharacter(&pGame->character3, pCM);
-    moveCharacter(&pGame->character1, 20.f, -9.f);
-    moveCharacter(&pGame->character2, 9.f, 0.f);
-    moveCharacter(&pGame->character3, 0.f, -7.f);
-    pGame->character2.pCollider->mass = 5.f;
-    
-	char* pTilesetPath = "..//resources//tileset.png";
-	initSpriteSheet(&pGame->tileset, &textureMaterial, pTilesetPath, squareVertices, squareUV);
-    spriteSheetSetFrameSize(&pGame->tileset, 32);
-    
-    initTilemap(&pGame->tilemap, "..//resources//tilemap.csv", 
-                &pGame->tileset, &textureMaterial, pRenderer);
-	s32 collisionableTiles[] = { 37, 45, 46, 47, 55 };
-	tilemapSetCollisionableTiles(&pGame->tilemap, 
-                                 collisionableTiles, 
-                                 sizeof(collisionableTiles) / sizeof(s32));
-    
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character1.pCollider);
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character2.pCollider);
-	tilemapRegisterColliders(&pGame->tilemap, pGame->character3.pCollider);
-    
-    
-    pGame->timer = {};
 }
+
+global b32 gPaused;
+global b32 gPrevPaused;
+global u32 gPauseCounter;
+global u32 gBlock = true;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
-    //transformTranslate(&pGame->sprite.transform, .01f, 0.f, 0.f);
-    //transformTranslate(&pGame->cs.transform, -.01f, 0f, 0.f);
-    //drawTriangle(&pGame->triangle, pRenderer);
-    //drawColorSquare(&pGame->cs, pRenderer);
-    //drawCircle(&pGame->circle, pRenderer);
-    //drawSprite(&pGame->sprite, pRenderer);
-    //drawSprite(&pGame->ss.sprite, pRenderer);
-    //updateAnimation(&pGame->anim, deltaTime);
-    //transformRotateY(&pGame->cs.transform, 5.f);
-    //transformRotate(&pGame->sprite.transform, 5.f, );
-    pGame->timer += pTime->deltaTime;
-#if 1
-    if (pGame->timer >= 3.f) {
-        pRenderer->pCamera->fov += 10.f;
-        pGame->timer = 0.f;
-    }
-    if (pGame->camX > 32.f) {
-        pGame->camX = 0.f;
-        pGame->camY -= 5.f;
-        if (pGame->camY < -35.f) {
-            pGame->camY = 0.f;
+    //drawMusicVisualizer(&pGame->musicVisualizerConfig, &pGame->musicData, pRenderer);
+    
+    gPrevPaused = gPaused;
+    if (isKeyPressed(pRenderer, KEY_SPACE)) {
+        if (!gBlock) {
+            ++gPauseCounter;
+            if (gPauseCounter == 4){
+                gPaused = true;
+                gBlock = true;
+            }
+            if (gPaused && !gPrevPaused) {
+                pGame->musicData.paused = !pGame->musicData.paused;
+            }
         }
     } else {
-        pGame->camX += 2.f  * pTime->deltaTime;
+        gPauseCounter = 0;
+        gPaused = false;
+        gBlock = false;
     }
+#if 0
+    hmm_vec3 cameraRight = getRotatedVector(VEC3_X, pRenderer->pCamera->rotor);
+    hmm_vec3 cameraUp = getRotatedVector(VEC3_Y, pRenderer->pCamera->rotor);
+    hmm_vec3 cameraFront = getRotatedVector(-1.f * VEC3_Z, pRenderer->pCamera->rotor);
 #endif
-    //pRenderer->pCamera->position = HMM_Vec3(pGame->camX, pGame->camY, pRenderer->pCamera->position.z);
     if (isKeyPressed(pRenderer, KEY_D)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_A)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->right, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_W)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->front, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_S)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->front, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_E)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->up, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_Q)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->up, pTime->deltaTime);
     }
     if (isKeyPressed(pRenderer, KEY_Z)) {
-        pRenderer->pCamera->roll = pTime->deltaTime * -15.f;
-        updateCameraVectors(pRenderer->pCamera);
-    } else if (isKeyPressed(pRenderer, KEY_C)) {
-        pRenderer->pCamera->roll = pTime->deltaTime * 15.f;
-        updateCameraVectors(pRenderer->pCamera);
-    } else if (pRenderer->pCamera->roll != 0.f) {
-        pRenderer->pCamera->roll = 0.f;
+        pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
+        pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
         updateCameraVectors(pRenderer->pCamera);
     }
-    transformRotate(&pGame->character1.transform, 1.f, VEC3_X);
-    //setCameraPosition(pRenderer, pGame->camX, pGame->camY);
-    drawTilemap(&pGame->tilemap, pRenderer);
-    moveCharacter(&pGame->character1, -2.f * pTime->deltaTime, 0.f);
-    updateCharacter(&pGame->character1, pTime->deltaTime);
-    drawCharacter(&pGame->character1, pRenderer);
-    moveCharacter(&pGame->character2, 0.f, -2.f * pTime->deltaTime);
-    updateCharacter(&pGame->character2, pTime->deltaTime);
-    drawCharacter(&pGame->character2, pRenderer);
-    moveCharacter(&pGame->character3, 2.f * pTime->deltaTime, 0.f);
-    updateCharacter(&pGame->character3, pTime->deltaTime);
-    drawCharacter(&pGame->character3, pRenderer);
-    tilemapCheckCollisions(&pGame->tilemap);
+    if (isKeyPressed(pRenderer, KEY_C)) {
+        pRenderer->pCamera->roll += pTime->deltaTime * 5.f;
+        updateCameraVectors(pRenderer->pCamera);
+    }
+    
+    transformUpdate(&pGame->empty, pTime->deltaTime);
+    transformDraw(&pGame->character.transform, pRenderer);
+    
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);
     cameraMouseMovement(pRenderer->pCamera, x, y, true);
+}
+
+internal char*
+readSongPath() {
+    FILE* pFile = fopen("..//build//Song.txt", "r");
+    char* pMusicPath = 0;
+    
+    if (pFile) {
+        fseek(pFile, 0, SEEK_END);
+        u32 size = ftell(pFile);
+        fseek(pFile, 0, SEEK_SET);
+        pMusicPath = (char*)malloc(size + 1);
+        if (pMusicPath && size) {
+            fread(pMusicPath, sizeof(char), size, pFile);
+        }
+        while (pMusicPath[size - 1] < '\0' && size > 0) {
+            --size; // NOTE(Marchin): for some reason some text files have 
+            //non-valid characters at EOF, so we get rid of them
+        }
+        pMusicPath[size] = '\0'; 
+        fclose(pFile);
+    } else {
+        perror("Error opening file\n");
+        pFile = fopen("..//build//Song.txt", "w");
+        if (pFile) {
+            fprintf(pFile, "../resources/Enter Sandman.wav");
+        }
+        pMusicPath = "../resources/Enter Sandman.wav";
+    }
+    
+    return pMusicPath;
 }

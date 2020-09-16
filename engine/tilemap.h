@@ -23,7 +23,7 @@ struct ENGINE_API Tilemap {
     size_t collisionBitmask[COLL_BITMASK_SIZE] = {0};
 	SpriteSheet tileset;
 	BoxCollider* colliders[MAX_COLLIDERS] = {NULL};
-    Shader material;
+    Shader shader;
     Transform transform;
 };
 
@@ -44,7 +44,7 @@ ENGINE_API void tilemapCalculateUV(Tilemap* pTilemap);
 ENGINE_API void tilemapCalculateVisibleTiles(Tilemap* pTilemap, Renderer* pRenderer);
 ENGINE_API void initTilemap(Tilemap* pTilemap, const char* pTilemapDir, 
                             SpriteSheet* pTileset, 
-                            Shader* pMaterial, Renderer* pRenderer);
+                            Shader* pShader, Renderer* pRenderer);
 ENGINE_API inline void freeTilemap(Tilemap* pTilemap);
 ENGINE_API void drawTilemap(Tilemap* pTilemap, Renderer* pRenderer);
 #endif //TILEMAP_H

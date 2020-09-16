@@ -1,4 +1,4 @@
-ENGINE_API inline f32 
+inline f32 
 getTime() {
     return (f32)glfwGetTime();
 }
@@ -42,8 +42,8 @@ checkShaderCompileErrors(u32 shader, const char* pType) {
 }
 
 internal u32 
-setupShader(const char* pShaderPath, u32 type) {
-	FILE* pFile = fopen(pShaderPath, "r");
+setupShader(const char* pMaterialPath, u32 type) {
+	FILE* pFile = fopen(pMaterialPath, "r");
     char* pShaderCode;
 	u32 id;
     
@@ -68,133 +68,176 @@ setupShader(const char* pShaderPath, u32 type) {
 	glCall(glShaderSource(id, 1, &pShaderCode, NULL));
 	glCall(glCompileShader(id));
     
-    char* pVertexMsg = "VERTEX";
-    char* pFragmentMsg = "FRAGMENT";
-    char* pGeometryMsg = "GEOMETRY";
-    char* msg = 0;
-	if (type == GL_VERTEX_SHADER) msg = pVertexMsg;
-	else if (type == GL_FRAGMENT_SHADER) msg = pFragmentMsg;
-	else if (type == GL_GEOMETRY_SHADER) msg = pGeometryMsg;
-	checkShaderCompileErrors(id, msg);
+    char vertexMsg[] = "VERTEX";
+    char fragmentMsg[] = "FRAGMENT";
+    char geometryMsg[] = "GEOMETRY";
+    char tessEvaluationMsg[] = "TESS_EVALUATION";
+    char tessControlMsg[] = "TESS_CONTROL";
+    char computeMsg[] = "COMPUTE";
+    char* pMsg = 0;
+	if (type == GL_VERTEX_SHADER) pMsg = vertexMsg;
+	else if (type == GL_FRAGMENT_SHADER) pMsg = fragmentMsg;
+	else if (type == GL_GEOMETRY_SHADER) pMsg = geometryMsg;
+	else if (type == GL_TESS_CONTROL_SHADER) pMsg = tessEvaluationMsg;
+	else if (type == GL_TESS_EVALUATION_SHADER) pMsg = tessControlMsg;
+	else if (type == GL_COMPUTE_SHADER) pMsg = computeMsg;
+	checkShaderCompileErrors(id, pMsg);
     
 	return id;
 }
 
-ENGINE_API void
-initShader(Shader* pShader,
+void
+setShaderUniformSize(Shader* pShader, u32 size) {
+    pShader->size = size;
+    pShader->pHashLocationCache = (meow_hash*)malloc(sizeof(meow_hash)*size);
+    pShader->pUniformLocationCache = (s32*)malloc(sizeof(s32)*size);
+    for (u32 iUniform = 0; iUniform < size; ++iUniform) {
+        pShader->pUniformLocationCache[iUniform] = -1;
+    }
+}
+
+void
+initComputeShader(Shader* pShader, const char* pComputePath, u32 dataSize) {
+    u32 compute = setupShader(pComputePath, GL_COMPUTE_SHADER);
+    glCall(pShader->id = glCreateProgram());
+	glCall(glAttachShader(pShader->id, compute));
+    
+	glCall(glLinkProgram(pShader->id));
+	checkShaderCompileErrors(pShader->id, "PROGRAM");
+    
+    setShaderUniformSize(pShader, dataSize);
+    
+    glCall(glDeleteShader(compute));
+}
+
+void
+initShader(Shader* pShader, const char* pName,
            const char* pVertexPath, const char* pFragmentPath,
            const char* pGeometryPath, 
            const char* pTessControlPath, const char* pTessEvaluationPath) {
     
-	u32 vertex = 0;
-	u32 fragment = 0;
-	u32 geometry = 0;
-	u32 tessellationControl = 0;
-	u32 tessellationEvaluation = 0;
+    u32 vertex = 0;
+    u32 fragment = 0;
+    u32 geometry = 0;
+    u32 tessellationControl = 0;
+    u32 tessellationEvaluation = 0;
     
-	vertex = setupShader(pVertexPath, GL_VERTEX_SHADER);
-	fragment = setupShader(pFragmentPath, GL_FRAGMENT_SHADER);
-	if (pGeometryPath != nullptr) {
-		geometry = setupShader(pGeometryPath, GL_GEOMETRY_SHADER);
-	}
-	if (pTessControlPath != nullptr) {
-		tessellationControl = setupShader(pTessControlPath, GL_TESS_CONTROL_SHADER);
-	}if (pTessEvaluationPath != nullptr) {
-		tessellationEvaluation = setupShader(pTessEvaluationPath, 
-                                             GL_TESS_EVALUATION_SHADER);
-	}
+    strcpy(pShader->name, pName);
     
-	glCall(pShader->id = glCreateProgram());
-	glCall(glAttachShader(pShader->id, vertex));
-	glCall(glAttachShader(pShader->id, fragment));
-	if (pGeometryPath != 0) {
-		glCall(glAttachShader(pShader->id, geometry));
-	}
-	if (pTessControlPath != 0) {
-		glCall(glAttachShader(pShader->id, tessellationControl));
-	}if (pTessEvaluationPath != 0) {
-		glCall(glAttachShader(pShader->id, tessellationEvaluation));
-	}
-	glCall(glLinkProgram(pShader->id));
-	checkShaderCompileErrors(pShader->id, "PROGRAM");
-    
-	glCall(glDeleteShader(vertex));
-	glCall(glDeleteShader(fragment));
-	if (pGeometryPath != 0) {
-		glCall(glDeleteShader(geometry));
-	}
-    
-    for (int iUniform = 0; iUniform < UNIFORMS_MAX; ++iUniform) {
-        pShader->uniformLocationCache[iUniform] = -1;
+    vertex = setupShader(pVertexPath, GL_VERTEX_SHADER);
+    fragment = setupShader(pFragmentPath, GL_FRAGMENT_SHADER);
+    if (pGeometryPath != NULL) {
+        geometry = setupShader(pGeometryPath, GL_GEOMETRY_SHADER);
+    }
+    if (pTessControlPath != NULL) {
+        tessellationControl = setupShader(pTessControlPath, GL_TESS_CONTROL_SHADER);
+    }
+    if (pTessEvaluationPath != NULL) {
+        tessellationEvaluation = setupShader(pTessEvaluationPath, GL_TESS_EVALUATION_SHADER);
     }
     
+    glCall(pShader->id = glCreateProgram());
+    glCall(glAttachShader(pShader->id, vertex));
+    glCall(glAttachShader(pShader->id, fragment));
+    if (pGeometryPath != 0) {
+        glCall(glAttachShader(pShader->id, geometry));
+    }
+    if (pTessControlPath != 0) {
+        glCall(glAttachShader(pShader->id, tessellationControl));
+    }
+    if (pTessEvaluationPath != 0) {
+        glCall(glAttachShader(pShader->id, tessellationEvaluation));
+    }
+    glCall(glLinkProgram(pShader->id));
+    checkShaderCompileErrors(pShader->id, "PROGRAM");
+    
+    glCall(glDeleteShader(vertex));
+    glCall(glDeleteShader(fragment));
+    if (pGeometryPath != 0) {
+        glCall(glDeleteShader(geometry));
+    }
+    if (pTessControlPath != 0) {
+        glCall(glDeleteShader(tessellationControl));
+    }
+    if (pTessEvaluationPath != 0) {
+        glCall(glDeleteShader(tessellationEvaluation));
+    }
+    
+    pShader->size = UNIFORMS_MAX;
+    setShaderUniformSize(pShader, UNIFORMS_MAX);
 }
 
-ENGINE_API inline void 
+inline void 
 shaderBindID(u32 shaderID) {
-	glCall(glUseProgram(shaderID));
+    glCall(glUseProgram(shaderID));
 }
 
-ENGINE_API s32 
+s32 
 getUniformLocation(Shader* pShader, const char* pName) {
     meow_hash hash = MeowHash_Accelerated(0, sizeof(pName), (const void*)pName);
     b32 found = false;
     s32 iHash;
     s32 firstFreeSlotIndex = -1;
-    for (iHash = 0; iHash < UNIFORMS_MAX; ++iHash) {
-        if (MeowHashesAreEqual(pShader->hashLocationCache[iHash], hash)) {
+    s32 size = pShader->size;
+    for (iHash = 0; iHash < size; ++iHash) {
+        if (MeowHashesAreEqual(pShader->pHashLocationCache[iHash], hash)) {
             found = true;
             break;
         } else {
-            if (firstFreeSlotIndex == -1 && pShader->uniformLocationCache[iHash] == -1) {
+            if (firstFreeSlotIndex == -1 && pShader->pUniformLocationCache[iHash] == -1) {
                 firstFreeSlotIndex = iHash;
             }
         }
     }
     if (found) {
-        return pShader->uniformLocationCache[iHash];
+        return pShader->pUniformLocationCache[iHash];
     } else {
         glCall(s32 location = glGetUniformLocation(pShader->id, pName));
-		if (location == -1) {
+        if (location == -1) {
             printf("Warning: uniform '%s' doesn't exist\n", pName);
         }
         if (firstFreeSlotIndex == -1) {
             printf("Error: You exceeded the max number of uniforms in a shader allowed\n");
         } else {
-            pShader->hashLocationCache[firstFreeSlotIndex] = hash;
-            pShader->uniformLocationCache[firstFreeSlotIndex] = location;
+            pShader->pHashLocationCache[firstFreeSlotIndex] = hash;
+            pShader->pUniformLocationCache[firstFreeSlotIndex] = location;
         }
         return location;
     }
 }
 
-ENGINE_API inline void 
+inline void 
 shaderSetBool(Shader* pShader, const char* pName, b32 value) {
-	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
+    glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetInt(Shader* pShader, const char* pName, s32 value) {
-	glCall(glUniform1i(getUniformLocation(pShader, pName), value));
+    glCall(glUniform1i(getUniformLocation(pShader, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetFloat(Shader* pShader, const char* pName, f32 value) {
-	glCall(glUniform1f(getUniformLocation(pShader, pName), value));
+    glCall(glUniform1f(getUniformLocation(pShader, pName), value));
 }
 
-ENGINE_API inline void
+inline void
 shaderSetVec3(Shader* pShader, const char* pName, hmm_vec3* pVector) {
-	glCall(glUniform3fv(getUniformLocation(pShader, pName), 1, &pVector->x));
+    glCall(glUniform3fv(getUniformLocation(pShader, pName), 1, &pVector->x));
 }
 
-ENGINE_API inline void
+inline void
+shaderSetVec4(Shader* pShader, const char* pName, hmm_vec4* pVector) {
+    glCall(glUniform4fv(getUniformLocation(pShader, pName), 1, &pVector->X));
+}
+
+inline void
 shaderSetMat4(Shader* pShader, const char* pName, hmm_mat4* pMat4) {
-	glCall(glUniformMatrix4fv(getUniformLocation(pShader, pName), 
+    glCall(glUniformMatrix4fv(getUniformLocation(pShader, pName), 
                               1, GL_FALSE, (f32*)pMat4));
 }
 
-ENGINE_API void
+void
 initTexture(Texture* pTexture, u32 width, u32 height) {
     pTexture->width = width;
     pTexture->height = height;
@@ -207,7 +250,7 @@ initTexture(Texture* pTexture, u32 width, u32 height) {
     glCall(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
-ENGINE_API void
+void
 initTexture(Texture* pTexture,
             const char* pImgPath, b32 flipVertical, 
             s32 TextureWrap_S, s32 TextureWrap_T,
@@ -247,18 +290,18 @@ initTexture(Texture* pTexture,
     stbi_image_free(pData);
 }
 
-ENGINE_API inline void
+inline void
 freeTexture(u32* pTextureID) {
     glCall(glDeleteTextures(1, pTextureID));
 }
 
-ENGINE_API inline void
+inline void
 textureBindID(u32 textureID, u32 slot) {
     glCall(glActiveTexture(GL_TEXTURE0 + slot));
     glCall(glBindTexture(GL_TEXTURE_2D, textureID));
 }
 
-ENGINE_API inline void
+inline void
 initEB(u32* pEBObject,  u32* pData, u32 count) {
     glCall(glGenBuffers(1, pEBObject));
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *pEBObject));
@@ -268,22 +311,72 @@ initEB(u32* pEBObject,  u32* pData, u32 count) {
                         GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void
+inline void
 freeEB(u32* pEBObject) {
     glCall(glDeleteBuffers(1, pEBObject));
 }
 
-ENGINE_API inline void 
+inline void 
 ebBind(u32 ebObject) {
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebObject));
 }
 
-ENGINE_API inline void 
+inline void 
 ebUnbind() {
     glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
-ENGINE_API inline u32 
+inline void
+bindBuffer(u32 id, u32 type) {
+    glCall(glBindBuffer(type, id));
+}
+
+inline void
+bindBufferBase(u32 ssbo, u32 position) {
+    glCall(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, position, ssbo));
+}
+
+inline u32
+initBuffer(u32 type, u32 size) {
+    u32 id;
+    glCall(glGenBuffers(1, &id));
+    glCall(glBindBuffer(type, id));
+    glCall(glBufferData(type, size, NULL, GL_STATIC_DRAW));
+    
+    return id;
+}
+
+inline void
+bufferDataDraw(u32 bufferType, u32 length) {
+    glCall(glBufferData(bufferType, length, NULL, GL_STREAM_DRAW));
+}
+
+inline void*
+mapBufferRangeWrite(u32 bufferType, u32 offset, u32 length) {
+    return glMapBufferRange(bufferType, offset, length, 
+                            GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+}
+
+inline void
+memoryBarrier() {
+    glCall(glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT));
+}
+
+inline void
+unmapBuffer(u32 bufferType) {
+    glCall(glUnmapBuffer(bufferType));
+}
+
+inline void
+setDepthTestState(b32 state) {
+    if (state) {
+        glCall(glEnable(GL_DEPTH_TEST));
+    } else {
+        glCall(glDisable(GL_DEPTH_TEST));
+    }
+}
+
+inline u32 
 vbElementGetSizeOfType(u32 type) {
     u32 result = 0;
     switch (type) {
@@ -297,13 +390,13 @@ vbElementGetSizeOfType(u32 type) {
             return 1;
         } break;
         default: {
-            Assert(false);
+            assert(false);
         }
     }
     return 0;
 }
 
-ENGINE_API void 
+void 
 vbLayoutPushFloat(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -315,7 +408,7 @@ vbLayoutPushFloat(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API void
+void
 vbLayoutPushUint(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -327,7 +420,7 @@ vbLayoutPushUint(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API void 
+void 
 vbLayoutPushUchar(VertexBufferLayout* pVBLayout, u32 count) {
     if (pVBLayout->elementsCount >= pVBLayout->elementsMaxSize) {
         perror("You exceeded the max amount of elements in a VBLayout\n");
@@ -339,60 +432,60 @@ vbLayoutPushUchar(VertexBufferLayout* pVBLayout, u32 count) {
     }
 }
 
-ENGINE_API inline void
+inline void
 initVB(u32* pVB) {
     glCall(glGenBuffers(1, pVB));
 }
 
-ENGINE_API inline void
+inline void
 initVB(u32* pVB, const void* pData, u32 size) {
     glCall(glGenBuffers(1, pVB));
     glCall(glBindBuffer(GL_ARRAY_BUFFER, *pVB));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void
+inline void
 freeVB(u32* pVB) {
     glCall(glDeleteBuffers(1, pVB));
 }
 
-ENGINE_API inline void 
+inline void 
 vbBind(u32 vb) {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
 }
 
-ENGINE_API inline void 
+inline void 
 vbUnbind() {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-ENGINE_API inline void 
+inline void 
 vbSetData(u32 vb, const void* pData, u32 size) {
     glCall(glBindBuffer(GL_ARRAY_BUFFER, vb));
     glCall(glBufferData(GL_ARRAY_BUFFER, size, pData, GL_STATIC_DRAW));
 }
 
-ENGINE_API inline void 
+inline void 
 initVA(u32* pVA) {
     glCall(glGenVertexArrays(1, pVA));
 }
 
-ENGINE_API inline void 
+inline void 
 freeVA(u32* pVA) {
     glCall(glDeleteVertexArrays(1, pVA));
 }
 
-ENGINE_API inline void
+inline void
 vaBind(u32 va) {
     glCall(glBindVertexArray(va));
 }
 
-ENGINE_API inline void 
+inline void 
 vaUnbind() {
     glCall(glBindVertexArray(0));
 }
 
-ENGINE_API void 
+void 
 vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout) {
     vaBind(va);
     vbBind(vb);
@@ -409,7 +502,7 @@ vaAddBuffer(u32 va, u32 vb, VertexBufferLayout* pLayout) {
     }
 }
 
-ENGINE_API void 
+void 
 vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location) {
     vaBind(va);
     vbBind(vb);
@@ -422,8 +515,15 @@ vaAddBufferByLocation(u32 va, u32 vb, VertexBufferLayout* pLayout, u32 location)
     glCall(glEnableVertexAttribArray(location));
 }
 
+inline void
+dispatch(u32 x, u32 y, u32 z) {
+    glCall(glDispatchCompute(x, y, z));
+}
+
 ////////////////////////////////
+
 //WINDOW
+
 ////////////////////////////////
 
 inline void
@@ -431,63 +531,63 @@ framebufferSizeCallback(GLFWwindow* pWindow, s32 width, s32 height) {
     glViewport(0, 0, width, height);
 }
 
-ENGINE_API b32 
+b32 
 startWindow(Window* pWindow) {
-	if (!glfwInit()) {
-		return false;
-	}
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	pWindow->pInstance = glfwCreateWindow(pWindow->width, pWindow->height, 
+    if (!glfwInit()) {
+        return false;
+    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    pWindow->pInstance = glfwCreateWindow(pWindow->width, pWindow->height, 
                                           pWindow->pName, NULL, NULL);
-	if (pWindow->pInstance == 0) {
+    if (pWindow->pInstance == 0) {
         printf("Failed to create GLFW window\n");
-		glfwTerminate();
-		return false;
-	}
-	glfwMakeContextCurrent((GLFWwindow*)pWindow->pInstance);
+        glfwTerminate();
+        return false;
+    }
+    glfwMakeContextCurrent((GLFWwindow*)pWindow->pInstance);
     glfwSetFramebufferSizeCallback((GLFWwindow*)pWindow->pInstance, 
                                    framebufferSizeCallback);
     glfwSetInputMode((GLFWwindow*)pWindow->pInstance, 
                      GLFW_CURSOR, 
                      GLFW_CURSOR_DISABLED);  
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		printf("Failed to initialize GLAD\n");
-		return false;
-	}
-	return true;
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        printf("Failed to initialize GLAD\n");
+        return false;
+    }
+    return true;
 }
 
-ENGINE_API b32  
+b32  
 stopWindow(Window* pWindow) {
-	if (pWindow->pInstance != 0) {
-		glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
-	}
+    if (pWindow->pInstance != 0) {
+        glfwDestroyWindow((GLFWwindow*)pWindow->pInstance);
+    }
     pWindow->pInstance = 0;
     
-	glfwTerminate();
-	return true;
+    glfwTerminate();
+    return true;
 }
 
-ENGINE_API inline b32 
+inline b32 
 windowShouldClose(Window* pWindow) {
-	if (pWindow->pInstance) {
-		return glfwWindowShouldClose((GLFWwindow*)pWindow->pInstance);
-	} else {
-		return true;
-	}
+    if (pWindow->pInstance) {
+        return glfwWindowShouldClose((GLFWwindow*)pWindow->pInstance);
+    } else {
+        return true;
+    }
 }
 
-ENGINE_API inline void 
+inline void 
 pollEventsFromWindow(Window* pWindow) {
-	if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    if (glfwGetKey((GLFWwindow*)pWindow->pInstance, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glCall(glfwSetWindowShouldClose((GLFWwindow*)pWindow->pInstance, true));
-	}
+    }
     glCall(glfwPollEvents());
 }
 
-ENGINE_API inline b32
+inline b32
 isKeyPressed(Renderer* pRenderer, u32 key) {
     if (glfwGetKey((GLFWwindow*)pRenderer->pWindow->pInstance, key) == GLFW_PRESS) {
         return true;
@@ -495,96 +595,122 @@ isKeyPressed(Renderer* pRenderer, u32 key) {
     return false;
 }
 
-ENGINE_API inline void
+inline void
 getMousePos(Window* pWindow, f64* pX, f64* pY) {
     glfwGetCursorPos((GLFWwindow*)pWindow->pInstance, pX, pY);
 }
 
-////////////////////////////////
-//RENDERER
+
 ////////////////////////////////
 
-ENGINE_API inline b32 
+//RENDERER
+
+////////////////////////////////
+
+inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
-    Assert(pCamera != 0);
-    initCamera(pCamera, HMM_Vec3(0.f, 0.f, 6.f));
+    assert(pCamera != 0);
+    initCamera(pCamera, HMM_Vec3(0.f, 7.5f, 28.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
-    glCall(glEnable(GL_BLEND));
-    glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    //glCall(glfwSwapInterval(0));
+    //glCall(glEnable(GL_BLEND));
+    glCall(glEnable(GL_DEPTH_TEST));
+    glCullFace(GL_BACK);
+    //glDepthFunc(GL_EQUAL);
+    //glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
     
     return true;
 }
 
-ENGINE_API inline b32 
+inline b32 
 stopRenderer() {
-    
     return true;
 }
 
-ENGINE_API inline void 
+inline void 
 clearRenderer() {
-    glCall(glClear(GL_COLOR_BUFFER_BIT));
+    glCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-ENGINE_API inline void
+inline void
 fillColor(f32 red, f32 green, f32 blue) {
     glCall(glClearColor(red, green, blue, 1.f));
 }
 
-ENGINE_API inline void
+inline void
 swapBuffers(Window* pWindow) {
     glCall(glfwSwapBuffers((GLFWwindow*)pWindow->pInstance));
 }
 
-ENGINE_API inline void
+inline void
 drawBuffer(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLES, offset, count));
 }
 
-ENGINE_API inline void 
+inline void
+drawBufferInstanced(u32 offset, u32 vertexCount, u32 instances) {
+    glCall(glDrawArraysInstanced(GL_TRIANGLES, offset, vertexCount, instances));
+}
+
+inline void
+drawPointsInstanced(u32 offset, u32 vertexCount, u32 instances) {
+    glCall(glDrawArraysInstanced(GL_POINTS, offset, vertexCount, instances));
+}
+
+inline void 
 drawBufferStrip(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLE_STRIP, offset, count));
 }
 
-ENGINE_API inline void
+inline void
 drawBufferFan(u32 offset, u32 count) {
     glCall(glDrawArrays(GL_TRIANGLE_FAN, offset, count));
 }
 
-ENGINE_API inline void
+inline void
 drawElements(u32 count) {
     glCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0));
 }
 
-ENGINE_API inline void
+inline void
 resetModelMatrix(Renderer* pRenderer) {
     pRenderer->pCamera->model = HMM_Mat4d(1.f);
 }
 
-ENGINE_API inline void
+inline void
 multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation) {
     pRenderer->pCamera->model = pRenderer->pCamera->model * *pTransformation;
 }
 
-ENGINE_API inline hmm_mat4 
-getModelViewProj(Renderer* pRenderer) {
-    return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
+inline hmm_mat4 
+getViewProj(Renderer* pRenderer) {
+    return (pRenderer->pCamera->projection * getViewMatrix(pRenderer->pCamera));
 }
 
-ENGINE_API inline hmm_vec3
+inline hmm_mat4 
+getModelViewProj(Renderer* pRenderer) {
+    return (pRenderer->pCamera->projection *
+            getViewMatrix(pRenderer->pCamera) *
+            pRenderer->pCamera->model);
+}
+
+inline hmm_mat4 
+getModelView(Renderer* pRenderer) {
+    return (getViewMatrix(pRenderer->pCamera) * pRenderer->pCamera->model);
+}
+
+inline hmm_vec3
 getCameraPosition(Renderer* pRenderer) {
     return pRenderer->pCamera->position;
 }
 
-ENGINE_API inline f32 
+inline f32 
 getCameraWidth(Renderer* pRenderer) {
     return pRenderer->pCamera->halfCamWidth * 2.f;
 }
 
-ENGINE_API inline f32 
+inline f32 
 getCameraHeight(Renderer* pRenderer) {
     return pRenderer->pCamera->halfCamHeight * 2.f;
 }

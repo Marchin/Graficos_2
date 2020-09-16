@@ -6,20 +6,7 @@ patterns = {
 	"*.cpp",
 	"*.h",
 	"*.bat",
-};
-
-blacklist_patterns = {
-".*",
-};
-
-load_paths_only = {
- {"."},
-};
-
-load_paths = {
- { load_paths_only, .os = "win"  },
- { load_paths_only, .os = "linux"},
- { load_paths_only, .os = "mac"  },
+	"*.glsl"
 };
 
 load_paths = {
@@ -27,6 +14,12 @@ load_paths = {
 		{"..\\test_game", .relative = true, .recursive = true,},
 		{"..\\engine", .relative = true, .recursive = true,}
 	}, .os ="win"},
+};
+
+load_paths = {
+ { load_paths_custom, .os = "win"  },
+ { load_paths_custom, .os = "linux"},
+ { load_paths_custom, .os = "mac"  },
 };
 
 command_list = {
@@ -70,7 +63,7 @@ command_list = {
 	.footer_panel = false,
 	.save_dirty_files = true,
 	.cursor_at_end = false,
-	.cmd = {{"start /max W:\remedybg.exe W:\MarmotEngine\marmot_debug.rdbg ", .os = "win"},},
+	.cmd = {{"..\\session.rdbg", .os = "win"},},
   },
 };
 
