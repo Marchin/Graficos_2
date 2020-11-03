@@ -42,11 +42,6 @@ global const BoxBounds DEFAULT_BOUNDS = {
     FLT_MAX, FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX};
 
 struct ENGINE_API Transform {
-    hmm_mat4 model;
-	hmm_mat4 positionMatrix;
-	hmm_mat4 rotationMatrix;
-	hmm_mat4 scaleMatrix;
-    
 	hmm_vec3 position;
     hmm_vec3 eulerAngles;
     hmm_vec3 scale;
@@ -67,6 +62,9 @@ struct ENGINE_API Transform {
     
     b32 passedBSP;
     char name[128];
+    
+    Rotor3 rotor;
+    b32 isRotored;
 }; 
 
 struct ENGINE_API Triangle {
@@ -232,7 +230,7 @@ ENGINE_API inline Component* addComponent(ComponentID componentID, Transform* pT
 ENGINE_API inline void removeComponent(ComponentID componentID, 
                                        Component** pComponents, s32 componentsSize);
 //TRANSFORM
-ENGINE_API inline void transformUpdateMC(Transform* pTransform);
+//ENGINE_API inline void transformUpdateMC(Transform* pTransform);
 ENGINE_API inline void reserveChildren(Transform* pTransform, u32 amount);
 ENGINE_API inline void addChild(Transform* pChild, Transform* pParent);
 ENGINE_API inline void removeChild(Transform* pChild);
@@ -241,8 +239,8 @@ ENGINE_API inline void transformSetPosition(Transform* pTransform, f32 x, f32 y,
 ENGINE_API inline void transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z);
 ENGINE_API inline void transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis);
 ENGINE_API inline void transformScale(Transform* pTransform, f32 x, f32 y, f32 z);
-ENGINE_API void transformDraw(Transform* pTransform, Renderer* pRenderer);
-ENGINE_API void transformUpdate(Transform* pTransform, const f32 deltaTime); 
+ENGINE_API void transformDraw(Transform* pTransform, Renderer* pRenderer, hmm_mat4 model);
+ENGINE_API void transformUpdate(Transform* pTransform, const f32 deltaTime, hmm_mat4 model); 
 ENGINE_API void checkBSPPlanes(Transform* pScence, 
                                const Renderer* pRenderer,
                                const Level* pLevel);

@@ -15,9 +15,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define HANDMADE_MATH_IMPLEMENTATION
-#include "handmade_math.h"
-
 #define MAX_PATH_SIZE 260
 
 #if OPENGL
@@ -52,20 +49,24 @@
 #endif
 
 #include "base.h"
-#include "utils.h"
 
-#include "camera.h"
+#define HANDMADE_MATH_IMPLEMENTATION
+#include "handmade_math.h"
+
+#include "utils.h"
+#include "rotor.h"
+
 #if OPENGL
 #include "opengl_renderer.h"
 #endif
 
 struct Level;
 #include "components.h"
+#include "camera.h"
 #include "physics.h"
 #include "tilemap.h"
 #include "wav.h"
 #include "music_visualizer.h"
-
 
 struct ENGINE_API Time {
     f32 deltaTime;

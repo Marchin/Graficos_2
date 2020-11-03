@@ -365,7 +365,7 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
     }
     shaderBindID(pTilemap->shader.id);
     textureBindID(pTilemap->tileset.spriteRenderer.texture.id, 0);
-    pRenderer->pCamera->model = pTilemap->transform.model;
+    //pRenderer->pCamera->model = pTilemap->transform.model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(&pTilemap->shader, "uModelViewProjection", &mvp);
     vaBind(pTilemap->va);
@@ -373,7 +373,7 @@ drawTilemap(Tilemap* pTilemap, Renderer* pRenderer) {
         for (s32 j = 0; j < pTilemap->visibleWidth; ++j) {
             if (pTilemap->pVisibleTiles[(j + (pTilemap->visibleWidth*i))] >= 0) {
                 drawBufferStrip(
-                    pTilemap->pVisibleTiles[(j + (pTilemap->visibleWidth*i))] * 4, 4);
+                                pTilemap->pVisibleTiles[(j + (pTilemap->visibleWidth*i))] * 4, 4);
             }
         }
     }

@@ -60,7 +60,7 @@ command_list = {
 	.footer_panel = false,
 	.save_dirty_files = true,
 	.cursor_at_end = false,
-	.cmd = {{"..\\remedybg.exe.lnk", .os = "win"},},
+	.cmd = {{"..\\session.rdbg", .os = "win"},},
   },
 };
 

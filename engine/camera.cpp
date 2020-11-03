@@ -1,9 +1,9 @@
 ENGINE_API void 
 initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) {
-    
-    pCamera->front = HMM_Vec3(0.0f, 0.0f, -1.0f);
-	pCamera->position = position;
-	pCamera->up = up;
+	initTransform(&pCamera->transform);
+	pCamera->transform.position = position;
+    pCamera->transform.rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+    //pCamera->transform.rotor = lookAt(position, HMM_Vec3(0.0f, 0.0f, -1.0f));
 	pCamera->worldUp = HMM_Vec3(0.f, 1.f, 0.f);
 	pCamera->yaw = yaw;
 	pCamera->pitch = pitch;
@@ -29,8 +29,10 @@ intiCamera(Camera* pCamera,
            f32 upX, f32 upY, f32 upZ, 
            f32 yaw, f32 pitch) {
     
-    pCamera->front = HMM_Vec3(0.0f, 0.0f, -1.0f);
-    pCamera->position = HMM_Vec3(posX, posY, posZ);
+	initTransform(&pCamera->transform);
+	pCamera->transform.position = HMM_Vec3(posX, posY, posZ);
+    pCamera->transform.rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+    //pCamera->transform.rotor = lookAt(pCamera->transform.position, HMM_Vec3(0.0f, 0.0f, 1.0f));
     pCamera->worldUp = HMM_Vec3(upX, upY, upZ);
     pCamera->yaw = yaw;
     pCamera->pitch = pitch;
@@ -43,13 +45,24 @@ intiCamera(Camera* pCamera,
 
 ENGINE_API hmm_mat4 
 getViewMatrix(Camera* pCamera) {
-    return HMM_LookAt(pCamera->position, pCamera->position + pCamera->front, pCamera->up);
+    V3 up = getRotatedVector(VEC3_Y, pCamera->transform.rotor);
+    V3 front = getRotatedVector(-1.f*VEC3_Z, pCamera->transform.rotor);
+#if 0
+    V3 right = getRotatedVector(VEC3_X, pCamera->transform.rotor);
+    V3 right2 = HMM_Cross(front, VEC3_Y);
+    f32 aup = HMM_Length(up);
+    f32 afront = HMM_Length(front);
+    f32 arotor = rotorLength(pCamera->transform.rotor);
+#endif
+    return HMM_LookAt(pCamera->transform.position,
+                      pCamera->transform.position + front,
+                      up);
 }
 
 ENGINE_API void 
 moveCamera(Camera* pCamera, hmm_vec3 direction, f32 deltaTime) {
     f32 velocity = pCamera->movementSpeed * deltaTime;
-    pCamera->position += direction * velocity;
+    pCamera->transform.position += direction * velocity;
 }
 
 ENGINE_API void
@@ -61,7 +74,7 @@ cameraMouseMovement(Camera* pCamera, f64 xPos, f64 yPos, b32 constrainPitch) {
     }
     
     f32 xOffset = (f32)xPos - pCamera->lastMousePos.x;
-    f32 yOffset = pCamera->lastMousePos.y - (f32)yPos; // reversed since y-coordinates go from bottom to top
+    f32 yOffset = (f32)yPos - pCamera->lastMousePos.y;
     pCamera->lastMousePos.x = (f32)xPos;
     pCamera->lastMousePos.y = (f32)yPos;
     
@@ -72,6 +85,7 @@ cameraMouseMovement(Camera* pCamera, f64 xPos, f64 yPos, b32 constrainPitch) {
     pCamera->pitch += yOffset;
     
     // Make sure that when pitch is out of bounds, screen doesn't get flipped
+#if 1
     if (constrainPitch) {
         if (pCamera->pitch > 89.0f) {
             pCamera->pitch = 89.0f;
@@ -79,6 +93,7 @@ cameraMouseMovement(Camera* pCamera, f64 xPos, f64 yPos, b32 constrainPitch) {
             pCamera->pitch = -89.0f;
         }
     }
+#endif
     
     updateCameraVectors(pCamera);
 }
@@ -98,28 +113,49 @@ cameraMouseScroll(Camera* pCamera, f32 yoffset) {
 
 ENGINE_API void
 updateCameraVectors(Camera* pCamera) {
-    hmm_vec3 front;
-    front.x = cosf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
-    front.y = sinf(HMM_ToRadians((f32)pCamera->pitch));
-    front.z = sinf(HMM_ToRadians((f32)pCamera->yaw))*cosf(HMM_ToRadians((f32)pCamera->pitch));
+#if 0
+    V3 up = getRotatedVector(VEC3_Y, pCamera->transform.rotor);
+    V3 right = getRotatedVector(VEC3_X, pCamera->transform.rotor);
+    V3 front = getRotatedVector(VEC3_Z, pCamera->transform.rotor);
+#else
+    V3 up = VEC3_Y;
+    V3 right = VEC3_X;
+    V3 front = VEC3_Z;
+#endif
     
-    pCamera->front = HMM_NormalizeVec3(front);
-    pCamera->right = HMM_Cross(pCamera->front, pCamera->worldUp);
-    pCamera->up = HMM_NormalizeVec3(HMM_Cross(pCamera->right, pCamera->front));
+#if 0
+    Rotor3 rotor = pCamera->transform.rotor;
+#else
+    Rotor3 rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+#endif
+    rotor *= rotorFromAngleAndAxis(HMM_ToRadians(pCamera->yaw), up);
+    rotor *= rotorFromAngleAndAxis(HMM_ToRadians(pCamera->pitch), right);
+#if 0
+    rotor *= rotorFromAngleAndAxis(HMM_ToRadians(pCamera->roll), front);
+#endif
+    
+    pCamera->transform.rotor = rotorNormalize(rotor);
+    pCamera->model = generateModel(&pCamera->transform);
+    
+#if 0
+    pCamera->yaw = 0.f;
+    pCamera->pitch = 0.f;
+#endif
 }
 
 internal void
 calculateFrustumPlanes(Camera* pCamera) {
     f32 halfFovRad = (pCamera->fov * 0.5f * PI32) / 180.f;
     
-    f32 signedNear = pCamera->minDist * ((pCamera->front.z > 0.f)? 1.f:-1.f);
-    f32 signedFar = pCamera->maxDist * ((pCamera->front.z > 0.f)? 1.f:-1.f);
+    V3 front = getRotatedVector(VEC3_Z, pCamera->transform.rotor);
+    f32 signedNear = pCamera->minDist * ((front.z > 0.f)? 1.f:-1.f);
+    f32 signedFar = pCamera->maxDist * ((front.z > 0.f)? 1.f:-1.f);
     f32 nearTop = tanf(halfFovRad) * signedNear;
     f32 nearBottom = -nearTop;
     f32 nearRight = nearTop * pCamera->aspectRatio;
     f32 nearLeft = -nearRight;
     
-    f32 farTop = tanf(halfFovRad) * pCamera->maxDist * pCamera->front.z;
+    f32 farTop = tanf(halfFovRad) * pCamera->maxDist * front.z;
     f32 farBottom = -farTop;
     f32 farRight = farTop * pCamera->aspectRatio;
     f32 farLeft = -farRight; 
@@ -221,7 +257,7 @@ isPointInsideFrustum(hmm_vec3 point, Camera* pCamera) {
         //if the sum is negative it means that the point is on the opposite
         //side of the normal direction
         if (signedDistanceToPoint + plane.d < 0) {
-            return false;
+            return true;
         }
     }
     

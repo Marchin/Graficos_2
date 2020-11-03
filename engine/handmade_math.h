@@ -138,7 +138,7 @@ extern "C"
     
 #if !defined(HMM_SINF) || !defined(HMM_COSF) || !defined(HMM_TANF) || \
     !defined(HMM_SQRTF) || !defined(HMM_EXPF) || !defined(HMM_LOGF) || \
-    !defined(HMM_ACOSF) || !defined(HMM_ATANF)|| !defined(HMM_ATAN2F)
+        !defined(HMM_ACOSF) || !defined(HMM_ATANF)|| !defined(HMM_ATAN2F)
 #include <math.h>    
 #endif
     
@@ -302,6 +302,7 @@ extern "C"
             union
             {
                 hmm_vec3 XYZ;
+                hmm_vec3 xyz;
                 struct
                 {
                     float X, Y, Z;
@@ -2548,6 +2549,34 @@ hmm_quaternion HMM_QuaternionFromAxisAngle(hmm_vec3 Axis, float AngleOfRotation)
     Result.XYZ = HMM_DivideVec3f(RotatedVector, AxisNorm);
     
     return (Result);
+}
+
+typedef hmm_vec3 V3;
+typedef hmm_vec4 V4;
+typedef hmm_mat4 Mat4;
+inline V4
+v4(V3 vec, f32 a) {
+    V4 result = {vec.x, vec.y, vec.z, a};
+    
+    return result;
+}
+
+inline Mat4
+diagonalMat4(f32 x, f32 y, f32 z) {
+    Mat4 result = HMM_Mat4d(1.0f);
+    
+    result.Elements[0][0] = x;
+    result.Elements[1][1] = y;
+    result.Elements[2][2] = z;
+    result.Elements[3][3] = 1.f;
+    
+    return result;
+}
+
+inline Mat4
+diagonalMat4(V3 vec) {
+    Mat4 result = diagonalMat4(vec.x, vec.y, vec.z);
+    return result;
 }
 
 #endif /* HANDMADE_MATH_IMPLEMENTATION */

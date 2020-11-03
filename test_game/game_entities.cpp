@@ -72,7 +72,7 @@ freeFigure(Figure* pFigure, CollisionManager* pCM) {
 ////////////////////////////////
 
 internal void
-drawCharacter(void* pCharacter, Renderer* pRenderer) {
+drawCharacter(void* pCharacter, Renderer* pRenderer, hmm_mat4 model) {
     Character* pCastedCharacter = (Character*)pCharacter;
 	drawModel(&pCastedCharacter->model, pRenderer);
 }

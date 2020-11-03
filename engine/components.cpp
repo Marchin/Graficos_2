@@ -95,7 +95,6 @@ removeComponent(ComponentID componentID, Component** pComponents, s32 components
     }
 }
 
-
 ////////////////////////////////
 
 //Transform
@@ -106,24 +105,23 @@ removeComponent(ComponentID componentID, Component** pComponents, s32 components
 //it works by having pointers to their respective draw and update functions if needed
 //and it keeps a reference to the entity itself to send it to those functions
 
+/* 
 ENGINE_API inline void 
 transformUpdateMC(Transform* pTransform) {
     pTransform->model = 
         pTransform->positionMatrix * pTransform->rotationMatrix * pTransform->scaleMatrix;
 }
+ */
 
 ENGINE_API void
 initTransform(Transform* pTransform) {
     *pTransform = {};
-    pTransform->positionMatrix = HMM_Mat4d(1.f);
-    pTransform->rotationMatrix = HMM_Mat4d(1.f);
-    pTransform->scaleMatrix = HMM_Mat4d(1.f);
     pTransform->position = HMM_Vec3T(0.f);
     pTransform->eulerAngles = HMM_Vec3T(0.f);
     pTransform->scale = HMM_Vec3T(1.f);
+    pTransform->isRotored = true;
+    pTransform->rotor = {1.f, 0.f, 0.f, 0.f};
     pTransform->passedBSP = true;
-    
-    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void
@@ -168,35 +166,33 @@ removeChild(Transform* pChild) {
 ENGINE_API inline void 
 transformSetPosition(Transform* pTransform, f32 x, f32 y, f32 z) {
     pTransform->position = HMM_Vec3(x, y, z);
-    pTransform->positionMatrix = HMM_Translate(pTransform->position);
-    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void 
 transformTranslate(Transform* pTransform, f32 x, f32 y, f32 z) {
     pTransform->position += HMM_Vec3(x, y, z);
-    pTransform->positionMatrix = HMM_Translate(pTransform->position);
-    transformUpdateMC(pTransform);
 }
 
 ENGINE_API inline void 
 transformRotate(Transform* pTransform, f32 angle, hmm_vec3 axis) {
-    pTransform->eulerAngles += angle * axis;
-    pTransform->eulerAngles %= 360.f;
-    pTransform->rotationMatrix = HMM_Rotate(angle, axis) * pTransform->rotationMatrix;
-    transformUpdateMC(pTransform);
+    if (pTransform->isRotored) {
+        Rotor3 rot = rotorFromAngleAndAxis(HMM_ToRadians(angle), axis);
+        pTransform->rotor = (rot * pTransform->rotor);
+    } else {
+        pTransform->eulerAngles += angle * axis;
+        pTransform->eulerAngles %= 360.f;
+    }
 }
 
 ENGINE_API inline void
 transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
     pTransform->scale = HMM_Vec3(x, y, z);
-    pTransform->scaleMatrix = HMM_Scale(pTransform->scale);
-    transformUpdateMC(pTransform);
 }
 
 ENGINE_API void
-transformDraw(Transform* pTransform, Renderer* pRenderer) {
+transformDraw(Transform* pTransform, Renderer* pRenderer, hmm_mat4 parentModel) {
     b32 drawn = true;
+    pRenderer->pCamera->model = parentModel;
     if (!pTransform->passedBSP) {
         return;
     }
@@ -206,8 +202,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
     u32 componentCount = pTransform->componentsCount;
     for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
         if (pTransform->pComponents[iComponent] && pTransform->pComponents[iComponent]->draw) {
-            pTransform->pComponents[iComponent]->draw(
-                pTransform->pComponents[iComponent], pRenderer);
+            pTransform->pComponents[iComponent]->draw(pTransform->pComponents[iComponent], pRenderer);
         }
     }
     if (drawn) {
@@ -215,10 +210,7 @@ transformDraw(Transform* pTransform, Renderer* pRenderer) {
         for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform) {
             Transform* pChild = pTransform->pChildren[iTransform];
             if (pChild == 0) { continue; }
-            hmm_mat4 modelChild = pChild->model;
-            pChild->model = pTransform->model * pChild->model;
-            transformDraw(pChild, pRenderer);
-            pChild->model = modelChild;
+            transformDraw(pChild, pRenderer, parentModel*generateModel(pChild));
             ++i;
         }
     }
@@ -251,7 +243,7 @@ compareBounds(BoxBounds* pCompared, const BoxBounds* pReference) {
 }
 
 ENGINE_API void
-transformUpdate(Transform* pTransform, const f32 deltaTime) {
+transformUpdate(Transform* pTransform, const f32 deltaTime, hmm_mat4 parentModel) {
     if (pTransform->update) {
         pTransform->update(pTransform->pEntity, deltaTime);
     }
@@ -269,10 +261,7 @@ transformUpdate(Transform* pTransform, const f32 deltaTime) {
         Transform* pChild = pTransform->pChildren[iTransform];
         pChild->bounds = DEFAULT_BOUNDS;
         if (pChild == 0) { continue; }
-        hmm_mat4 modelChild = pChild->model;
-        pChild->model = pTransform->model * pChild->model;
-        transformUpdate(pChild, deltaTime);
-        pChild->model = modelChild;
+        transformUpdate(pChild, deltaTime, parentModel*generateModel(pChild));
         compareBounds(&pTransform->bounds, &pChild->bounds);
         ++i;
     }
@@ -307,7 +296,7 @@ passesBSP(const BoxBounds* pBounds, const Plane* pPlane,
             return true;
         }
     }
-    return false;
+    return true;
 }
 
 ENGINE_API void
@@ -334,14 +323,14 @@ checkBSPPlanes(Transform* pScence, const Renderer* pRenderer, const Level* pLeve
     const u32 planesCount = pLevel->bspPlaneCount;
     for (u32 iPlane = 0; iPlane < planesCount; ++iPlane) {
         Plane plane = pLevel->pBSPPlanes[iPlane];
-        f32 cameraDistance = -HMM_DotVec3(plane.normal, -1.f*pRenderer->pCamera->position) + plane.d;
+        f32 cameraDistance = -HMM_DotVec3(plane.normal, -1.f*pRenderer->pCamera->transform.position) + plane.d;
         transformCheckBSP(pScence, &plane, pRenderer, 
                           cameraDistance, iPlane == 0);
     }
 }
 
 void
-generateWalls(Transform* pTransform, Level* pLevel) {
+generateWalls(Transform* pTransform, Level* pLevel, hmm_mat4 parentModel) {
     // NOTE(Marchin): if the first transform sent has any parents, their model matrix are ignored
     if (strncmp(pTransform->name, "wall", 4) == 0) {
         u32 planesCount = pLevel->bspPlaneCount++;
@@ -351,8 +340,8 @@ generateWalls(Transform* pTransform, Level* pLevel) {
                                                  pLevel->maxBSPPlanes*sizeof(Plane));
         }
         Plane plane;
-        plane.normal =  HMM_NormalizeVec3((pTransform->model * HMM_Vec4v(VEC3_Y, 0.f)).XYZ);
-        plane.dot = (pTransform->model * HMM_Vec4(0.f, 0.f, 0.f, 1.f)).XYZ;
+        plane.normal =  HMM_NormalizeVec3((parentModel * HMM_Vec4v(VEC3_Y, 0.f)).XYZ);
+        plane.dot = (parentModel * HMM_Vec4(0.f, 0.f, 0.f, 1.f)).XYZ;
         plane.d = -HMM_DotVec3(plane.normal, plane.dot);
         pLevel->pBSPPlanes[planesCount] = plane;
     }
@@ -360,10 +349,7 @@ generateWalls(Transform* pTransform, Level* pLevel) {
     for (u32 iTransform = 0, i = 0; i < childrenCount; ++iTransform){
         Transform* pChild = pTransform->pChildren[iTransform];
         if (pChild == 0) { continue; }
-        hmm_mat4 modelChild = pChild->model;
-        pChild->model = pTransform->model * pChild->model;
-        generateWalls(pChild, pLevel);
-        pChild->model = modelChild;
+        generateWalls(pChild, pLevel, parentModel * generateModel(pChild));
         ++i;
     }
 }
@@ -407,7 +393,7 @@ ENGINE_API b32
 drawTriangle(void* pTriangle, Renderer* pRenderer) {
     Triangle* pCastedTriangle = (Triangle*) pTriangle; 
     shaderBindID(pCastedTriangle->pShader->id);
-    pRenderer->pCamera->model = pCastedTriangle->pTransform->model;
+    //pRenderer->pCamera->model = pCastedTriangle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pCastedTriangle->pShader, 
                   "uModelViewProjection", 
@@ -468,7 +454,7 @@ ENGINE_API b32
 drawColorSquare(void* pCS, Renderer* pRenderer) {
     ColorSquare* pCastedCS = (ColorSquare*)pCS;
     shaderBindID(pCastedCS->pShader->id); 
-    pRenderer->pCamera->model = pCastedCS->pTransform->model;
+    //pRenderer->pCamera->model = pCastedCS->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pCastedCS->pShader, "uModelViewProjection", &mvp);
     vaBind(pCastedCS->va);
@@ -561,7 +547,7 @@ ENGINE_API b32
 drawCircle(void* pCircle, Renderer* pRenderer) {
     Circle* pCastedCircle = (Circle*)pCircle;
     shaderBindID(pCastedCircle->pShader->id);
-    pRenderer->pCamera->model = pCastedCircle->pTransform->model;
+    //pRenderer->pCamera->model = pCastedCircle->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pCastedCircle->pShader, "uModelViewProjection", &mvp);
     vaBind(pCastedCircle->va);
@@ -650,7 +636,7 @@ drawSpriteRenderer(void* pSR, Renderer* pRenderer) {
     SpriteRenderer* pCastedSR = (SpriteRenderer*)pSR;
     shaderBindID(pCastedSR->pShader->id);
     textureBindID(pCastedSR->texture.id, 0);
-    pRenderer->pCamera->model = pCastedSR->pTransform->model;
+    //pRenderer->pCamera->model = pCastedSR->pTransform->model;
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pCastedSR->pShader, "uModelViewProjection", &mvp);
     vaBind(pCastedSR->va);
@@ -1304,8 +1290,8 @@ isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRend
 ENGINE_API b32
 drawModelNode(void* pEntity, Renderer* pRenderer) {
     ModelNode* pModelNode = (ModelNode*)pEntity;
-    hmm_mat4 modelMatrix = pModelNode->transform.model;
-    pRenderer->pCamera->model = modelMatrix;
+    //hmm_mat4 modelMatrix = pModelNode->transform.model;
+    //pRenderer->pCamera->model = modelMatrix;
     
     hmm_mat4 mvp = getModelViewProj(pRenderer);
     shaderSetMat4(pModelNode->pShader, 
@@ -1374,7 +1360,7 @@ updateModelNode(void* pEntity, f32 deltaTime) {
         u32 vertexCount = pMesh->verticesCount;
         for (u32 iVertex = 0; iVertex < vertexCount; ++iVertex) {
             hmm_vec4 vec4 = HMM_Vec4v(pMesh->pVertices[iVertex].pos, 1.f);
-            vec4 = pMNTransform->model * vec4;
+            vec4 = generateModel(pMNTransform) * vec4;
             checkBounds(&pModelNode->transform.bounds, &vec4.XYZ);
         }
     }
@@ -1399,7 +1385,7 @@ processNode(Model* pModel, aiNode* pNode, Transform* pParent) {
             ++column;
             row= 0;
         }
-        pModelNode->transform.model.Elements[column][row] = pNode->mTransformation[row][column];
+        //pModelNode->transform.model.Elements[column][row] = pNode->mTransformation[row][column];
     }
     pModelNode->transform.pEntity = pModelNode;
     pModelNode->transform.draw = drawModelNode;

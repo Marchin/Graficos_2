@@ -2,6 +2,7 @@
 
 //#include "kiss_fft/kiss_fft.c"
 
+#include "rotor.cpp"
 #if OPENGL
 #include "opengl_renderer.cpp"
 #endif

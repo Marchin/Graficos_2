@@ -31,6 +31,7 @@ readSongPath() {
 
 internal void
 initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
+#if 0
     initShader(&pGame->musicVisualizerShader, "MusicVisualizer",
                "..//resources//shaders//vMusicVisualizer.glsl", 
                "..//resources//shaders//fMusicVisualizer.glsl", 
@@ -74,6 +75,24 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
                                &pGame->musicData);
     
     err = Pa_StartStream(stream);
+#endif
+    fillColor(.2f, .2f, .2f);
+    
+    Shader modelShader;
+    initShader(&modelShader, "Model", "..//resources//shaders//vModel.glsl", 
+               "..//resources//shaders//fModel.glsl");
+    initTransform(&pGame->empty);
+    initCharacter(&pGame->character, "..//resources//bath.obj");
+    initCharacter(&pGame->character2, "..//resources//bath.obj");
+    initCharacter(&pGame->character3, "..//resources//bath.obj");
+    initCharacter(&pGame->character4, "..//resources//bath.obj");
+    addChild(&pGame->character.transform, &pGame->empty);
+    addChild(&pGame->character2.transform, &pGame->empty);
+    pGame->character2.transform.position = {-0.f, 0.f, 40.f};
+    addChild(&pGame->character3.transform, &pGame->empty);
+    pGame->character3.transform.position = {-20.f, 0.f, 20.f};
+    addChild(&pGame->character4.transform, &pGame->empty);
+    pGame->character4.transform.position = {20.f, 0.f, 20.f};
 }
 
 global b32 gPaused;
@@ -83,8 +102,8 @@ global u32 gBlock = true;
 
 internal void
 updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 0) {
+#if 0
     drawMusicVisualizer(&pGame->musicVisualizerConfig, &pGame->musicData, pRenderer);
-    
     gPrevPaused = gPaused;
     if (isKeyPressed(pRenderer, KEY_SPACE)) {
         if (!gBlock) {
@@ -102,23 +121,33 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         gPaused = false;
         gBlock = false;
     }
+#endif
+    V3 up = getRotatedVector(VEC3_Y, pGame->character.transform.rotor);
+    V3 right = getRotatedVector(VEC3_X, pRenderer->pCamera->transform.rotor);
+    V3 front = getRotatedVector(VEC3_Z, pRenderer->pCamera->transform.rotor);
     if (isKeyPressed(pRenderer, KEY_D)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->right, pTime->deltaTime);
+        moveCamera(&pGame->camera, right, pTime->deltaTime);
+        //transformRotate(&pGame->character.transform, 30.0f*pTime->deltaTime, up);
     }
     if (isKeyPressed(pRenderer, KEY_A)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->right, pTime->deltaTime);
+        moveCamera(&pGame->camera, -1.f * right, pTime->deltaTime);
+        //transformRotate(&pGame->character.transform, -30.0f*pTime->deltaTime, up);
     }
     if (isKeyPressed(pRenderer, KEY_W)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->front, pTime->deltaTime);
+        moveCamera(&pGame->camera, -1.f * front, pTime->deltaTime);
+        //transformRotate(&pGame->character.transform, 30.0f*pTime->deltaTime, right);
     }
     if (isKeyPressed(pRenderer, KEY_S)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->front, pTime->deltaTime);
+        moveCamera(&pGame->camera, front, pTime->deltaTime);
+        //transformRotate(&pGame->character.transform, -30.0f*pTime->deltaTime, right);
     }
     if (isKeyPressed(pRenderer, KEY_E)) {
-        moveCamera(&pGame->camera, pRenderer->pCamera->up, pTime->deltaTime);
+        //moveCamera(&pGame->camera, up, pTime->deltaTime);
+        transformRotate(&pGame->character.transform, 30.0f*pTime->deltaTime, front);
     }
     if (isKeyPressed(pRenderer, KEY_Q)) {
-        moveCamera(&pGame->camera, -1.f * pRenderer->pCamera->up, pTime->deltaTime);
+        //moveCamera(&pGame->camera, -1.f * up, pTime->deltaTime);
+        transformRotate(&pGame->character.transform, -30.0f*pTime->deltaTime, front);
     }
     if (isKeyPressed(pRenderer, KEY_Z)) {
         pRenderer->pCamera->roll -= pTime->deltaTime * 5.f;
@@ -130,8 +159,9 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         updateCameraVectors(pRenderer->pCamera);
     }
     
-    transformUpdate(&pGame->empty, pTime->deltaTime);
-    transformDraw(&pGame->empty, pRenderer);
+    const hmm_mat4 diag = HMM_Mat4d(1.f);
+    transformUpdate(&pGame->empty, pTime->deltaTime, diag);
+    transformDraw(&pGame->empty, pRenderer, diag);
     
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);

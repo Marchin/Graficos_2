@@ -22,7 +22,7 @@ void main() {
     }
     s32 err = Pa_Terminate();
     if (err != paNoError){
-        printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
+        printf("PortAudio error: %s\n", Pa_GetErrorText( err ) );
     }
     stopRenderer();
     stopWindow(&window);

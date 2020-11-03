@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-const f64 YAW = -90.0f;
+const f64 YAW = 0.0f;
 const f64 PITCH = 0.0f;
 const f32 SPEED = 4.f;
 const f32 SENSITIVITY = 0.1f;
@@ -12,14 +12,13 @@ enum Projection {
     PERSPECTIVE
 };
 
+struct Transform;
+
 struct ENGINE_API Camera {
-    hmm_vec3 position;
-	hmm_vec3 front;
-	hmm_vec3 up;
-	hmm_vec3 right;
-	hmm_vec3 worldUp;
-    hmm_mat4 model;
-    hmm_mat4 projection;
+    Transform transform;
+    V3 worldUp;
+    Mat4 projection;
+    Mat4 model;
     
 	f32 yaw;
 	f32 pitch;

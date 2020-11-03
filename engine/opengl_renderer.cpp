@@ -610,14 +610,14 @@ getMousePos(Window* pWindow, f64* pX, f64* pY) {
 inline b32 
 startRenderer(Renderer* pRenderer, Window* pWindow, Camera* pCamera) {
     assert(pCamera != 0);
-    initCamera(pCamera, HMM_Vec3(0.f, 7.5f, 28.f));
+    initCamera(pCamera, HMM_Vec3(0.f, 5.f, 28.f));
     pRenderer->pCamera = pCamera;
     pRenderer->pWindow = pWindow;
-    //glCall(glEnable(GL_BLEND));
+    glCall(glEnable(GL_BLEND));
     glCall(glEnable(GL_DEPTH_TEST));
-    glCullFace(GL_BACK);
+    //glCullFace(GL_BACK);
     //glDepthFunc(GL_EQUAL);
-    //glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //glCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
     
     return true;
@@ -673,14 +673,19 @@ drawElements(u32 count) {
     glCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0));
 }
 
-inline void
-resetModelMatrix(Renderer* pRenderer) {
-    pRenderer->pCamera->model = HMM_Mat4d(1.f);
-}
-
-inline void
-multiplyModelMatrix(Renderer* pRenderer, hmm_mat4* pTransformation) {
-    pRenderer->pCamera->model = pRenderer->pCamera->model * *pTransformation;
+inline hmm_mat4
+generateModel(Transform* pTransform)  {
+    hmm_mat4 result = HMM_Scale(pTransform->scale);
+    if (pTransform->isRotored) {
+        result = getRotorMat4(pTransform->rotor) * result;
+    } else {
+        result = HMM_Rotate(pTransform->eulerAngles.x, VEC3_X) * result;
+        result = HMM_Rotate(pTransform->eulerAngles.y, VEC3_Y) * result;
+        result = HMM_Rotate(pTransform->eulerAngles.z, VEC3_Z) * result;
+    }
+    result = HMM_Translate(pTransform->position) * result;
+    
+    return result;
 }
 
 inline hmm_mat4 
@@ -702,7 +707,7 @@ getModelView(Renderer* pRenderer) {
 
 inline hmm_vec3
 getCameraPosition(Renderer* pRenderer) {
-    return pRenderer->pCamera->position;
+    return pRenderer->pCamera->transform.position;
 }
 
 inline f32 
