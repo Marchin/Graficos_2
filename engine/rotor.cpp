@@ -85,71 +85,8 @@ inline Rotor3
 	return rotA;
 }
 
-
-inline Rotor3
-rotateYZ(f32 angle) {
-    f32 halfAngle = angle*0.5f;
-    f32 sinAngle = sinf(halfAngle);
-    f32 cosAngle = cosf(halfAngle);
-    
-    Rotor3 result = {};
-    
-    result.a = cosAngle;
-    result.yz = sinAngle;
-    
-    return result;
-}
-
-inline Rotor3
-rotateZX(f32 angle) {
-    f32 halfAngle = angle*0.5f;
-    f32 sinAngle = sinf(halfAngle);
-    f32 cosAngle = cosf(halfAngle);
-    
-    Rotor3 result = {};
-    
-    result.a = cosAngle;
-    result.zx = sinAngle;
-    
-    return result;
-}
-
-inline Rotor3
-rotateXY(f32 angle) {
-    f32 halfAngle = angle*0.5f;
-    f32 sinAngle = sinf(halfAngle);
-    f32 cosAngle = cosf(halfAngle);
-    
-    Rotor3 result = {};
-    
-    result.a = cosAngle;
-    result.xy = sinAngle;
-    
-    return result;
-}
-
-
 V3
 getRotatedVector(V3 vec, Rotor3 rot) {
-#if 0
-    //p = rot*vec
-    hmm_vec3 p;
-    
-    p.x = rot.a*vec.x - rot.zx*vec.z + rot.xy*vec.y;
-    p.y = rot.a*vec.y + rot.yz*vec.z - rot.xy*vec.x;
-    p.z = rot.a*vec.z - rot.yz*vec.y + rot.zx*vec.x;
-    
-    f32 xyz = rot.yz*vec.x + rot.zx*vec.y + rot.xy*vec.z;
-    
-    //q = p*(rot*)
-    hmm_vec3 q;
-    
-    q.x = p.x*rot.a + p.y*rot.xy - p.z*rot.zx + xyz*rot.yz;
-    q.y = -p.x*rot.xy + p.y*rot.a + p.z*rot.yz + xyz*rot.zx;
-    q.z = p.x*rot.zx - p.y*rot.yz + p.z*rot.a + xyz*rot.xy;
-    
-	return q;
-#else
     // TODO(Marchin): Expando and simplify
     f32 l = rot.yz*vec.x + rot.zx*vec.y + rot.xy*vec.z;
     f32 i = rot.a*vec.x + rot.xy*vec.y - rot.zx*vec.z;
@@ -162,28 +99,6 @@ getRotatedVector(V3 vec, Rotor3 rot) {
     result.z = rot.xy*l + rot.zx*i - rot.yz*j + rot.a*k;
     
     return result;
-#endif
-}
-
-hmm_vec3
-getRotatedVectorX(Rotor3 rot) {
-    //p = rot*vec
-    hmm_vec3 p;
-    
-    p.x = rot.a;
-    p.y = -rot.xy;
-    p.z = rot.zx;
-    
-    f32 xyz = rot.yz;
-    
-    //q = p*(rot*)
-    hmm_vec3 q;
-    
-    q.x = p.x*rot.a + p.y*rot.xy - p.z*rot.zx + xyz*rot.yz;
-    q.y = -p.x*rot.xy + p.y*rot.a + p.z*rot.yz + xyz*rot.zx;
-    q.z = p.x*rot.zx - p.y*rot.yz + p.z*rot.a + xyz*rot.xy;
-    
-	return q;
 }
 
 inline Rotor3
@@ -230,41 +145,9 @@ getRotorNormal(Rotor3 rot) {
     return result;
 }
 
-inline Rotor3
-lookAt(V3 pos, V3 target) {
-    V3 dir = HMM_NormalizeVec3(target - pos);
-    Rotor3 rotor;
-    
-    if (dir.z != 0.0f) {
-        rotor.yz = cosf(acosf(dir.y/dir.z)*0.5f);
-    } else {
-        rotor.yz = cosf(45.f);
-    }
-    
-    if (dir.x != 0.0f) {
-        rotor.zx = cosf(acosf(dir.z/dir.x)*0.5f);
-    } else {
-        rotor.zx = cosf(45.f);
-    }
-    
-    if (dir.y != 0.0f) {
-        rotor.xy = cosf(acosf(dir.x/dir.y)*0.5f);
-    } else {
-        rotor.xy = cosf(45.f);
-    }
-    
-    rotor = rotorNormalize(rotor);
-    
-    return rotor;
-}
-
 inline Mat4
 getRotorMat4(Rotor3 rotor) {
     Mat4 result;
-    
-    if (rotor.a != 1.f) {
-        s32 a = 3;
-    }
     
     f32 xx2 = 2*rotor.dx*rotor.dx;
     f32 yy2 = 2*rotor.dy*rotor.dy;
