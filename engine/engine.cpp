@@ -12,6 +12,7 @@
 #include "tilemap.cpp"
 #include "camera.cpp"
 #include "wav.cpp"
+#include "models_parser.cpp"
 #include "music_visualizer.cpp"
 
 ENGINE_API void

@@ -11,7 +11,9 @@ struct Game {
     Character character3;
     Character character4;
     Shader musicVisualizerShader;
+    Shader modelShader;
     MusicData musicData;
+    ModelData modelData;
     f32 camX, camY;
 };
 

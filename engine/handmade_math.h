@@ -248,6 +248,11 @@ extern "C"
         
         struct
         {
+            float u, v, w;
+        };
+        
+        struct
+        {
             float R, G, B;
         };
         
@@ -2551,6 +2556,7 @@ hmm_quaternion HMM_QuaternionFromAxisAngle(hmm_vec3 Axis, float AngleOfRotation)
     return (Result);
 }
 
+typedef hmm_vec2 V2;
 typedef hmm_vec3 V3;
 typedef hmm_vec4 V4;
 typedef hmm_mat4 Mat4;

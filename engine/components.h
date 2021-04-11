@@ -12,6 +12,8 @@ enum ENGINE_API ComponentID {
     SPRITE_SHEET,
     ANIMATION,
     MODEL,
+    HYPER_CUBE,
+    MODEL_DATA,
 };
 
 struct Component {
@@ -136,6 +138,16 @@ struct ENGINE_API Animation {
 	u32 currentFrame;
 	f32 interval;
 	f32 counter;
+};
+
+struct HyperCube {
+    Component component;
+    
+    u32 va;
+    u32 vb;
+    u32 eb;
+    Transform* pTransform;
+    Shader* pShader;
 };
 
 struct ENGINE_API Vertex {

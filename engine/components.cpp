@@ -38,6 +38,10 @@ createComponent(ComponentID componentID) {
             result = (Component*)malloc(sizeof(Model));
             memset(result, 0, sizeof(Model));
         } break;
+        case HYPER_CUBE: {
+            result = (Component*)malloc(sizeof(HyperCube));
+            memset(result, 0, sizeof(HyperCube));
+        } break;
         default: {
             result = 0;
         } break;
@@ -189,7 +193,7 @@ transformScale(Transform* pTransform, f32 x, f32 y, f32 z) {
     pTransform->scale = HMM_Vec3(x, y, z);
 }
 
-ENGINE_API void
+void
 transformDraw(Transform* pTransform, Renderer* pRenderer, hmm_mat4 parentModel) {
     b32 drawn = true;
     pRenderer->pCamera->model = parentModel;
@@ -432,8 +436,7 @@ initColorSquare(ColorSquare* pCS,
     
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 2;
-    layout.pElements = 
-        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    layout.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout.elementsMaxSize = layoutsAmount;
     vbLayoutPushFloat(&layout, 3);
@@ -601,16 +604,14 @@ initSpriteRenderer(SpriteRenderer* pSR,
     
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 1;
-    layout.pElements = 
-        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    layout.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout.elementsMaxSize = layoutsAmount;
     vbLayoutPushFloat(&layout, 3);
     
     VertexBufferLayout layout2 = {};
     layoutsAmount = 1;
-    layout2.pElements = 
-        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    layout2.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout2.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout2.elementsMaxSize = layoutsAmount;
     vbLayoutPushFloat(&layout2, 2);
@@ -1006,11 +1007,9 @@ initMesh(Mesh* pMesh) {
     initEB(&pMesh->eb, gpMeshComponentsPool->indicesSlotsBeginnings[id], pMesh->indicesCount);
     ebBind(pMesh->eb);
     
-    
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 3;
-    layout.pElements = 
-        (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    layout.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
     memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
     layout.elementsMaxSize = layoutsAmount;
     
@@ -1030,17 +1029,16 @@ drawMesh(Mesh* pMesh) {
     u32 specularNr = 1;
     u32 normalNr = 1;
     u32 reflectionNr = 1;
-    u32 texturesSize = pMesh->texturesCount;
+    u32 texturesCount = pMesh->texturesCount;
     meow_hash diffuseHash = MeowHash_Accelerated(0, sizeof(gpDiffuse), (void*)gpDiffuse);
     meow_hash specularHash = MeowHash_Accelerated(0, sizeof(gpSpecular), (void*)gpSpecular);
     meow_hash normalHash = MeowHash_Accelerated(0, sizeof(gpNormal),(void*)gpNormal);
-    meow_hash reflectionHash = 
-        MeowHash_Accelerated(0, sizeof(gpReflection),(void*)gpReflection);
+    meow_hash reflectionHash = MeowHash_Accelerated(0, sizeof(gpReflection),(void*)gpReflection);
     const char* pTypes[] = { gpDiffuse, gpSpecular, gpNormal, gpReflection }; 
     size_t id = pMesh->meshComponentID;
     
     char pName[512];
-    for (u32 i = 0; i < texturesSize; ++i) {
+    for (u32 i = 0; i < texturesCount; ++i) {
         glCall(glActiveTexture(GL_TEXTURE0 + i));
         s32 number = 0;
         s32 typeIndex = 0;
@@ -1067,7 +1065,7 @@ drawMesh(Mesh* pMesh) {
         _itoa(number, pNumber, 10);
         strcat(pName, pNumber);
         shaderSetInt(pMesh->pShader, pName, i);
-        glCall(glBindTexture(GL_TEXTURE_2D, gpMeshComponentsPool->texturesSlotsBeginnings[id][i]->id));
+        bindTexture(gpMeshComponentsPool->texturesSlotsBeginnings[id][i]->id);
     }
     vaBind(pMesh->va);
     drawElements(pMesh->indicesCount);
@@ -1119,8 +1117,7 @@ loadMaterialsTextures(Model* pModel, Mesh* pMesh, aiMaterial* pMaterial,
         if (!skip) {
             ModelTexture* pModelTexture = &pModel->pLoadedTextures[pModel->texturesCount];
             pModelTexture->id = textureFromFile(str.C_Str(), pModel->pPath);
-            pModelTexture->typeHash = 
-                MeowHash_Accelerated(0, sizeof(pTypeName), (void*)pTypeName);
+            pModelTexture->typeHash = MeowHash_Accelerated(0, sizeof(pTypeName), (void*)pTypeName);
             strcpy(pModelTexture->pPath, str.C_Str());
             *(pMesh->pModelTextures + pMesh->texturesCount + texturesCount - i - 1) = 
                 &pModel->pLoadedTextures[pModel->texturesCount++];
@@ -1252,13 +1249,11 @@ ENGINE_API b32
 isModelNodeInsideFrustum(ModelNode* pModelNode, Camera* pCamera, Renderer* pRenderer) {
     BoxBounds bounds = pModelNode->transform.bounds;
     
-    bounds.min = 
-        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
-                               HMM_Vec4v(bounds.min, 1.f)).XYZ;
+    bounds.min = HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                                        HMM_Vec4v(bounds.min, 1.f)).XYZ;
     
-    bounds.max = 
-        HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
-                               HMM_Vec4v(bounds.max, 1.f)).XYZ;
+    bounds.max = HMM_MultiplyMat4ByVec4(getViewMatrix(pRenderer->pCamera),
+                                        HMM_Vec4v(bounds.max, 1.f)).XYZ;
     
     f32 minX = bounds.minX;
     f32 minY = bounds.minY;
@@ -1453,8 +1448,7 @@ initModel(Model* pModel, const char* pPath,
     pModel->meshesCount = pScene->mNumMeshes;
     pModel->texturesCount = pScene->mNumTextures;
     pModel->pMeshes = (Mesh*)malloc(pModel->meshesCount*sizeof(Mesh));
-    pModel->pLoadedTextures = 
-        (ModelTexture*)malloc(48*sizeof(ModelTexture));
+    pModel->pLoadedTextures = (ModelTexture*)malloc(48*sizeof(ModelTexture));
     pModel->pTransform = pTransform;
     pModel->pShader = pShader;
     
@@ -1506,4 +1500,76 @@ textureFromFile(const char* pTextureName, const char* pModelPath) {
     initTexture(&texture, pTexturePath, true);
     
     return texture.id;
+}
+
+
+////////////////////////////////
+
+// 4D?
+
+////////////////////////////////
+
+ENGINE_API void
+initHyperCube(HyperCube* pHyperCube, Transform* pTransform, Shader* pShader) {
+    pHyperCube->component.id = HYPER_CUBE;
+    //pHyperCube->component.draw = drawHyperCube;
+    initVA(&pHyperCube->va);
+    vaBind(pHyperCube->va);
+    pHyperCube->pTransform = pTransform;
+    pHyperCube->pShader = pShader;
+    
+    f32 hyperCubeVertices[] = {
+        0.f, 0.f, 0.f, 0.f,
+        0.f, 0.f, 0.f, 1.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 1.f, 1.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 1.f,
+        0.f, 1.f, 1.f, 0.f,
+        0.f, 1.f, 1.f, 1.f,
+        1.f, 0.f, 0.f, 0.f,
+        1.f, 0.f, 0.f, 1.f,
+        1.f, 0.f, 1.f, 0.f,
+        1.f, 0.f, 1.f, 1.f,
+        1.f, 1.f, 0.f, 0.f,
+        1.f, 1.f, 0.f, 1.f,
+        1.f, 1.f, 1.f, 0.f,
+        1.f, 1.f, 1.f, 1.f,
+    };
+    
+    initVB(&pHyperCube->vb, hyperCubeVertices, sizeof(hyperCubeVertices));
+    VertexBufferLayout layout = {};
+    u32 layoutsAmount = 1;
+    layout.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
+    memset(layout.pElements, 0, layoutsAmount*sizeof(VertexBufferElement));
+    layout.elementsMaxSize = layoutsAmount;
+    vbLayoutPushFloat(&layout, 4);
+    vaAddBuffer(pHyperCube->va, pHyperCube->vb, &layout);
+    free(layout.pElements);
+}
+
+ENGINE_API void
+freeHyperCube(HyperCube* pHyperCube) {
+    freeVA(&pHyperCube->va);
+    freeVB(&pHyperCube->vb);
+}
+
+ENGINE_API b32
+drawHyperCube(void* pHyperCube, Renderer* pRenderer) {
+    HyperCube* pCastedHyperCube = (HyperCube*) pHyperCube; 
+    shaderBindID(pCastedHyperCube->pShader->id);
+    //pRenderer->pCamera->model = pCastedHyperCube->pTransform->model;
+    hmm_mat4 mvp = getModelViewProj(pRenderer);
+    shaderSetMat4(pCastedHyperCube->pShader, 
+                  "uModelViewProjection", 
+                  &mvp);
+    vaBind(pCastedHyperCube->va);
+    drawBufferStrip(0, 3);
+    
+    return true; 
+}
+
+ENGINE_API inline void 
+setHyperCubeVertices(HyperCube* pHyperCube, const void* pData) {
+    vbSetData(pHyperCube->vb, pData, 12 * sizeof(f32));
 }

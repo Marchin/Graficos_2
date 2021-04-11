@@ -66,6 +66,7 @@ struct Level;
 #include "physics.h"
 #include "tilemap.h"
 #include "wav.h"
+#include "models_parser.h"
 #include "music_visualizer.h"
 
 struct ENGINE_API Time {

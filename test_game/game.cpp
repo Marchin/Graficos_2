@@ -78,14 +78,19 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 #endif
     fillColor(.2f, .2f, .2f);
     
-    Shader modelShader;
-    initShader(&modelShader, "Model", "..//resources//shaders//vModel.glsl", 
-               "..//resources//shaders//fModel.glsl");
+    initShader(&pGame->modelShader, "Model", "..//resources//shaders//vModel.glsl", 
+               "..//resources//shaders//fModel.glsl"); 
     initTransform(&pGame->empty);
     initCharacter(&pGame->character, "..//resources//bath.obj");
     initCharacter(&pGame->character2, "..//resources//bath.obj");
     initCharacter(&pGame->character3, "..//resources//bath.obj");
     initCharacter(&pGame->character4, "..//resources//bath.obj");
+    
+    parseModel(&pGame->modelData, "..//resources//cube.obj");
+    initParsedModel(&pGame->modelData, &pGame->modelShader);
+    
+    addChild(&pGame->modelData.transform, &pGame->empty);
+#if 0
     addChild(&pGame->character.transform, &pGame->empty);
     addChild(&pGame->character2.transform, &pGame->empty);
     pGame->character2.transform.position = {-0.f, 0.f, 40.f};
@@ -93,6 +98,7 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     pGame->character3.transform.position = {-20.f, 0.f, 20.f};
     addChild(&pGame->character4.transform, &pGame->empty);
     pGame->character4.transform.position = {20.f, 0.f, 20.f};
+#endif
 }
 
 global b32 gPaused;
@@ -122,23 +128,24 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         gBlock = false;
     }
 #endif
+    //drawParsedModel(&pGame->modelData);
     V3 up = getRotatedVector(VEC3_Y, pGame->character.transform.rotor);
     V3 right = getRotatedVector(VEC3_X, pRenderer->pCamera->transform.rotor);
     V3 front = getRotatedVector(VEC3_Z, pRenderer->pCamera->transform.rotor);
     if (isKeyPressed(pRenderer, KEY_D)) {
-        moveCamera(&pGame->camera, right, pTime->deltaTime);
+        moveCamera(&pGame->camera, 10.f * right, pTime->deltaTime);
         //transformRotate(&pGame->character.transform, 30.0f*pTime->deltaTime, up);
     }
     if (isKeyPressed(pRenderer, KEY_A)) {
-        moveCamera(&pGame->camera, -1.f * right, pTime->deltaTime);
+        moveCamera(&pGame->camera, -10.f * right, pTime->deltaTime);
         //transformRotate(&pGame->character.transform, -30.0f*pTime->deltaTime, up);
     }
     if (isKeyPressed(pRenderer, KEY_W)) {
-        moveCamera(&pGame->camera, -1.f * front, pTime->deltaTime);
+        moveCamera(&pGame->camera, -10.f * front, pTime->deltaTime);
         //transformRotate(&pGame->character.transform, 30.0f*pTime->deltaTime, right);
     }
     if (isKeyPressed(pRenderer, KEY_S)) {
-        moveCamera(&pGame->camera, front, pTime->deltaTime);
+        moveCamera(&pGame->camera, 10.f * front, pTime->deltaTime);
         //transformRotate(&pGame->character.transform, -30.0f*pTime->deltaTime, right);
     }
     if (isKeyPressed(pRenderer, KEY_E)) {
@@ -159,9 +166,11 @@ updateGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM 
         updateCameraVectors(pRenderer->pCamera);
     }
     
+#if 1
     const hmm_mat4 diag = HMM_Mat4d(1.f);
     transformUpdate(&pGame->empty, pTime->deltaTime, diag);
     transformDraw(&pGame->empty, pRenderer, diag);
+#endif
     
     f64 x, y;
     getMousePos(pRenderer->pWindow, &x, &y);

@@ -673,6 +673,11 @@ drawElements(u32 count) {
     glCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0));
 }
 
+inline void
+drawElementsStrip(u32 count) {
+    glCall(glDrawElements(GL_TRIANGLE_STRIP, count, GL_UNSIGNED_INT, 0));
+}
+
 inline hmm_mat4
 generateModel(Transform* pTransform)  {
     hmm_mat4 result = HMM_Scale(pTransform->scale);
