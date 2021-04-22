@@ -1,3 +1,4 @@
+
 internal char*
 readSongPath() {
     FILE* pFile = fopen("..//build//Song.txt", "r");
@@ -86,7 +87,9 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initCharacter(&pGame->character3, "..//resources//bath.obj");
     initCharacter(&pGame->character4, "..//resources//bath.obj");
     
-    parseModel(&pGame->modelData, "..//resources//cube.obj");
+    //parseModel(&pGame->modelData, "..//resources//bsp2.obj");
+    parseCollada(&pGame->modelData, "..//resources//cube.dae");
+    //parseModel(&pGame->modelData, "..//resources//cube.obj");
     initParsedModel(&pGame->modelData, &pGame->modelShader);
     
     addChild(&pGame->modelData.transform, &pGame->empty);

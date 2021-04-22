@@ -1176,6 +1176,7 @@ processMeshes(Model* pModel, const aiScene* pScene) {
         for (u32 iFace = 0; iFace < facesCount; ++iFace) {
             indicesCount += pAiMesh->mFaces[iFace].mNumIndices;
         }
+        
         pushToStack(pMesh->meshComponentID, 
                     INDICES, 
                     indicesCount);
@@ -1509,6 +1510,7 @@ textureFromFile(const char* pTextureName, const char* pModelPath) {
 
 ////////////////////////////////
 
+/* 
 ENGINE_API void
 initHyperCube(HyperCube* pHyperCube, Transform* pTransform, Shader* pShader) {
     pHyperCube->component.id = HYPER_CUBE;
@@ -1573,3 +1575,4 @@ ENGINE_API inline void
 setHyperCubeVertices(HyperCube* pHyperCube, const void* pData) {
     vbSetData(pHyperCube->vb, pData, 12 * sizeof(f32));
 }
+ */
