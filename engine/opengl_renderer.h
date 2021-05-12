@@ -15,6 +15,7 @@ assert(glLogCall(#x, __FILE__, __LINE__));
                  global const char* gpNormal = "texture_normal";
                  global const char* gpReflection = "texture_reflection";
                  
+                 struct Shader;
                  struct ENGINE_API Shader {
                      meow_hash* pHashLocationCache;
                      s32* pUniformLocationCache;
@@ -23,6 +24,7 @@ assert(glLogCall(#x, __FILE__, __LINE__));
                      u32 id;
                  };
                  
+                 struct Texture;
                  struct ENGINE_API Texture {
                      u32 id;
                      s32 width;
@@ -47,6 +49,7 @@ assert(glLogCall(#x, __FILE__, __LINE__));
                      u32 stride;
                  };
                  
+                 struct Window;
                  struct ENGINE_API Window {
                      void* pInstance;
                      s32 width;
@@ -56,15 +59,11 @@ assert(glLogCall(#x, __FILE__, __LINE__));
                  
                  struct Camera;
                  
+                 struct Renderer;
                  struct ENGINE_API Renderer {
                      Camera* pCamera;
                      Window* pWindow;
                  };
-                 
-                 inline void
-                 setActiveTexture(s32 id) {
-                     glCall(glBindTexture(GL_TEXTURE_2D, id));
-                 }
                  
                  inline void
                  bindTexture(s32 id) {

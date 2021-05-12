@@ -42,6 +42,10 @@ createComponent(ComponentID componentID) {
             result = (Component*)malloc(sizeof(HyperCube));
             memset(result, 0, sizeof(HyperCube));
         } break;
+        case NONE: {
+            result = (Component*)malloc(sizeof(Node));
+            memset(result, 0, sizeof(Node));
+        } break;
         default: {
             result = 0;
         } break;
@@ -124,7 +128,7 @@ initTransform(Transform* pTransform) {
     pTransform->eulerAngles = HMM_Vec3T(0.f);
     pTransform->scale = HMM_Vec3T(1.f);
     pTransform->isRotored = true;
-    pTransform->rotor = {1.f, 0.f, 0.f, 0.f};
+    pTransform->rotor = rot3(0.f, 0.f, 0.f, 1.f);
     pTransform->passedBSP = true;
 }
 
@@ -251,6 +255,29 @@ transformUpdate(Transform* pTransform, const f32 deltaTime, hmm_mat4 parentModel
     if (pTransform->update) {
         pTransform->update(pTransform->pEntity, deltaTime);
     }
+#if 0
+    pTransform->eulerAngles = getRotatedVector(HMM_NormalizeVec3(V3{1.f, 1.f, 1.f}), pTransform->rotor);
+    pTransform->eulerAngles.x = asin(pTransform->eulerAngles.x)*360.0f/(2.0f*PI32);
+    pTransform->eulerAngles.y = asin(pTransform->eulerAngles.y)*360.0f/(2.0f*PI32);
+    pTransform->eulerAngles.z = asin(pTransform->eulerAngles.z)*360.0f/(2.0f*PI32);
+#else
+    Rotor3 rot = pTransform->rotor;
+    f64 sinr_cosp = 2 * (rot.a * rot.dx + rot.dy * rot.dz);
+    f64 cosr_cosp = 1 - 2 * (rot.dx * rot.dx + rot.dy * rot.dy);
+    pTransform->eulerAngles.x = (f32)atan2(sinr_cosp, cosr_cosp)*360.0f/(2.0f*PI32);
+    
+    // pitch (y-axis rotation)
+    f64 sinp = 2 * (rot.a * rot.dy - rot.dz * rot.dx);
+    if (abs(sinp) >= 1)
+        pTransform->eulerAngles.y = (f32)std::copysign(PI32 / 2, sinp)*360.0f/(2.0f*PI32); // use 90 degrees if out of range
+    else
+        pTransform->eulerAngles.y = (f32)asin(sinp)*360.0f/(2.0f*PI32);
+    
+    // yaw (z-axis rotation)
+    f64 siny_cosp = 2 * (rot.a * rot.dz + rot.dx * rot.dy);
+    f64 cosy_cosp = 1 - 2 * (rot.dy * rot.dy + rot.dz * rot.dz);
+    pTransform->eulerAngles.z = (f32)atan2(siny_cosp, cosy_cosp)*360.0f/(2.0f*PI32);
+#endif
     u32 componentCount = pTransform->componentsCount;
     for (u32 iComponent = 0; iComponent < componentCount; ++iComponent) {
         if (pTransform->pComponents[iComponent] && 

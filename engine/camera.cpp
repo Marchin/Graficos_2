@@ -2,7 +2,7 @@ ENGINE_API void
 initCamera(Camera* pCamera, hmm_vec3 position, hmm_vec3 up, f32 yaw, f32 pitch) {
 	initTransform(&pCamera->transform);
 	pCamera->transform.position = position;
-    pCamera->transform.rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+    pCamera->transform.rotor = rot3(0.f, 0.f, 0.f, 1.f);
     //pCamera->transform.rotor = lookAt(position, HMM_Vec3(0.0f, 0.0f, -1.0f));
 	pCamera->worldUp = HMM_Vec3(0.f, 1.f, 0.f);
 	pCamera->yaw = yaw;
@@ -31,7 +31,7 @@ intiCamera(Camera* pCamera,
     
 	initTransform(&pCamera->transform);
 	pCamera->transform.position = HMM_Vec3(posX, posY, posZ);
-    pCamera->transform.rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+    pCamera->transform.rotor = rot3(0.f, 0.f, 0.f, 1.f);
     //pCamera->transform.rotor = lookAt(pCamera->transform.position, HMM_Vec3(0.0f, 0.0f, 1.0f));
     pCamera->worldUp = HMM_Vec3(upX, upY, upZ);
     pCamera->yaw = yaw;
@@ -126,7 +126,7 @@ updateCameraVectors(Camera* pCamera) {
 #if 0
     Rotor3 rotor = pCamera->transform.rotor;
 #else
-    Rotor3 rotor = Rotor3{1.f, 0.f, 0.f, 0.f};
+    Rotor3 rotor = rot3(0.f, 0.f, 0.f, 1.f);
 #endif
     rotor *= rotorFromAngleAndAxis(HMM_ToRadians(pCamera->yaw), up);
     rotor *= rotorFromAngleAndAxis(HMM_ToRadians(pCamera->pitch), right);

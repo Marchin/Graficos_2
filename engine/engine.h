@@ -69,19 +69,6 @@ struct Level;
 #include "models_parser.h"
 #include "music_visualizer.h"
 
-
-
-
-
-
-
-
-
-
-#include "collada.cpp"
-
-
-
 struct ENGINE_API Time {
     f32 deltaTime;
     f32 lastFrame;
@@ -98,6 +85,8 @@ struct Level {
     u32 bspPlaneCount;
     u32 maxBSPPlanes;
 };
+
+#include "collada.cpp"
 
 ENGINE_API void startEngine(Window* pWindow, Renderer* pRenderer, Camera* pCamera);
 ENGINE_API void enginePreUpdate(Window* pWindow, Time* pTime, CollisionManager* pCM = 0);

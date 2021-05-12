@@ -682,7 +682,7 @@ inline hmm_mat4
 generateModel(Transform* pTransform)  {
     hmm_mat4 result = HMM_Scale(pTransform->scale);
     if (pTransform->isRotored) {
-        result = getRotorMat4(pTransform->rotor) * result;
+        result = getMat4FromRotor(pTransform->rotor) * result;
     } else {
         result = HMM_Rotate(pTransform->eulerAngles.x, VEC3_X) * result;
         result = HMM_Rotate(pTransform->eulerAngles.y, VEC3_Y) * result;

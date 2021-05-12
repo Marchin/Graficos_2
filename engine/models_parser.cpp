@@ -85,7 +85,7 @@ parseModel(ModelData* pModelData, char* path) {
 }
 
 void
-initParsedModel(ModelData* pModelData, Shader* pShader) {
+initParsedModel(ModelData* pModelData) {
     pModelData->component.id = MODEL_DATA;
     
     initShader(&pModelData->shader, "Texture", "..//resources//shaders//vModel.glsl", 
@@ -96,9 +96,13 @@ initParsedModel(ModelData* pModelData, Shader* pShader) {
     initVA(&pModelData->va);
     vaBind(pModelData->va);
     
-    initTransform(&pModelData->transform);
+    
+#if 0
     pModelData->transform.pEntity = pModelData;
     pModelData->transform.draw = drawParsedModel;
+    initTransform(&pModelData->transform);
+#else
+#endif
     
     u32 dataSize = pModelData->vertexCount*sizeof(pModelData->pVertices[0]) *
         pModelData->uvCount*sizeof(pModelData->pUV[0])* sizeof(f32);
@@ -113,9 +117,8 @@ initParsedModel(ModelData* pModelData, Shader* pShader) {
             pData[index++] = pModelData->pUV[pModelData->pFaces[iFace].uvIndices[iVertex]].v;
         }
     }
-    u32 vb;
-    initVB(&vb, pData, dataSize);
-    vbBind(vb);
+    initVB(&pModelData->vb, pData, dataSize);
+    vbBind(pModelData->vb);
     VertexBufferLayout layout = {};
     u32 layoutsAmount = 2;
     layout.pElements = (VertexBufferElement*)malloc(layoutsAmount*sizeof(VertexBufferElement));
@@ -124,22 +127,19 @@ initParsedModel(ModelData* pModelData, Shader* pShader) {
     vbLayoutPushFloat(&layout, 3);
     vbLayoutPushFloat(&layout, 2);
     
-    vaAddBuffer(pModelData->va, vb, &layout);
+    vaAddBuffer(pModelData->va, pModelData->vb, &layout);
     free(layout.pElements);
     vaUnbind();
 }
 
 b32
 drawParsedModel(void* pData, Renderer* pRenderer) {
-    glCall(glActiveTexture(GL_TEXTURE0));
     ModelData* pModelData = (ModelData*)pData;
     shaderBindID(pModelData->shader.id);
-    hmm_mat4 mvp = getModelViewProj(pRenderer);
-    shaderSetMat4(&pModelData->shader, 
-                  "uModelViewProjection", 
-                  &mvp);
-    shaderSetInt(&pModelData->shader, "texture_diffuse1", 0);
+    Mat4 mvp = getModelViewProj(pRenderer);
+    shaderSetMat4(&pModelData->shader, "uModelViewProjection", &mvp);
     textureBindID(pModelData->texture.id, 0);
+    shaderSetInt(&pModelData->shader, "texture_diffuse1", 0);
     vaBind(pModelData->va);
     drawBuffer(0, pModelData->facesCount*3);
     vaUnbind();

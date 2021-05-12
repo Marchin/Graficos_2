@@ -146,7 +146,7 @@ getRotorNormal(Rotor3 rot) {
 }
 
 inline Mat4
-getRotorMat4(Rotor3 rotor) {
+getMat4FromRotor(Rotor3 rotor) {
     Mat4 result;
     
     f32 xx2 = 2*rotor.dx*rotor.dx;
@@ -162,6 +162,50 @@ getRotorMat4(Rotor3 rotor) {
     result.Rows[1] = { xy2 - az2, 1 - zz2 - xx2, yz2 + ax2, 0.f };
     result.Rows[2] = { zx2 + ay2, yz2 - ax2, 1 - xx2 - yy2, 0.f };
     result.Rows[3] = { 0.f, 0.f, 0.f, 1.f };
+    
+    return result;
+}
+
+inline Rotor3
+getRotorFromMat4(Mat4 mat) {
+    Rotor3 result = {};
+#if 0
+    result.a = sqrt(1  + (mat.Elements[0][0] + mat.Elements[1][1] + mat.Elements[2][2]));
+    result.yz = (mat.Elements[2][1] - mat.Elements[1][2])/(4*result.a);
+    result.zx = (mat.Elements[0][2] - mat.Elements[2][0])/(4*result.a);
+    result.xy = (mat.Elements[1][0] - mat.Elements[0][1])/(4*result.a);
+#endif
+    Mat4 traspose = {};
+    for (u32 i = 0; i < 4; ++i) {
+        for (u32 j = 0; j < 4; ++j) {
+            traspose.Elements[i][j] = mat.Elements[j][i];
+        }
+    }
+    mat = traspose;
+    
+    if (mat.Elements[2][2] < 0.0f) {
+        if (mat.Elements[0][0] > mat.Elements[1][1]) {
+            f32 t = 1  + mat.Elements[0][0] - mat.Elements[1][1] - mat.Elements[2][2];
+            result = { t, mat.Elements[0][1] + mat.Elements[1][0], mat.Elements[2][0] + mat.Elements[0][2], 
+                mat.Elements[1][2] - mat.Elements[2][1] };
+        } else {
+            f32 t = 1  - mat.Elements[0][0] + mat.Elements[1][1] - mat.Elements[2][2];
+            result = { mat.Elements[0][1] + mat.Elements[1][0], t, mat.Elements[1][2] + mat.Elements[2][1], 
+                mat.Elements[2][0] - mat.Elements[0][2] };
+        }
+    } else {
+        if (mat.Elements[0][0] < -mat.Elements[1][1]) {
+            f32 t = 1  - mat.Elements[0][0] - mat.Elements[1][1] + mat.Elements[2][2];
+            result = { mat.Elements[2][0] + mat.Elements[0][2], mat.Elements[1][2] + mat.Elements[2][1], t,
+                mat.Elements[0][1] - mat.Elements[1][0]};
+        } else {
+            f32 t = 1  + mat.Elements[0][0] + mat.Elements[1][1] + mat.Elements[2][2];
+            result = { mat.Elements[1][2] - mat.Elements[2][1], mat.Elements[2][0] - mat.Elements[0][2], 
+                mat.Elements[0][1] - mat.Elements[1][0], t };
+        }
+    }
+    
+    result = rotorNormalize(result);
     
     return result;
 }

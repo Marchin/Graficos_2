@@ -14,6 +14,7 @@ enum ENGINE_API ComponentID {
     MODEL,
     HYPER_CUBE,
     MODEL_DATA,
+    NODE,
 };
 
 struct Component {

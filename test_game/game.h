@@ -13,7 +13,7 @@ struct Game {
     Shader musicVisualizerShader;
     Shader modelShader;
     MusicData musicData;
-    ModelData modelData;
+    ModelStructure modelStructure;
     f32 camX, camY;
 };
 

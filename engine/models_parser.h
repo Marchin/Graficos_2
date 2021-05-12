@@ -2,6 +2,7 @@
 
 struct Face {
     u32 vertexIndices[3];
+    u32 normalIndices[3];
     u32 uvIndices[3];
 };
 
@@ -10,6 +11,9 @@ struct ModelData {
     
     V3* pVertices;
     u32 vertexCount;
+    
+    V3* pNormals;
+    u32 normalCount;
     
     V2* pUV;
     u32 uvCount;
@@ -23,6 +27,24 @@ struct ModelData {
     Texture texture;
     
     Shader shader;
+    meow_hash idHash;
+    //Transform transform;
+};
+
+struct Node {
+    ModelData* pModel;
+    Transform transform;
+};
+
+struct ModelStructure {
+    Component component;
+    
+    Node* pNodes;
+    ModelData* pModels;
+    
+    u32 nodeCount;
+    u32 modelCount;
+    
     Transform transform;
 };
 
@@ -30,7 +52,7 @@ ENGINE_API void
 parseModel(ModelData* pModelData, char* path);
 
 ENGINE_API void
-initParsedModel(ModelData* pModelData, Shader* pShader);
+initParsedModel(ModelData* pModelData);
 
 ENGINE_API b32
 drawParsedModel(void* pModelData, Renderer* pRenderer);

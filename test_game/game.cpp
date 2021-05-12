@@ -79,6 +79,8 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
 #endif
     fillColor(.2f, .2f, .2f);
     
+    Rotor3 a = getRotorFromMat4(HMM_Mat4d(1.0f));
+    
     initShader(&pGame->modelShader, "Model", "..//resources//shaders//vModel.glsl", 
                "..//resources//shaders//fModel.glsl"); 
     initTransform(&pGame->empty);
@@ -88,11 +90,13 @@ initGame(Game* pGame, Renderer* pRenderer, Time* pTime, CollisionManager* pCM = 
     initCharacter(&pGame->character4, "..//resources//bath.obj");
     
     //parseModel(&pGame->modelData, "..//resources//bsp2.obj");
-    parseCollada(&pGame->modelData, "..//resources//cube.dae");
-    //parseModel(&pGame->modelData, "..//resources//cube.obj");
-    initParsedModel(&pGame->modelData, &pGame->modelShader);
+    //parseCollada(&pGame->modelStructure, "..//resources//cube.dae");
+    parseCollada(&pGame->modelStructure, "..//resources//bsp.dae");
+    //parseCollada(&pGame->modelStructure, "..//resources//bsp6.dae");
+    //parseModel(&pGame->modelStructure, "..//resources//cube.obj");
+    //initParsedModel(&pGame->modelStructure, &pGame->modelShader);
     
-    addChild(&pGame->modelData.transform, &pGame->empty);
+    addChild(&pGame->modelStructure.transform, &pGame->empty);
 #if 0
     addChild(&pGame->character.transform, &pGame->empty);
     addChild(&pGame->character2.transform, &pGame->empty);
